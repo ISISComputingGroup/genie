@@ -1,7 +1,5 @@
-import urllib2
 import sys
 import os
-
 
 def init(inst):
     # Check folder exists, if so add to sys path
@@ -28,12 +26,6 @@ def begin_postcmd(**pars):
         pass
     if 'run_num' in pars:
         pass
-    # Set to ignore proxy for localhost
-    print "Restarting archiver"
-    proxy_handler = urllib2.ProxyHandler({})
-    opener = urllib2.build_opener(proxy_handler)
-    urllib2.install_opener(opener)
-    urllib2.urlopen("http://localhost:4813/restart")
 
 
 def end_precmd(**pars):

@@ -1,4 +1,4 @@
-from time import strftime, localtime, sleep
+from time import strftime, localtime
 from genie_dae import Dae
 from genie_waitfor import WaitForController
 from genie_wait_for_move import WaitForMoveController
@@ -43,8 +43,10 @@ class API(object):
             try:
                 name = instrument.lower()
                 API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
+                # Call the init command
+                init_func = getattr(API.__localmod, "init")
+                init_func(name)
             except Exception as err:
-                print err
                 msg = "Could not find init_" + instrument.lower() + " so will use default"
                 print msg
             pv_prefix = "IN:" + instrument + ":"
@@ -133,9 +135,9 @@ class API(object):
         
     def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
         """Sets a range of block values"""
-        #Run pre-command
+        # Run pre-command
         if wait is not None and runcontrol is not None:
-            #Cannot set both at the same time
+            # Cannot set both at the same time
             raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
             
         if not self.run_pre_post_cmd('cset_precmd', runcontrol=runcontrol, wait=wait):
@@ -161,18 +163,18 @@ class API(object):
             # elif highlimit == float("-inf"):
                 # highlimit = '-Infinity'            
         if value is not None:
-            #Need to append :SP to the blockname - this is NOT a long term solution!
-            #If a field is included then strip it off
+            # Need to append :SP to the blockname - this is NOT a long term solution!
+            # If a field is included then strip it off
             if "." in name:
                 name = name[:name.index('s')]
                 name = self.correct_blockname(name)
                 if self.pv_exists(name + ":SP"):
                     self.set_pv_value(name + ":SP", value)
                 else:
-                    #try the unmodified name
+                    # Try the unmodified name
                     self.set_pv_value(full_name, value)
             else:
-                #Default case
+                # Default case
                 if self.pv_exists(full_name + ":SP"):
                     self.set_pv_value(full_name + ":SP", value)
                 else:
@@ -182,12 +184,12 @@ class API(object):
             return
         if runcontrol is not None:
             if runcontrol:
-                #Turn on
+                # Turn on
                 self.set_pv_value(full_name + ":RC:ENABLE", 1)
             else:
-                #Turn off
+                # Turn off
                 self.set_pv_value(full_name + ":RC:ENABLE", 0)
-        #Set limits
+        # Set limits
         if lowlimit is not None:
             self.set_pv_value(full_name + ":RC:LOW", lowlimit)
         if highlimit is not None:
@@ -199,10 +201,10 @@ class API(object):
             
     def set_multiple_blocks(self, names, values):
         """Sets values for multiple blocks"""
-        #With LabVIEW we could set values then press go after all values are set
-        #Not sure we are going to do something similar for EPICS
+        # With LabVIEW we could set values then press go after all values are set
+        # Not sure we are going to do something similar for EPICS
         temp = zip(names, values)
-        #Set the values
+        # Set the values
         for name, value in temp:
             self.set_block_value(name, value)        
             
@@ -214,13 +216,13 @@ class API(object):
             pars - the parameters to pass to the command
         """
         try:
-            #Try getting the instrument specific version
+            # Try getting the instrument specific version
             func = getattr(API.__localmod, command)
             return func(**pars)
         except:
             pass
         try:
-            #try getting the default
+            # Try getting the default
             func = getattr(API.__mod, command)
             return func(**pars)
         except Exception as msg:
@@ -231,8 +233,7 @@ class API(object):
         self.write_to_log(readline.get_line_buffer(), 'CMD')
 
     def log_error_msg(self, error_msg):
-        """Log the error to the log file
-        """
+        """Log the error to the log file"""
         self.write_to_log("ERROR: " + error_msg, 'CMD')
     
     def write_to_log(self, message, source):
@@ -279,7 +280,7 @@ class API(object):
             for n in names:
                 m = re.match(".+:SAMPLE:%s" % name.upper(), n)
                 if m is not None:
-                    #found it!
+                    # Found it!
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
         raise Exception("Sample parameter %s does not exist" % name)
@@ -307,7 +308,7 @@ class API(object):
             for n in names:
                 m = re.match(".+:BL:%s" % name.upper(), n)
                 if m is not None:
-                    #found it!
+                    # Found it!
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
         raise Exception("Beamline parameter %s does not exist" % name)

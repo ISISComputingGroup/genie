@@ -1,6 +1,15 @@
 # genie_python
 
-The ISIS Python-based instrument control and scripting library. 
+The ISIS Python-based instrument control and scripting library.
+
+## Initialisation
+
+Ny default when setting an instrument the init_INSTNAME.py file is loaded. This file checks for the existance of a
+folder called C:\Instrument\Settings\config\NDXINSTNAME\Python and adds this to the sys path.
+This means that Python modules can be imported directly from that directory. If running on a client it is necessary to
+have a copy of the Python directory for the instrument being connected to in the correct location.
+
+Folders inside the Python directory must have a __init__.py file for them to be available to be imported.
 
 ## The load_script workaround
 

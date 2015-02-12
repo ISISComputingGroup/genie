@@ -1,5 +1,9 @@
-#print "loading init_default"
-#from genie_python.genie import *
+import sys
+import os
+
+
+def init(inst):
+    pass
 
 
 def abort_precmd(**pars):
