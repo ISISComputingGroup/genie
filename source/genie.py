@@ -1439,6 +1439,23 @@ def get_config_iocs():
     except Exception as e:
         _handle_exception(e)
 
+@_log_command
+def send_sms(phone_num, message):
+    """Send a text message to a mobile phone
+
+    Parameters
+    ----------
+    phone_num : the mobile number to send to
+    message : the message to send
+    """
+    try:
+        import subprocess
+        path = os.path.dirname(os.path.realpath(__file__))
+        p = subprocess.Popen([ path + "\\SMS_Sender.exe", phone_num, message], stdout=subprocess.PIPE)
+        print p.stdout.read()
+    except Exception as e:
+        _handle_exception(e)
+
 
 if __name__ == "__main__":
     #Put quick tests here, but delete them or make them into full tests when done.
