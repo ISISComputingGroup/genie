@@ -1449,10 +1449,8 @@ def send_sms(phone_num, message):
     message : the message to send
     """
     try:
-        import subprocess
-        path = os.path.dirname(os.path.realpath(__file__))
-        p = subprocess.Popen([ path + "\\SMS_Sender.exe", phone_num, message], stdout=subprocess.PIPE)
-        print p.stdout.read()
+        from smslib.sms import send_sms
+        send_sms(phone_num, message)
     except Exception as e:
         _handle_exception(e)
 
