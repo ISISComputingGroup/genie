@@ -67,6 +67,7 @@ DAE_PVS_LOOKUP = {
     "getspectrum_y": "DAE:SPEC:%d:%d:Y",
     "errormessage": "DAE:ERRMSGS",
     "allmessages": "DAE:ALLMSGS",
+    "statetrans": "DAE:STATETRANS",
 }
 
 
@@ -858,3 +859,10 @@ class Dae(object):
         y_data = self._get_pv_value(self._get_dae_pv_name("getspectrum_y") % (period, spectrum))
         x_data = self._get_pv_value(self._get_dae_pv_name("getspectrum_x") % (period, spectrum))
         return {'time': x_data, 'signal': y_data, 'sum': None, 'mode': 'distribution'}
+
+    def in_transition(self):
+        transition = self._get_pv_value(self._get_dae_pv_name("statetrans"))
+        if transition == "Yes":
+            return True
+        else:
+            return False
