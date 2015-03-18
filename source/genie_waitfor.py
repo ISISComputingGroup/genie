@@ -93,7 +93,7 @@ class WaitForController(object):
         while True:
             curr = self.api.dae.get_run_state()
             if onexit:
-                if curr != state:
+                if curr != state and not self.api.dae.in_transition():
                     break           
             else:
                 if curr == state:
