@@ -27,7 +27,7 @@ class CaChannelWrapper(object):
         if name not in CACHE.keys():
             chan = CaChannel(name)
             chan.setTimeout(TIMEOUT)
-            #Try to connect - throws if cannot
+            # Try to connect - throws if cannot
             chan.searchw()
             CACHE[name] = chan
         else:
@@ -36,7 +36,7 @@ class CaChannelWrapper(object):
             chan.putw(value)
         else:
             def putCB(epics_args, user_args):
-                #Do nothing in the callback
+                # Do nothing in the callback
                 pass
             ftype = chan.field_type()
             ecount = chan.element_count()
@@ -49,7 +49,7 @@ class CaChannelWrapper(object):
         if name not in CACHE.keys():
             chan = CaChannel(name)
             chan.setTimeout(TIMEOUT)
-            #Try to connect - throws if cannot
+            # Try to connect - throws if cannot
             chan.searchw()
             CACHE[name] = chan
         else:
@@ -62,7 +62,7 @@ class CaChannelWrapper(object):
                 value = chan.getw(ca.DBR_STRING)
             else:
                 value = chan.getw(ca.DBR_CHAR)
-            #Could see if the element count is > 1 instead
+            # Could see if the element count is > 1 instead
             if isinstance(value, list):
                 return CaChannelWrapper._waveform2string(value)
             else:
@@ -75,7 +75,7 @@ class CaChannelWrapper(object):
         """See if the PV exists"""
         try:
             chan = CaChannel(name)
-            #Try to connect - throws if cannot
+            # Try to connect - throws if cannot
             chan.searchw()
             return True
         except:

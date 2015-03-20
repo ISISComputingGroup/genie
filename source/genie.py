@@ -359,7 +359,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
     """
     try:
         if block is None:
-            #search through the params to see if there is a block there
+            # Search through the params to see if there is a block there
             blks = __api.get_blocks()
             for k in pars:
                 if k in blks:
@@ -367,10 +367,10 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
                         raise Exception('Can set waitfor for only one block at a time')
                     block = k
                     value = pars[k]
-        #check that wait_for object exists
+        # Check that wait_for object exists
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
-        #start_waiting checks the block exists
+        # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
                                     frames, uamps)
     except Exception as e:
@@ -398,7 +398,7 @@ def waitfor_runstate(state, maxwaitsecs=60, onexit=False):
     >>> waitfor_runstate("pause", onexit=True)
     """
     try:
-        #check that wait_for object exists
+        # Check that wait_for object exists
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         __api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit)
@@ -469,7 +469,7 @@ def set_messages_verbosity(verbose):
         
         
 @_log_command 
-def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", wait=False, quiet=False, paused=False,
+def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
     """Starts a data collection run.
         
@@ -480,12 +480,13 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", wai
     meas_type : the type of measurement [optional]
     meas_subid : the measurement sub-id[optional]
     sample_id : the sample id [optional]
-    wait : wait for 120 seconds then abort then begin again [optional]
+    delayed : puts the period card to into delayed start mode [optional]
     quiet : suppress the output to the screen [optional]
     paused : begin in the paused state [optional]
     """
     try:       
-        __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, wait, quiet, paused, verbose)
+        __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused, verbose)
+        waitfor_runstate("SETUP", onexit=True)
     except Exception as e:
         _handle_exception(e)
 
@@ -1196,9 +1197,9 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 @_log_command
 def change(**params):
     """Change experiment parameters.
-    
+
     Note: it is possible to change more than one item at a time.
-        
+
     Parameters
     ----------
     title : change the current title
@@ -1209,16 +1210,16 @@ def change(**params):
     rbno : change the RB number (not implemented)
     aoi : change the angle of incidence (reflectometers only) (not implemented)
     phi : change the sample angle PHI (reflectometers only) (not implemented)
-        
+
     EXAMPLE
     -------
-    
+
     Change the title:
-    
+
     >>> change(title="The new title")
-        
+
     Change the RB number and the users:
-    
+
     >>> change(rbno=123456, user="A. User and Ann Other")
     """
     try:

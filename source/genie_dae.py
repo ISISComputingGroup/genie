@@ -118,7 +118,7 @@ class Dae(object):
             raise Exception("Value must be boolean")
                        
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
-                  sample_id=None, wait=False, quiet=False, paused=False, verbose=False):
+                  sample_id=None, delayed=False, quiet=False, paused=False, verbose=False):
         """Starts a data collection run.
         
         Parameters:
@@ -127,7 +127,7 @@ class Dae(object):
             meas_type - the type of measurement [optional]
             meas_subid - the measurement sub-id[optional]
             sample_id - the sample id [optional]
-            wait - wait for 120 seconds then abort then begin again [optional]
+            delayed - puts the period card to into delayed start mode [optional]
             quiet - suppress the output to the screen [optional]
             paused - begin in the paused state [optional]
         """
@@ -158,11 +158,11 @@ class Dae(object):
             #Set the period before starting the run
             self.set_period(period)
             
-        #by choosing the value sent to the begin PV it can set pause and/or wait
+        # By choosing the value sent to the begin PV it can set pause and/or delayed
         options = 0
         if paused:
             options += 1
-        if wait:
+        if delayed:
             options += 2       
         
         self.api.run_pre_post_cmd("begin_precmd", quiet=quiet)
