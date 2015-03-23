@@ -501,6 +501,7 @@ def abort(verbose=False):
     """
     try:        
         __api.dae.abort_run(verbose)
+        waitfor_runstate("SETUP")
     except Exception as e:
         _handle_exception(e)
 
@@ -515,6 +516,7 @@ def end():
     """
     try:        
         __api.dae.end_run()
+        waitfor_runstate("SETUP")
     except Exception as e:
         _handle_exception(e)
 
@@ -529,6 +531,7 @@ def pause(verbose=False):
     """
     try:
         __api.dae.pause_run(verbose)
+        waitfor_runstate("PAUSED")
     except Exception as e:
         _handle_exception(e)
 
@@ -543,6 +546,7 @@ def resume(verbose=False):
     """
     try:
         __api.dae.resume_run(verbose)
+        waitfor_runstate("PAUSED", onexit=True)
     except Exception as e:
         _handle_exception(e)
 
@@ -560,6 +564,7 @@ def recover(verbose=False):
     """
     try:
         __api.dae.recover_run(verbose)
+        waitfor_runstate("SETUP", onexit=True)
     except Exception as e:
         _handle_exception(e)
 
@@ -575,6 +580,7 @@ def updatestore(verbose=False):
     """
     try:
         __api.dae.update_store_run(verbose)
+        waitfor_runstate("SAVING", onexit=True)
     except Exception as e:
         _handle_exception(e)
 
@@ -590,6 +596,7 @@ def update(nopause=False, verbose=False):
     """
     try:
         __api.dae.update_run(not nopause, verbose)
+        waitfor_runstate("UPDATING", onexit=True)
     except Exception as e:
         _handle_exception(e)
 
@@ -604,6 +611,7 @@ def store(verbose=False):
     """
     try:
         __api.dae.store_run(verbose)
+        waitfor_runstate("STORING", onexit=True)
     except Exception as e:
         _handle_exception(e)
 

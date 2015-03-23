@@ -91,7 +91,7 @@ class WaitForController(object):
             print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
         start_time = datetime.now()
         while True:
-            sleep(0.5)
+            sleep(0.3)
             curr = self.api.dae.get_run_state()
             if onexit:
                 if curr != state and not self.api.dae.in_transition():
