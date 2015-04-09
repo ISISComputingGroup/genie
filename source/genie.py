@@ -10,9 +10,9 @@ from collections import OrderedDict
 from genie_epics_api import *
 from genie_script_checker import ScriptChecker
 
-#Windows specific stuff
+# Windows specific stuff
 if os.name == 'nt':
-    #Needed for correcting file paths
+    # Needed for correcting file paths
     import win32api
 
 if 'SCISOFT_RPC_PORT' in os.environ:
@@ -20,25 +20,25 @@ if 'SCISOFT_RPC_PORT' in os.environ:
 else:
     from genie_plot import GeniePlot, SpectraPlot
 
-#INITIALISATION CODE - DO NOT DELETE
+# INITIALISATION CODE - DO NOT DELETE
 try:
-    #If __api does not exist or is None then we need to create it.
+    # If __api does not exist or is None then we need to create it.
     if __api is None:
         raise Exception("API does not exist")
 except:
-    #This should only get called the first time genie is imported
+    # This should only get called the first time genie is imported
     if 'MYPVPREFIX' in os.environ:
         MY_PV_PREFIX = os.environ['MYPVPREFIX']
-        __api = API(MY_PV_PREFIX)
+        __api = API(MY_PV_PREFIX, globals())
     else:
         print "No instrument specified - to set the instrument use the 'set_instrument' command"
-        __api = API(None)
+        __api = API(None, globals())
 SCRIPT_DIR = "C:/scripts/"
 _exceptions_raised = False
-#END INITIALISATION CODE
+# END INITIALISATION CODE
 
 
-#TAB COMPLETE FOR LOAD_SCRIPT
+# TAB COMPLETE FOR LOAD_SCRIPT
 def complete(text, state):
     if text.startswith('load_script("') or text.startswith("load_script('"):
         temp = text[13:]
@@ -52,11 +52,11 @@ __ipy_complete = readline.get_completer()
 readline.set_completer_delims(' \t\n;')
 readline.parse_and_bind("tab: complete")
 readline.set_completer(complete)
-#END TAB COMPLETE
+# END TAB COMPLETE
 
 
 def _log_command(fn):
-    #use wraps to make decorator propogate the docstring for the wrapped function
+    # Use wrappers to make decorator propogate the docstring for the wrapped function
     @wraps(fn)
     def logged(*args, **kwargs):
         __api.log_entered_command()
@@ -67,16 +67,16 @@ def _log_command(fn):
 def _print_error_message(message):
     """Print the error message to screen"""
     if os.name == 'nt':
-        #Is windows
+        # Is windows
         from ctypes import windll
         std_output_handle = -11
         stdout_handle = windll.kernel32.GetStdHandle(std_output_handle)
         windll.kernel32.SetConsoleTextAttribute(stdout_handle, 12)
         print "ERROR: " + message
     else:
-        #Non-windows
+        # Non-windows
         print '\033[91m' + "ERROR: " + message
-    #Log it
+    # Log it
     __api.log_error_msg(message)
 
 
@@ -98,16 +98,16 @@ def _handle_exception(exception=None, message=None):
 
 
 @_log_command
-def set_instrument(pv_prefix):
+def set_instrument_internal(pv_prefix, globs):
     """Sets the instrument this session is communicating with.
     Used for remote access.
-    
+
     Parameters
     ----------
     pv_prefix : the PV prefix
     """
     try:
-        __api.set_instrument(pv_prefix)
+        __api.set_instrument(pv_prefix, globs)
     except Exception as e:
         _handle_exception(e)
 
@@ -169,9 +169,9 @@ def cset(*args, **kwargs):
     >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
 
-    #cset only works for blocks (currently)
-    #block names contain alpha-numeric and underscores only
-    #run-control not implemented yet!
+    # cset only works for blocks (currently)
+    # Block names contain alpha-numeric and underscores only
+    # Run-control not implemented yet!
     try:
         block = None
         blocks = []
@@ -182,7 +182,7 @@ def cset(*args, **kwargs):
         highlimit = None
         wait = None
 
-        #See if single block name was entered, i.e. cset("block1", runcontrol=True)
+        # See if single block name was entered, i.e. cset("block1", runcontrol=True)
         if len(args) > 0:
             if len(args) > 2:
                 raise Exception('Too many arguments, please type: help(cset) for more information on the syntax')
@@ -203,7 +203,7 @@ def cset(*args, **kwargs):
             elif k.lower() == 'wait':
                 wait = kwargs['wait']
             else:
-                #Perhaps it is a block?
+                # Perhaps it is a block?
                 if __api.block_exists(k):
                     blocks.append(k)
                     values.append(kwargs[k])
@@ -214,18 +214,18 @@ def cset(*args, **kwargs):
             raise Exception('Incorrect syntax, please type: help(cset) for more information on the syntax')
 
         if block is not None:
-            #Something like cset("block1", runcontrol=True) or cset("block1", 10)
+            # Something like cset("block1", runcontrol=True) or cset("block1", 10)
             if wait:
                 raise Exception('Cannot wait as no setpoint specified. Please type: help(cset) for help')
             __api.set_block_value(block, value, runcontrol, lowlimit, highlimit, wait)
         elif len(blocks) == 1:
-            #Something like cset(block1=123, runcontrol=True)
+            # Something like cset(block1=123, runcontrol=True)
             if wait and runcontrol is not None:
                 raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
             else:
                 __api.set_block_value(blocks[0], values[0], runcontrol, lowlimit, highlimit, wait)
         else:
-            #Setting multiple blocks, so runcontrol and waiting are not allowed
+            # Setting multiple blocks, so runcontrol and waiting are not allowed
             if runcontrol is not None or lowlimit is not None or highlimit is not None:
                 raise Exception('Runcontrol settings can only be changed for one block at a time')
             if wait is not None:
@@ -279,14 +279,15 @@ def cshow(block=None):
                 output = block + ' = ' + str(__api.get_block_value(block))
                 rc = __api.get_runcontrol_settings(block)
                 if rc is not None:
-                    output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"], rc["HIGH"])
+                    output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
+                                                                                     rc["HIGH"])
                 
-                #~ output = str(api.blocks[block].name) + ' = ' + str(api.blocks[block].value)
-                #~ output += ' (setpoint = ' + str(api.blocks[block].setpoint)
-                #~ output += ', runcontrol = ' + str(api.blocks[block].runcontrol)
-                #~ output += ', lowlimit = '  + str(api.blocks[block].lowlimit)
-                #~ output += ', highlimit = '  + str(api.blocks[block].highlimit)
-                #~ output += ')'
+                # output = str(api.blocks[block].name) + ' = ' + str(api.blocks[block].value)
+                # output += ' (setpoint = ' + str(api.blocks[block].setpoint)
+                # output += ', runcontrol = ' + str(api.blocks[block].runcontrol)
+                # output += ', lowlimit = '  + str(api.blocks[block].lowlimit)
+                # output += ', highlimit = '  + str(api.blocks[block].highlimit)
+                # output += ')'
                 print output
             else:
                 raise Exception('No block with that name exists')
@@ -416,7 +417,7 @@ def waitfor_move(timeout=2):
 
     """
     try:
-        #check that wait_for_move object exists
+        # Check that wait_for_move object exists
         if __api.wait_for_move is None:
             raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
         __api.wait_for_move.wait(timeout)
@@ -714,20 +715,6 @@ def get_totalcounts():
         _handle_exception(e)
 
 
-# Commented out as not needed by users, rather they are for diagnostics
-# Currently, does not work with the EPICS system
-#~ def sum_all_dae_memory():
-    #~ """Sum counts in all detector cards in the DAE."""
-    #~ 
-    #~ return __api.dae.sum_all_dae_memory()
-
-
-#~ def sum_all_spectra():
-    #~ """Get the sum of all the spectra in the DAE."""
-    #~ 
-    #~ return __api.dae.sum_all_spectra()
-
-    
 @_log_command
 def get_title():
     """Returns the current title."""
@@ -780,7 +767,7 @@ def get_dashboard():
         data["beam_current"] = __api.dae.get_beam_current()
         data["total_current"] = __api.dae.get_total_uamps()
         data["spectra"] = __api.dae.get_num_spectra()
-        #data["dae_memory_used"] = __api.dae.get_memory_used()         #Not implemented in EPICS system
+        # data["dae_memory_used"] = __api.dae.get_memory_used()         #Not implemented in EPICS system
         data["periods"] = __api.dae.get_num_periods()
         data["time_channels"] = __api.dae.get_num_timechannels()
         data["monitor_spectrum"] = __api.dae.get_monitor_spectrum()
@@ -795,12 +782,12 @@ def get_dashboard():
 def _correct_filepath(filepath):
     if os.name == 'nt':
         try:
-            #correct path case for windows as Python needs correct casing
+            # Correct path case for windows as Python needs correct casing
             return win32api.GetLongPathName(win32api.GetShortPathName(filepath))
         except Exception as err:
             raise Exception("Invalid file path entered: %s" % err)
     else:
-        #Nothing to do for unix
+        # Nothing to do for unix
         return filepath
 
 
@@ -839,10 +826,10 @@ def import_user_script_module(name, globs):
 
         try:
             if "/" in name:
-                #Probably a fullpath name
+                # Probably a fullpath name
                 name = _correct_filepath(name)
             else:
-                #May be a file in the SCRIPT_DIR
+                # May be a file in the SCRIPT_DIR
                 name = _correct_filepath(SCRIPT_DIR + name)
             directory, filename = os.path.split(os.path.abspath(name))
             directory += '\\'
@@ -850,8 +837,8 @@ def import_user_script_module(name, globs):
             raise Exception("Script file was not found")
 
         mod = __load_module(filename[0:-3], directory)
-        #If we get this far then the script is syntactically correct as far as Python is concerned
-        #Now check the script details manually
+        # If we get this far then the script is syntactically correct as far as Python is concerned
+        # Now check the script details manually
         sc = ScriptChecker(__file__)
         errs = sc.check_script(name)
         if len(errs) > 0:
@@ -860,8 +847,8 @@ def import_user_script_module(name, globs):
                 combined += "\n\t" + e
             raise Exception(combined)
 
-        #Safe to load
-        #Read the file to get the name of the functions
+        # Safe to load
+        # Read the file to get the name of the functions
         funcs = []
         f = open(directory + filename, "r")
         for l in f.readlines():
@@ -872,11 +859,11 @@ def import_user_script_module(name, globs):
         scripts = []
         for att in dir(mod):
             if isinstance(mod.__dict__.get(att), types.FunctionType):
-                #Check function comes from script file not an import
+                # Check function comes from script file not an import
                 if att in funcs:
                     scripts.append(att)
         if len(scripts) > 0:
-            #This is where the script file is actually loaded
+            # This is where the script file is actually loaded
             execfile(directory + filename, globs)
             msg = "Loaded the following script(s): "
             for script in scripts:
@@ -1241,16 +1228,16 @@ def change(**params):
                 set_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
                 __api.dae.set_users(params[k])
-            #~ elif key == 'sample_name':
-                #~ api.set_sample_name(params[k])
-            #~ elif key == 'thickness':
-                #~ api.set_sample_par('thickness', params[k])
-            #~ elif key == 'rb' or key == 'rbno':
-                #~ api.set_rb_number(params[k])
-            #~ elif key == 'aoi':
-                #~ api.change_vars(aoi=params[k])
-            #~ elif key == 'phi':
-                #~ api.change_vars(phi=params[k])
+            # elif key == 'sample_name':
+                # api.set_sample_name(params[k])
+            # elif key == 'thickness':
+                # api.set_sample_par('thickness', params[k])
+            # elif key == 'rb' or key == 'rbno':
+                # api.set_rb_number(params[k])
+            # elif key == 'aoi':
+                # api.change_vars(aoi=params[k])
+            # elif key == 'phi':
+                # api.change_vars(phi=params[k])
     except Exception as e:
         _handle_exception(e)
 
@@ -1462,9 +1449,3 @@ def send_sms(phone_num, message):
         send_sms(phone_num, message)
     except Exception as e:
         _handle_exception(e)
-
-
-if __name__ == "__main__":
-    #Put quick tests here, but delete them or make them into full tests when done.
-    #~ set_beamline_par(aperture=123, aperture2=321)
-    cshow()

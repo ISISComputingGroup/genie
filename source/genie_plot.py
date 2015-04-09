@@ -1,6 +1,7 @@
 import matplotlib.pyplot as pyplt
 import matplotlib.dates as dates
 
+
 class SePlot(object):
     def __init__(self):
         pyplt.ion()
@@ -22,6 +23,7 @@ class SePlot(object):
     def __update_legend(self):
         handles, labels = self.ax.get_legend_handles_labels()
         self.ax.legend(handles, labels)
+
 
 class SpectraPlot(object):
     def __init__(self, api, spectrum, period, dist):

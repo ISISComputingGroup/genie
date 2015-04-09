@@ -13,7 +13,7 @@ class WaitForController(object):
     
     def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False, 
                       seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None):
-        #Error checks
+        # Error checks
         timeout_msg = ''
         if maxwait is not None:
             if not isinstance(maxwait, float) and not isinstance(maxwait, int):
@@ -74,10 +74,10 @@ class WaitForController(object):
             if uamps is not None:
                 res.append(self.api.dae.get_uamps() < uamps)
             if wait_all:
-                if not True in res:
+                if True not in res:
                     return
             else:
-                #Only need to wait for one of the settings to become false
+                # Only need to wait for one of the settings to become false
                 if False in res:
                     return                  
             sleep(0.5)
@@ -113,7 +113,7 @@ class WaitForController(object):
         
     def waiting_for_time(self):
         if self.start_time is None or self.time_delta is None:
-            #Not initiated so not waiting
+            # Not initiated so not waiting
             return None
         else:
             if datetime.now() - self.start_time >= self.time_delta:
@@ -157,7 +157,7 @@ class WaitForController(object):
             low = lowlimit
         if highlimit is not None:
             high = highlimit
-        #Check low and high are round the correct way    
+        # Check low and high are round the correct way
         if low is not None and high is not None and low > high:
             temp = high
             high = low
@@ -169,8 +169,8 @@ class WaitForController(object):
             return None                
         currval = self.api.get_block_value(self.block)
         flag = True
-        if self.low != None: 
+        if self.low is not None:
             flag = currval >= float(self.low)
-        if self.high != None:
+        if self.high is not None:
             flag = currval <= float(self.high) and flag
         return not flag

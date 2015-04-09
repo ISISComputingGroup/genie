@@ -23,16 +23,16 @@ class API(object):
     __block_prefix = "CS:SB:"
     __motion_suffix = "CS:MOT:MOVING"
 
-    def __init__(self, pv_prefix):
+    def __init__(self, pv_prefix, globs):
         """Constructor for the EPICS enabled API
         
         Parameters:
             pv_prefix - used for prefixing the PV and block names
         """
         if pv_prefix is not None:
-            self.set_instrument(pv_prefix)
+            self.set_instrument(pv_prefix, globs)
 
-    def set_instrument(self, pv_prefix):
+    def set_instrument(self, pv_prefix, globs):
         """Set the instrument being used by setting the PV prefix"""
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
         if pv_prefix.startswith("NDX") or pv_prefix.startswith("IN:"):        
@@ -43,6 +43,9 @@ class API(object):
             try:
                 name = instrument.lower()
                 API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
+                # Load it - this puts any imports in the init file into the globals namespace
+                file_loc = API.__localmod.__file__[:-1]
+                execfile(file_loc, globs)
                 # Call the init command
                 init_func = getattr(API.__localmod, "init")
                 init_func(name)
@@ -61,7 +64,7 @@ class API(object):
     def prefix_pv_name(self, name):
         """Adds the instrument prefix to the specified PV"""
         if API.__inst_prefix is not None:
-            name = API.__inst_prefix + name
+            return API.__inst_prefix + name
         return name
 
     def set_pv_value(self, name, value, wait=False):
@@ -110,14 +113,14 @@ class API(object):
         for i in range(len(blocks)):
             if name.lower() == blocks[i].lower():
                 return self.__inst_prefix + API.__block_prefix + blocks[i]
-        #If we get here then the block does not exist
-        #but this should be picked up elsewhere
+        # If we get here then the block does not exist
+        # but this should be picked up elsewhere
         return name
         
     def get_blocks(self):
         """Gets a list of block names from the blockserver
         Note: does not include the prefix"""
-        #Get blocks from block server
+        # Get blocks from block server
         return API.blockserver.get_block_names()
         
     def block_exists(self, name):
