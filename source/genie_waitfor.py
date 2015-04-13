@@ -82,7 +82,7 @@ class WaitForController(object):
                     return                  
             sleep(0.5)
             
-    def wait_for_runstate(self, state, maxwaitsecs=60, onexit=False):
+    def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
         time_delta = self._get_time_delta(maxwaitsecs, 0, 0)
         state = state.upper().strip()
         if onexit:
