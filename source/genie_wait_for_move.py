@@ -46,7 +46,7 @@ class WaitForMoveController(object):
             sleep(polling_delay)
             period += 1
             if period >= max_periods:
-                raise RuntimeError("No movement detected after {0} seconds".format(timeout))
+                break
 
     def moving(self):
         return self._api.get_pv_value(self._motion_pv) != 0
