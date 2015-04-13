@@ -5,6 +5,7 @@ import sys
 import readline
 import glob
 import re
+import ctypes
 from functools import wraps
 from collections import OrderedDict
 from genie_epics_api import *
@@ -44,7 +45,8 @@ def complete(text, state):
         temp = text[13:]
         ans = (glob.glob(temp+'*')+[None])[state]
         if ans is not None:
-            return text[:13] + ans
+            # return / to avoid a quoting issue with \ in paths
+            return (text[:13] + ans).replace('\\','/')
     else:
         return __ipy_complete(text, state)
 
@@ -64,18 +66,32 @@ def _log_command(fn):
     return logged
 
 
+class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
+    _fields_ = [
+        ('dwSize', ctypes.wintypes._COORD),
+        ('dwCursorPosition', ctypes.wintypes._COORD),
+        ('wAttributes', ctypes.c_ushort),
+        ('srWindow', ctypes.wintypes._SMALL_RECT),
+        ('dwMaximumWindowSize', ctypes.wintypes._COORD)
+    ]
+
+
 def _print_error_message(message):
     """Print the error message to screen"""
+    ## Look at using colorama ?
     if os.name == 'nt':
         # Is windows
-        from ctypes import windll
         std_output_handle = -11
-        stdout_handle = windll.kernel32.GetStdHandle(std_output_handle)
-        windll.kernel32.SetConsoleTextAttribute(stdout_handle, 12)
+        stdout_handle = ctypes.windll.kernel32.GetStdHandle(std_output_handle)
+        csbi = CONSOLE_SCREEN_BUFFER_INFO()
+        ctypes.windll.kernel32.GetConsoleScreenBufferInfo(stdout_handle, ctypes.byref(csbi))
+        old_attrs = csbi.wAttributes
+        ctypes.windll.kernel32.SetConsoleTextAttribute(stdout_handle, 12)
         print "ERROR: " + message
+        ctypes.windll.kernel32.SetConsoleTextAttribute(stdout_handle, old_attrs)
     else:
         # Non-windows
-        print '\033[91m' + "ERROR: " + message
+        print '\033[91m' + "ERROR: " + message + '\033[0m'
     # Log it
     __api.log_error_msg(message)
 
