@@ -134,7 +134,7 @@ class Dae(object):
         if self.in_change:
             raise Exception("Cannot start in CHANGE mode, type change_finish()")
         
-        #Set sample parameters - these parameters do not currently exist
+        # Set sample parameters - these parameters do not currently exist
         if meas_id is not None:
             pass
         if meas_type is not None:
@@ -144,18 +144,13 @@ class Dae(object):
         if sample_id is not None:
             pass
         
-        #Check PV exists
+        # Check PV exists
         val = self._get_pv_value(self._get_dae_pv_name("beginrun"))
         if val is None:
             raise Exception("begin_run: could not connect to DAE")
-        
-        if not quiet:
-            pass
-            # print "* The following details will be used to determine ownership of the data file"
-            # self.get_user_details(begin=True)
 
         if period is not None:
-            #Set the period before starting the run
+            # Set the period before starting the run
             self.set_period(period)
             
         # By choosing the value sent to the begin PV it can set pause and/or delayed
@@ -171,6 +166,11 @@ class Dae(object):
         if verbose or self.verbose:
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("begin_postcmd", run_num=self.get_run_number(), quiet=quiet)
+
+        if not quiet:
+            print "** Beginning Run %s **" % self.get_run_number()
+            # print "* The following details will be used to determine ownership of the data file"
+            # self.get_user_details(begin=True)
             
     def abort_run(self, verbose=False):
         """Abort the current run."""

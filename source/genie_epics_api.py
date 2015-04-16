@@ -76,6 +76,7 @@ class API(object):
             value - the value to set
             wait - wait for the value to be set before returning
         """
+        self.log_info_msg("set_pv_value %s %s" % (name, str(value)))
         attempts = 3
         while True:
             try:
@@ -84,6 +85,7 @@ class API(object):
             except Exception as e:
                 attempts -= 1
                 if attempts < 1:
+                    self.log_info_msg("set_pv_value exception %s" % e.message)
                     raise e
 
     def get_pv_value(self, name, to_string=False):
@@ -234,6 +236,9 @@ class API(object):
     def log_entered_command(self):
         """Write the command to a log file"""
         self.write_to_log(readline.get_line_buffer(), 'CMD')
+
+    def log_info_msg(self, message):
+        self.write_to_log(message, 'CMD')
 
     def log_error_msg(self, error_msg):
         """Log the error to the log file"""

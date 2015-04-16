@@ -59,12 +59,13 @@ class WaitForController(object):
             
         self.init_wait_time(seconds, minutes, hours, timeout_msg)
         self.init_wait_block(block, value, lowlimit, highlimit, timeout_msg)
-        start_time = datetime.now()
+        start_time = datetime.utcnow()
         
         while True:
             if maxwait is not None:
-                if datetime.now() - start_time >= maxwait:
+                if datetime.utcnow() - start_time >= maxwait:
                     print "Waitfor timed out after %s" % maxwait
+                    self.api.log_info_msg("WAITFOR TIMED OUT")
                     return      
             res = list()
             res.append(self.waiting_for_block())
@@ -75,10 +76,12 @@ class WaitForController(object):
                 res.append(self.api.dae.get_uamps() < uamps)
             if wait_all:
                 if True not in res:
+                    self.api.log_info_msg("WAITFOR EXITED NORMALLY")
                     return
             else:
                 # Only need to wait for one of the settings to become false
                 if False in res:
+                    self.api.log_info_msg("WAITFOR EXITED NORMALLY")
                     return                  
             sleep(0.5)
             
@@ -89,24 +92,27 @@ class WaitForController(object):
             print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
         else:
             print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
-        start_time = datetime.now()
+        start_time = datetime.utcnow()
         while True:
             sleep(0.3)
             curr = self.api.dae.get_run_state()
             if onexit:
                 if curr != state and not self.api.dae.in_transition():
+                    self.api.log_info_msg("WAITFOR_RUNSTATE ONEXIT STATE EXITED")
                     break           
             else:
                 if curr == state:
+                    self.api.log_info_msg("WAITFOR_RUNSTATE STATE REACHED")
                     break
             # Check for timeout
-            if datetime.now() - start_time >= time_delta:
+            if datetime.utcnow() - start_time >= time_delta:
+                self.api.log_info_msg("WAITFOR_RUNSTATE TIMED OUT")
                 break
     
     def init_wait_time(self, seconds, minutes, hours, timeout_msg=""):
         self.time_delta = self._get_time_delta(seconds, minutes, hours)
         if self.time_delta is not None:
-            self.start_time = datetime.now()
+            self.start_time = datetime.utcnow()
             print 'Waiting for', str(self.time_delta.total_seconds()), 'seconds' + timeout_msg
         else:
             self.start_time = None
@@ -116,7 +122,7 @@ class WaitForController(object):
             # Not initiated so not waiting
             return None
         else:
-            if datetime.now() - self.start_time >= self.time_delta:
+            if datetime.utcnow() - self.start_time >= self.time_delta:
                 return False
             else:
                 return True
