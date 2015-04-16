@@ -19,19 +19,24 @@ class WaitForMoveController(object):
         self._polling_delay = 0.01
         self._wait_succeeded = False
 
-    def wait(self, timeout=None):
+    def wait(self, start_timeout=None, move_timeout=None):
         """Wait for motor motion to complete fully, with an optional starting timeout in seconds.
         If the motion does not start within the specified timeout then an error is thrown"""
 
         # Pause very briefly to avoid any "double move" that may occur when multiple motors are moved
         # and one of the motors is sent to its current position
         sleep(0.01)
+        
+        if start_timeout is not None and start_timeout <= 0:
+            raise Exception("Start timeout must be greater than zero")
+            
+        if move_timeout is not None and move_timeout <= 0:
+            raise Exception("Move timeout must be greater than zero")
 
         # If not already moving then wait for up to "timeout" seconds for a move to start
-        self.wait_for_start(timeout)
-        start_time = datetime.now()
+        self.wait_for_start(start_timeout)
 
-        max_periods = self._get_timeout_periods(timeout)
+        max_periods = self._get_timeout_periods(move_timeout)
         period = 0
 
         while self.moving():
@@ -45,10 +50,7 @@ class WaitForMoveController(object):
     def wait_for_start(self, timeout):
         if timeout is None:
             return
-
-        if timeout < 0:
-            raise Exception("Timeout must not be negative")
-
+        
         max_periods = self._get_timeout_periods(timeout)
         period = 0
 
@@ -56,6 +58,7 @@ class WaitForMoveController(object):
             sleep(self._polling_delay)
             period += 1
             if max_periods is not None and period >= max_periods:
+                print "Waiting for motor to start moving timed out"
                 self._api.log_info_msg("WAITFOR_START TIMED OUT")
                 return
         self._api.log_info_msg("WAITFOR_START FINISHED")

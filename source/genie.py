@@ -426,12 +426,12 @@ def waitfor_runstate(state, maxwaitsecs=60, onexit=False):
 
         
 @_log_command
-def waitfor_move(timeout=2):
+def waitfor_move(start_timeout=2, move_timeout=None):
     """ Wait for all motion to complete.
 
         Parameters
         ----------
-        timeout : the number of seconds to wait for the movement to begin [optional]
+        start_timeout : the number of seconds to wait for the movement to begin [optional]
 
     """
     __api.log_info_msg("WAITFOR_MOVE %s" % (locals(),))
@@ -439,7 +439,7 @@ def waitfor_move(timeout=2):
         # Check that wait_for_move object exists
         if __api.wait_for_move is None:
             raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
-        __api.wait_for_move.wait(timeout)
+        __api.wait_for_move.wait(start_timeout, move_timeout)
     except Exception as e:
         _handle_exception(e)
 

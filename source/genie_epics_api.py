@@ -85,6 +85,7 @@ class API(object):
             except Exception as e:
                 attempts -= 1
                 if attempts < 1:
+                    self.log_info_msg("set_pv_value exception %s" % e.message)
                     raise e
 
     def get_pv_value(self, name, to_string=False):
