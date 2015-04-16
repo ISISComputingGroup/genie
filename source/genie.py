@@ -184,7 +184,7 @@ def cset(*args, **kwargs):
     
     >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
-
+    __api.log_info_msg("CSET %s" % (locals(),))
     # cset only works for blocks (currently)
     # Block names contain alpha-numeric and underscores only
     # Run-control not implemented yet!
@@ -374,6 +374,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
     
     >>> waitfor(frames=5000, hours=2, wait_all=True)    
     """
+    __api.log_info_msg("WAITFOR %s" % (locals(),))
     try:
         if block is None:
             # Search through the params to see if there is a block there
@@ -414,6 +415,7 @@ def waitfor_runstate(state, maxwaitsecs=60, onexit=False):
     
     >>> waitfor_runstate("pause", onexit=True)
     """
+    __api.log_info_msg("WAITFOR_RUNSTATE %s" % (locals(),))
     try:
         # Check that wait_for object exists
         if __api.waitfor is None:
@@ -432,6 +434,7 @@ def waitfor_move(timeout=2):
         timeout : the number of seconds to wait for the movement to begin [optional]
 
     """
+    __api.log_info_msg("WAITFOR_MOVE %s" % (locals(),))
     try:
         # Check that wait_for_move object exists
         if __api.wait_for_move is None:
@@ -468,6 +471,7 @@ def set_pv(name, value, wait=False):
     value : the new value to set
     wait : whether to wait for the value to be reached
     """
+    __api.log_info_msg("SET_PV %s" % (locals(),))
     try:
         return __api.set_pv_value(name, value, wait)
     except Exception as e:
@@ -501,6 +505,7 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
     quiet : suppress the output to the screen [optional]
     paused : begin in the paused state [optional]
     """
+    __api.log_info_msg("BEGIN %s" % (locals(),))
     try:       
         __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused, verbose)
         waitfor_runstate("SETUP", onexit=True)
@@ -516,6 +521,7 @@ def abort(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("ABORT %s" % (locals(),))
     try:        
         __api.dae.abort_run(verbose)
         waitfor_runstate("SETUP")
@@ -531,6 +537,7 @@ def end():
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("END %s" % (locals(),))
     try:        
         __api.dae.end_run()
         waitfor_runstate("SETUP")
@@ -546,6 +553,7 @@ def pause(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("PAUSE %s" % (locals(),))
     try:
         __api.dae.pause_run(verbose)
         waitfor_runstate("PAUSED")
@@ -561,6 +569,7 @@ def resume(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("RESUME %s" % (locals(),))
     try:
         __api.dae.resume_run(verbose)
         waitfor_runstate("PAUSED", onexit=True)
@@ -579,6 +588,7 @@ def recover(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("RECOVER %s" % (locals(),))
     try:
         __api.dae.recover_run(verbose)
         waitfor_runstate("SETUP", onexit=True)
@@ -595,6 +605,7 @@ def updatestore(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("SAVING %s" % (locals(),))
     try:
         __api.dae.update_store_run(verbose)
         waitfor_runstate("SAVING", onexit=True)
@@ -611,6 +622,7 @@ def update(nopause=False, verbose=False):
     nopause : whether to pause data collection first [optional] [not implemented]
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("UPDATE %s" % (locals(),))
     try:
         __api.dae.update_run(not nopause, verbose)
         waitfor_runstate("UPDATING", onexit=True)
@@ -626,6 +638,7 @@ def store(verbose=False):
     ----------
     verbose : show the messages from the DAE [optional]
     """
+    __api.log_info_msg("STORING %s" % (locals(),))
     try:
         __api.dae.store_run(verbose)
         waitfor_runstate("STORING", onexit=True)
