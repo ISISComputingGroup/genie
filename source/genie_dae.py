@@ -829,7 +829,7 @@ class Dae(object):
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("daesettings"), to_string=True))
         changed = self.change_cache.change_dae_settings(root)
         if changed:
-            self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root))
+            self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root), wait=True)
         
     def _change_tcb_settings(self):
         """Changes the TCB settings"""
@@ -842,14 +842,14 @@ class Dae(object):
         changed = self.change_cache.change_tcb_settings(root)
         if changed:
             ans = zlib.compress(ET.tostring(root))             
-            self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), ans.encode('hex'))
+            self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), ans.encode('hex'), wait=True)
             
     def _change_period_settings(self):
         """Changes the period settings"""
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("periodsettings"), to_string=True))
         changed = self.change_cache.change_period_settings(root)
         if changed:
-            self._set_pv_value(self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip())
+            self._set_pv_value(self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip(), wait=True)
 
     def get_spectrum(self, spectrum, period=1, dist=False):
         """Get a spectrum from the DAE via a PV"""
