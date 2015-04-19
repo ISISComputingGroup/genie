@@ -88,10 +88,10 @@ class WaitForController(object):
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
         time_delta = self._get_time_delta(maxwaitsecs, 0, 0)
         state = state.upper().strip()
-        if onexit:
-            print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
-        else:
-            print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
+#        if onexit:
+#            print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
+#        else:
+#            print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
         start_time = datetime.utcnow()
         while True:
             sleep(0.3)
@@ -108,8 +108,7 @@ class WaitForController(object):
             if datetime.utcnow() - start_time >= time_delta:
                 self.api.log_info_msg("WAITFOR_RUNSTATE TIMED OUT")
                 break
-        self.api.dae.check_for_runstate_error()
-
+    
     def init_wait_time(self, seconds, minutes, hours, timeout_msg=""):
         self.time_delta = self._get_time_delta(seconds, minutes, hours)
         if self.time_delta is not None:

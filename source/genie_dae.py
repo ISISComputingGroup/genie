@@ -103,13 +103,6 @@ class Dae(object):
             errmsg = self._get_pv_value(self._get_dae_pv_name("errormessage"), to_string=True)
             raise Exception(header.strip() + " " + errmsg)
             
-    def _waitfor_pact_done(self, pv, header=""):
-        while(True):
-            sleep(0.1)
-            pact = self._get_pv_value(pv + ".PACT")
-            if pact == 0:
-                break
-
     def _print_verbose_messages(self):
         msgs = self._get_pv_value(self._get_dae_pv_name("allmessages"), to_string=True)
         print msgs
@@ -167,29 +160,34 @@ class Dae(object):
         if delayed:
             options += 2       
         
-        self.api.run_pre_post_cmd("begin_precmd", quiet=quiet)
-        self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
-        if verbose or self.verbose:
-            self._print_verbose_messages()
-        self.api.run_pre_post_cmd("begin_postcmd", run_num=self.get_run_number(), quiet=quiet)
-
         if not quiet:
             print "** Beginning Run %s **" % self.get_run_number()
             # print "* The following details will be used to determine ownership of the data file"
             # self.get_user_details(begin=True)
-            
+        self.api.run_pre_post_cmd("begin_precmd", quiet=quiet)
+        self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("beginrun"), "BEGIN")
+        if verbose or self.verbose:
+            self._print_verbose_messages()
+        self.api.run_pre_post_cmd("begin_postcmd", run_num=self.get_run_number(), quiet=quiet)
+
+
     def abort_run(self, verbose=False):
         """Abort the current run."""
+        print "** Aborting Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("abort_precmd")
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("abortrun"), "ABORT")
         if verbose or self.verbose:
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("abort_postcmd")
         
     def end_run(self, verbose=False):
         """End the current run."""
+        print "** Ending Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("end_precmd")
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("endrun"), "END")
         if verbose or self.verbose:
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("end_postcmd")
@@ -200,6 +198,7 @@ class Dae(object):
         Note: the run will be recovered in the paused state.
         """
         self._set_pv_value(self._get_dae_pv_name("recoverrun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("recoverrun"), "RECOVER")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
@@ -207,7 +206,9 @@ class Dae(object):
         """Performs an update and a store operation in a combined operation.
         This is more efficient than doing the commands separately.
         """
+        print "** Saving Run %s **" % self.get_run_number()
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("saverun"), "SAVE")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
@@ -220,32 +221,39 @@ class Dae(object):
         if pause:            
             self.pause_run(verbose=verbose)
             self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
+            self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
             if verbose or self.verbose:
                 self._print_verbose_messages()
             self.resume_run(verbose=verbose)
         else:
             self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
+            self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
             if verbose or self.verbose:
                 self._print_verbose_messages()
             
     def store_run(self, verbose=False):
         """Data loaded into memory by a previous update_run command is now written to disk."""
         self._set_pv_value(self._get_dae_pv_name("storerun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("storerun"), "STORE")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
     def pause_run(self, verbose=False):
         """Pause the current run."""
+        print "** Pausing Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("pause_precmd")
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("pauserun"), "PAUSE")
         if verbose or self.verbose:
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("pause_postcmd")
         
     def resume_run(self, verbose=False):
         """Resume the current run after it has been paused."""
+        print "** Resuming Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("resume_precmd")
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1.0, wait=True)
+        self._check_for_runstate_error(self._get_dae_pv_name("resumerun"), "RESUME")
         if verbose or self.verbose:
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("resume_postcmd")
