@@ -88,10 +88,10 @@ class WaitForController(object):
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
         time_delta = self._get_time_delta(maxwaitsecs, 0, 0)
         state = state.upper().strip()
-        if onexit:
-            print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
-        else:
-            print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
+#        if onexit:
+#            print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
+#        else:
+#            print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
         start_time = datetime.utcnow()
         while True:
             sleep(0.3)

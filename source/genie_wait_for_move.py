@@ -58,7 +58,7 @@ class WaitForMoveController(object):
             sleep(self._polling_delay)
             period += 1
             if max_periods is not None and period >= max_periods:
-                print "Waiting for motor to start moving timed out"
+#                print "Waiting for motor to start moving timed out"
                 self._api.log_info_msg("WAITFOR_START TIMED OUT")
                 return
         self._api.log_info_msg("WAITFOR_START FINISHED")

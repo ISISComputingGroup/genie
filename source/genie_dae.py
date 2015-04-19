@@ -160,6 +160,10 @@ class Dae(object):
         if delayed:
             options += 2       
         
+        if not quiet:
+            print "** Beginning Run %s **" % self.get_run_number()
+            # print "* The following details will be used to determine ownership of the data file"
+            # self.get_user_details(begin=True)
         self.api.run_pre_post_cmd("begin_precmd", quiet=quiet)
         self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
         self._check_for_runstate_error(self._get_dae_pv_name("beginrun"), "BEGIN")
@@ -167,13 +171,10 @@ class Dae(object):
             self._print_verbose_messages()
         self.api.run_pre_post_cmd("begin_postcmd", run_num=self.get_run_number(), quiet=quiet)
 
-        if not quiet:
-            print "** Beginning Run %s **" % self.get_run_number()
-            # print "* The following details will be used to determine ownership of the data file"
-            # self.get_user_details(begin=True)
-            
+
     def abort_run(self, verbose=False):
         """Abort the current run."""
+        print "** Aborting Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("abort_precmd")
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1.0, wait=True)
         self._check_for_runstate_error(self._get_dae_pv_name("abortrun"), "ABORT")
@@ -183,6 +184,7 @@ class Dae(object):
         
     def end_run(self, verbose=False):
         """End the current run."""
+        print "** Ending Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("end_precmd")
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
         self._check_for_runstate_error(self._get_dae_pv_name("endrun"), "END")
@@ -204,8 +206,9 @@ class Dae(object):
         """Performs an update and a store operation in a combined operation.
         This is more efficient than doing the commands separately.
         """
+        print "** Saving Run %s **" % self.get_run_number()
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1.0, wait=True)
-        self._check_for_runstate_error(self._get_dae_pv_name("saverun"), "STORE")
+        self._check_for_runstate_error(self._get_dae_pv_name("saverun"), "SAVE")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
@@ -237,6 +240,7 @@ class Dae(object):
         
     def pause_run(self, verbose=False):
         """Pause the current run."""
+        print "** Pausing Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("pause_precmd")
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1.0, wait=True)
         self._check_for_runstate_error(self._get_dae_pv_name("pauserun"), "PAUSE")
@@ -246,6 +250,7 @@ class Dae(object):
         
     def resume_run(self, verbose=False):
         """Resume the current run after it has been paused."""
+        print "** Resuming Run %s **" % self.get_run_number()
         self.api.run_pre_post_cmd("resume_precmd")
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1.0, wait=True)
         self._check_for_runstate_error(self._get_dae_pv_name("resumerun"), "RESUME")
@@ -832,7 +837,7 @@ class Dae(object):
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("daesettings"), to_string=True))
         changed = self.change_cache.change_dae_settings(root)
         if changed:
-            self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root))
+            self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root), wait=True)
         
     def _change_tcb_settings(self):
         """Changes the TCB settings"""
@@ -845,14 +850,14 @@ class Dae(object):
         changed = self.change_cache.change_tcb_settings(root)
         if changed:
             ans = zlib.compress(ET.tostring(root))             
-            self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), ans.encode('hex'))
+            self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), ans.encode('hex'), wait=True)
             
     def _change_period_settings(self):
         """Changes the period settings"""
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("periodsettings"), to_string=True))
         changed = self.change_cache.change_period_settings(root)
         if changed:
-            self._set_pv_value(self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip())
+            self._set_pv_value(self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip(), wait=True)
 
     def get_spectrum(self, spectrum, period=1, dist=False):
         """Get a spectrum from the DAE via a PV"""

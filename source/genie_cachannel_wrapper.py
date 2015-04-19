@@ -1,4 +1,5 @@
 from CaChannel import ca, CaChannel, CaChannelException
+from threading import Event
 
 TIMEOUT = 15
 CACHE = dict()
@@ -26,22 +27,25 @@ class CaChannelWrapper(object):
         """
         if name not in CACHE.keys():
             chan = CaChannel(name)
-            chan.setTimeout(TIMEOUT)
+            chan.setTimeout(timeout)
             # Try to connect - throws if cannot
             chan.searchw()
             CACHE[name] = chan
         else:
             chan = CACHE[name]
         if wait:
-            chan.putw(value)
-        else:
             def putCB(epics_args, user_args):
-                # Do nothing in the callback
-                pass
+                user_args[0].set()
             ftype = chan.field_type()
             ecount = chan.element_count()
-            chan.array_put_callback(value, ftype, ecount, putCB)
+            event = Event()
+            chan.array_put_callback(value, ftype, ecount, putCB, event)
             chan.flush_io()
+            # wait in a loop so keyboard interrupt is possible
+            while not event.isSet():
+                event.wait(1.0)  # use overall timeout somehow? need to make sure it is long enough
+        else:
+            chan.putw(value)  # putw() flushes send buffer, but doesn't wait for a CA completion callback
                 
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
