@@ -48,7 +48,7 @@ class CaChannelWrapper(object):
         """Get the current value of the PV"""
         if name not in CACHE.keys():
             chan = CaChannel(name)
-            chan.setTimeout(TIMEOUT)
+            chan.setTimeout(timeout)
             # Try to connect - throws if cannot
             chan.searchw()
             CACHE[name] = chan
@@ -58,9 +58,11 @@ class CaChannelWrapper(object):
         if ca.dbr_type_is_ENUM(ftype) or ca.dbr_type_is_CHAR(ftype) or ca.dbr_type_is_STRING(ftype):
             to_string = True
         if to_string:
-            if ca.dbr_type_is_ENUM(ftype):
+            if ca.dbr_type_is_ENUM(ftype) or ca.dbr_type_is_STRING(ftype):
                 value = chan.getw(ca.DBR_STRING)
             else:
+                # If we get a numeric using ca.DBR_CHAR the value still comes back as a numeric
+                # In other words, it does not get cast to char
                 value = chan.getw(ca.DBR_CHAR)
             # Could see if the element count is > 1 instead
             if isinstance(value, list):
