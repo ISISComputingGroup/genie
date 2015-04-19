@@ -102,7 +102,8 @@ class WaitForController(object):
             # Check for timeout
             if datetime.now() - start_time >= time_delta:
                 break
-    
+        self.api.dae.check_for_runstate_error()
+
     def init_wait_time(self, seconds, minutes, hours, timeout_msg=""):
         self.time_delta = self._get_time_delta(seconds, minutes, hours)
         if self.time_delta is not None:
