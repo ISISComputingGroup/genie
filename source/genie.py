@@ -396,7 +396,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 
 @_log_command
-def waitfor_runstate(state, maxwaitsecs=60, onexit=False):
+def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
         
     Parameters
@@ -469,7 +469,7 @@ def set_pv(name, value, wait=False):
     ----------
     name : the PV name
     value : the new value to set
-    wait : whether to wait for the value to be reached
+    wait : whether to wait until the value has been received by the hardware
     """
     __api.log_info_msg("SET_PV %s" % (locals(),))
     try:
