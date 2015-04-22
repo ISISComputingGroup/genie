@@ -16,6 +16,10 @@ class CaChannelWrapper(object):
         return output
 
     @staticmethod
+    def putCB(epics_args, user_args):
+        user_args[0].set()
+
+    @staticmethod
     def set_pv_value(name, value, wait=False, timeout=TIMEOUT):
         """Set the PV to a value.
            When getting a PV value this call should be used, unless there is a special requirement.
@@ -34,19 +38,18 @@ class CaChannelWrapper(object):
         else:
             chan = CACHE[name]
         if wait:
-            def putCB(epics_args, user_args):
-                user_args[0].set()
             ftype = chan.field_type()
             ecount = chan.element_count()
             event = Event()
-            chan.array_put_callback(value, ftype, ecount, putCB, event)
-            chan.flush_io()
+            chan.array_put_callback(value, ftype, ecount, CaChannelWrapper.putCB, event)
             # wait in a loop so keyboard interrupt is possible
+            # should use overall timeout somehow? need to make sure it is long enough for all requests to complete though
+            # did try flush_io() followed by event.wait(1.0) inside the loop, but a send got missed. Looks like pend_event() / poll() is needed  
             while not event.isSet():
-                event.wait(1.0)  # use overall timeout somehow? need to make sure it is long enough
+                chan.pend_event(0.1)
         else:
             chan.putw(value)  # putw() flushes send buffer, but doesn't wait for a CA completion callback
-                
+
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
         """Get the current value of the PV"""
