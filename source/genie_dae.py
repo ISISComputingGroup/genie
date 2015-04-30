@@ -118,7 +118,7 @@ class Dae(object):
             raise Exception("Value must be boolean")
                        
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
-                  sample_id=None, delayed=False, quiet=False, paused=False, verbose=False):
+                  sample_id=None, delayed=False, quiet=False, paused=False):
         """Starts a data collection run.
         
         Parameters:
@@ -164,99 +164,95 @@ class Dae(object):
             print "** Beginning Run %s **" % self.get_run_number()
             # print "* The following details will be used to determine ownership of the data file"
             # self.get_user_details(begin=True)
-        self.api.run_pre_post_cmd("begin_precmd", quiet=quiet)
         self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
+
+    def post_begin_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("beginrun"), "BEGIN")
         if verbose or self.verbose:
             self._print_verbose_messages()
-        self.api.run_pre_post_cmd("begin_postcmd", run_num=self.get_run_number(), quiet=quiet)
 
-
-    def abort_run(self, verbose=False):
+    def abort_run(self):
         """Abort the current run."""
         print "** Aborting Run %s **" % self.get_run_number()
-        self.api.run_pre_post_cmd("abort_precmd")
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1.0, wait=True)
+
+    def post_abort_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("abortrun"), "ABORT")
         if verbose or self.verbose:
             self._print_verbose_messages()
-        self.api.run_pre_post_cmd("abort_postcmd")
         
-    def end_run(self, verbose=False):
+    def end_run(self):
         """End the current run."""
         print "** Ending Run %s **" % self.get_run_number()
-        self.api.run_pre_post_cmd("end_precmd")
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
+
+    def post_end_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("endrun"), "END")
         if verbose or self.verbose:
             self._print_verbose_messages()
-        self.api.run_pre_post_cmd("end_postcmd")
         
-    def recover_run(self, verbose=False):
+    def recover_run(self):
         """Recovers the run if it has been aborted.
         The command should be run before the next run is started.
         Note: the run will be recovered in the paused state.
         """
         self._set_pv_value(self._get_dae_pv_name("recoverrun"), 1.0, wait=True)
+
+    def post_recover_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("recoverrun"), "RECOVER")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
-    def update_store_run(self, verbose=False):
+    def update_store_run(self):
         """Performs an update and a store operation in a combined operation.
         This is more efficient than doing the commands separately.
         """
         print "** Saving Run %s **" % self.get_run_number()
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1.0, wait=True)
+
+    def post_update_store_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("saverun"), "SAVE")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
-    def update_run(self, pause=True, verbose=False):
+    def update_run(self):
         """Data is loaded from the DAE into the computer memory, but is not written to disk.
-        
-        Parameters:
-            pause - whether to pause data collection first [optional]
         """
-        if pause:            
-            self.pause_run(verbose=verbose)
-            self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
-            self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
-            if verbose or self.verbose:
-                self._print_verbose_messages()
-            self.resume_run(verbose=verbose)
-        else:
-            self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
-            self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
-            if verbose or self.verbose:
-                self._print_verbose_messages()
+        self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
+
+    def post_update_check(self, verbose=False):
+        self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
+        if verbose or self.verbose:
+            self._print_verbose_messages()
             
-    def store_run(self, verbose=False):
+    def store_run(self):
         """Data loaded into memory by a previous update_run command is now written to disk."""
         self._set_pv_value(self._get_dae_pv_name("storerun"), 1.0, wait=True)
+
+    def post_store_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("storerun"), "STORE")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
-    def pause_run(self, verbose=False):
+    def pause_run(self):
         """Pause the current run."""
         print "** Pausing Run %s **" % self.get_run_number()
-        self.api.run_pre_post_cmd("pause_precmd")
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1.0, wait=True)
+
+    def post_pause_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("pauserun"), "PAUSE")
         if verbose or self.verbose:
             self._print_verbose_messages()
-        self.api.run_pre_post_cmd("pause_postcmd")
         
-    def resume_run(self, verbose=False):
+    def resume_run(self):
         """Resume the current run after it has been paused."""
         print "** Resuming Run %s **" % self.get_run_number()
-        self.api.run_pre_post_cmd("resume_precmd")
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1.0, wait=True)
+
+    def post_resume_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("resumerun"), "RESUME")
         if verbose or self.verbose:
             self._print_verbose_messages()
-        self.api.run_pre_post_cmd("resume_postcmd")
 
     def get_run_state(self):
         """Get the current state of the DAE

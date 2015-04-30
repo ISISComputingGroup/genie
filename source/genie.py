@@ -46,7 +46,7 @@ def complete(text, state):
         ans = (glob.glob(temp+'*')+[None])[state]
         if ans is not None:
             # return / to avoid a quoting issue with \ in paths
-            return (text[:13] + ans).replace('\\','/')
+            return (text[:13] + ans).replace('\\', '/')
     else:
         return __ipy_complete(text, state)
 
@@ -504,11 +504,15 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
     delayed : puts the period card to into delayed start mode [optional]
     quiet : suppress the output to the screen [optional]
     paused : begin in the paused state [optional]
+    verbose : show the messages from the DAE [optional]
     """
     __api.log_info_msg("BEGIN %s" % (locals(),))
-    try:       
-        __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused, verbose)
+    try:
+        __api.run_pre_post_cmd("begin_precmd", quiet=quiet)
+        __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused)
         waitfor_runstate("SETUP", onexit=True)
+        __api.dae.post_begin_check(verbose)
+        __api.run_pre_post_cmd("begin_postcmd", run_num=__api.dae.get_run_number(), quiet=quiet)
     except Exception as e:
         _handle_exception(e)
 
@@ -522,15 +526,18 @@ def abort(verbose=False):
     verbose : show the messages from the DAE [optional]
     """
     __api.log_info_msg("ABORT %s" % (locals(),))
-    try:        
-        __api.dae.abort_run(verbose)
+    try:
+        __api.run_pre_post_cmd("abort_precmd")
+        __api.dae.abort_run()
         waitfor_runstate("SETUP")
+        __api.dae.post_abort_check(verbose)
+        __api.run_pre_post_cmd("abort_postcmd")
     except Exception as e:
         _handle_exception(e)
 
         
 @_log_command
-def end():
+def end(verbose=False):
     """End the current run.
     
     Parameters
@@ -538,9 +545,12 @@ def end():
     verbose : show the messages from the DAE [optional]
     """
     __api.log_info_msg("END %s" % (locals(),))
-    try:        
+    try:
+        __api.run_pre_post_cmd("end_precmd")
         __api.dae.end_run()
         waitfor_runstate("SETUP")
+        __api.dae.post_end_check(verbose)
+        __api.run_pre_post_cmd("end_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -555,8 +565,11 @@ def pause(verbose=False):
     """
     __api.log_info_msg("PAUSE %s" % (locals(),))
     try:
-        __api.dae.pause_run(verbose)
+        __api.run_pre_post_cmd("pause_precmd")
+        __api.dae.pause_run()
         waitfor_runstate("PAUSED")
+        __api.dae.post_pause_check(verbose)
+        __api.run_pre_post_cmd("pause_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -571,8 +584,11 @@ def resume(verbose=False):
     """
     __api.log_info_msg("RESUME %s" % (locals(),))
     try:
-        __api.dae.resume_run(verbose)
+        __api.run_pre_post_cmd("resume_precmd")
+        __api.dae.resume_run()
         waitfor_runstate("PAUSED", onexit=True)
+        __api.dae.post_resume_check(verbose)
+        __api.run_pre_post_cmd("resume_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -590,8 +606,9 @@ def recover(verbose=False):
     """
     __api.log_info_msg("RECOVER %s" % (locals(),))
     try:
-        __api.dae.recover_run(verbose)
+        __api.dae.recover_run()
         waitfor_runstate("SETUP", onexit=True)
+        __api.dae.post_recover_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
@@ -607,25 +624,36 @@ def updatestore(verbose=False):
     """
     __api.log_info_msg("SAVING %s" % (locals(),))
     try:
-        __api.dae.update_store_run(verbose)
+        __api.dae.update_store_run()
         waitfor_runstate("SAVING", onexit=True)
+        __api.dae.post_update_store_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
         
 @_log_command
-def update(nopause=False, verbose=False):
+def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
         
     Parameters
     ----------
-    nopause : whether to pause data collection first [optional] [not implemented]
+    pause_run : whether to pause data collection first [optional]
     verbose : show the messages from the DAE [optional]
     """
     __api.log_info_msg("UPDATE %s" % (locals(),))
     try:
-        __api.dae.update_run(not nopause, verbose)
+        if pause_run:
+            # Pause
+            pause(verbose=verbose)
+
+        # Update
+        __api.dae.update_run()
         waitfor_runstate("UPDATING", onexit=True)
+        __api.dae.post_update_check(verbose)
+
+        if pause_run:
+            # Resume
+            resume(verbose=verbose)
     except Exception as e:
         _handle_exception(e)
 
@@ -640,8 +668,9 @@ def store(verbose=False):
     """
     __api.log_info_msg("STORING %s" % (locals(),))
     try:
-        __api.dae.store_run(verbose)
+        __api.dae.store_run()
         waitfor_runstate("STORING", onexit=True)
+        __api.dae.post_store_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
@@ -1463,6 +1492,7 @@ def get_config_iocs():
         return __api.blockserver.get_config_iocs()
     except Exception as e:
         _handle_exception(e)
+
 
 @_log_command
 def send_sms(phone_num, message):
