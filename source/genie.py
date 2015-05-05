@@ -1078,7 +1078,7 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
     step : the step size
     trange : the time range (1 to 5)
     log : whether to use LOG binning [optional]  
-    regime : the time regime to set (1 or 2)[optional]        
+    regime : the time regime to set (1 to 6)[optional]
     """
     try:
         __api.dae.change_tcb(low, high, step, trange, log, regime)
