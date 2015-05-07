@@ -1,7 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import zlib
-from time import sleep
+from time import sleep, strftime
 from genie_change_cache import ChangeCache
 
 DAE_PVS_LOOKUP = {
@@ -16,6 +16,7 @@ DAE_PVS_LOOKUP = {
     "saverun": "DAE:SAVERUN",
     "updaterun": "DAE:UPDATERUN",
     "storerun": "DAE:STORERUN",
+    "snapshot": "DAE:SNAPSHOTCRPT",
     "period_rbv": "DAE:PERIOD:RBV",
     "period": "DAE:PERIOD",
     "runnumber": "DAE:RUNNUMBER",
@@ -160,10 +161,6 @@ class Dae(object):
         if delayed:
             options += 2       
         
-        if not quiet:
-            print "** Beginning Run %s **" % self.get_run_number()
-            # print "* The following details will be used to determine ownership of the data file"
-            # self.get_user_details(begin=True)
         self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
 
     def post_begin_check(self, verbose=False):
@@ -183,7 +180,6 @@ class Dae(object):
         
     def end_run(self):
         """End the current run."""
-        print "** Ending Run %s **" % self.get_run_number()
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
 
     def post_end_check(self, verbose=False):
@@ -231,6 +227,19 @@ class Dae(object):
 
     def post_store_check(self, verbose=False):
         self._check_for_runstate_error(self._get_dae_pv_name("storerun"), "STORE")
+        if verbose or self.verbose:
+            self._print_verbose_messages()
+
+    def snapshot_crpt(self, filename):
+        """Save a snapshot of the CRPT.
+
+        Parameters:
+            filename - the name and location to save the file(s) to
+        """
+        self._set_pv_value(self._get_dae_pv_name("snapshot"), filename, wait=True)
+
+    def post_snapshot_check(self, verbose=False):
+        self._check_for_runstate_error(self._get_dae_pv_name("snapshot"), "SNAPSHOTCRPT")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
@@ -351,7 +360,7 @@ class Dae(object):
         
     def get_rb_number(self):
         """Get the RB number for the current run."""
-        return self._get_pv_value(self._get_dae_pv_name("rbnumber"))
+        return self._get_pv_value(self._get_dae_pv_name("rbnum"))
         
     def get_title(self):
         """Get the title for the current run."""
@@ -726,7 +735,7 @@ class Dae(object):
         if not self.in_change:
             self.change_start()
             did_change = True 
-        #Set the source to 'Use Parameters Below' by default
+        # Set the source to 'Use Parameters Below' by default
         self.change_cache.periods_src = 0
         if mode.strip().lower() == 'int':
             self.change_cache.periods_type = 1
@@ -801,7 +810,7 @@ class Dae(object):
             self.change_start()
             did_change = True 
         if period is None:
-            #Do for all periods (1 to 8)
+            # Do for all periods (1 to 8)
             for i in range(1, 9):
                 self.define_hard_period(i, daq, dwell, unused, frames, output, label)
         else:

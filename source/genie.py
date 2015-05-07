@@ -674,6 +674,29 @@ def store(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
+@_log_command
+def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
+    """Create a snapshot of the current data.
+
+    Parameters
+    ----------
+    filename : where to write the data file(s) [optional]
+    verbose : show the messages from the DAE [optional]
+
+    EXAMPLES
+    --------
+
+    >>> snapshot_crpt("c:\\Data\my_snapshot")
+    """
+    __api.log_info_msg("SNAPSHOT %s" % (locals(),))
+    try:
+        name = _correct_filepath(filename)
+        __api.dae.snapshot_crpt(name)
+        waitfor_runstate("STORING", onexit=True)
+        __api.dae.post_snapshot_check(verbose)
+    except Exception as e:
+        _handle_exception(e)
+
         
 @_log_command
 def get_uamps(period=False):
@@ -838,6 +861,12 @@ def get_dashboard():
 
 
 def _correct_filepath(filepath):
+    """Corrects the slashes"""
+    return filepath.__repr__().replace("\\", "/").replace("'", "").replace("//", "/")
+        
+def _correct_filepath_existing(filepath):
+    """If the file exists it get the correct path with the correct casing"""
+    filepath = _correct_filepath(filepath)
     if os.name == 'nt':
         try:
             # Correct path case for windows as Python needs correct casing
@@ -880,15 +909,14 @@ def import_user_script_module(name, globs):
     """
     try:
         name = _convert_to_rawstring(name)
-        name = name.__repr__().replace("\\", "/").replace("'", "").replace("//", "/")
 
         try:
             if "/" in name:
                 # Probably a fullpath name
-                name = _correct_filepath(name)
+                name = _correct_filepath_existing(name)
             else:
                 # May be a file in the SCRIPT_DIR
-                name = _correct_filepath(SCRIPT_DIR + name)
+                name = _correct_filepath_existing(SCRIPT_DIR + name)
             directory, filename = os.path.split(os.path.abspath(name))
             directory += '\\'
         except:
@@ -964,7 +992,7 @@ def set_script_dir(directory):
     """
     try:
         directory = _convert_to_rawstring(directory)
-        directory = _correct_filepath(directory.replace("\\", "/").replace("'", "").replace("//", "/"))
+        directory = _correct_filepath_existing(directory)
         if os.path.exists(directory):
             global SCRIPT_DIR
             if directory[-1] == "/":
