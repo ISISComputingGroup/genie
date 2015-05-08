@@ -1,6 +1,7 @@
 import xml.etree.ElementTree as ET
 import os
 import zlib
+import json
 from time import sleep, strftime
 from genie_change_cache import ChangeCache
 
@@ -32,11 +33,11 @@ DAE_PVS_LOOKUP = {
     "uampsperiod": "DAE:GOODUAH_PD",
     "title": "DAE:TITLE",
     "title_sp": "DAE:TITLE:SP",
-    "rbnum": "DAE:RBNUMBER",
-    "rbnum_sp": "DAE:RBNUMBER:SP",
+    "rbnum": "ED:RBNUMBER",
+    "rbnum_sp": "ED:RBNUMBER:SP",
     "period_sp": "DAE:PERIOD:SP",
-    "users": "DAE:USERNAME",
-    "users_sp": "DAE:USERNAME:SP",
+    "users": "ED:SURNAME",
+    "users_sp": "ED:USERNAME:SP",
     "starttime": "DAE:STARTTIME",
     "npratio": "DAE:NPRATIO",
     "timingsource": "DAE:DAETIMINGSOURCE",
@@ -107,6 +108,9 @@ class Dae(object):
     def _print_verbose_messages(self):
         msgs = self._get_pv_value(self._get_dae_pv_name("allmessages"), to_string=True)
         print msgs
+        
+    def _dehex_decompress(self, value):
+        return zlib.decompress(value.decode("hex"))
         
     def set_verbose(self, verbose):
         if isinstance(verbose, bool):
@@ -372,7 +376,20 @@ class Dae(object):
         
     def get_users(self):
         """Get the users for the current run"""
-        return self._get_pv_value(self._get_dae_pv_name("users"), to_string=True)
+        try:
+            # Data comes as compressed and hexed json
+            raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("users"), to_string=True))
+            names_list = json.loads(raw)
+            if len(names_list) > 1:
+                last = names_list.pop(-1)
+                names = ", ".join(names_list)
+                names += " and " + last
+                return names
+            else:
+                # Will throw if empty - that is okay
+                return names_list[0]
+        except:
+            return ""
         
     def set_users(self, users):
         """Set the users for the current run"""
@@ -846,10 +863,10 @@ class Dae(object):
         
     def _change_tcb_settings(self):
         """Changes the TCB settings"""
-        #TCB data comes as hex and zipped!
+        # TCB data comes as hex and zipped!
         value = self._get_pv_value(self._get_dae_pv_name("tcbsettings"), to_string=True)
-        xml = zlib.decompress(value.decode("hex"))
-        #Strip off any zlib checksum stuff at end of the string
+        xml = self._dehex_decompress(value)
+        # Strip off any zlib checksum stuff at end of the string
         last = xml.rfind('>') + 1        
         root = ET.fromstring(xml[0:last].strip())
         changed = self.change_cache.change_tcb_settings(root)
