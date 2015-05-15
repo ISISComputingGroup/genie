@@ -157,6 +157,11 @@ class Dae(object):
         if period is not None:
             # Set the period before starting the run
             self.set_period(period)
+
+        if not quiet:
+            print "** Beginning Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+            print "*  Proposal Number: %s" % self.get_rb_number()
+            print "*  Experiment Team: %s" % self.get_users()
             
         # By choosing the value sent to the begin PV it can set pause and/or delayed
         options = 0
@@ -174,7 +179,7 @@ class Dae(object):
 
     def abort_run(self):
         """Abort the current run."""
-        print "** Aborting Run %s **" % self.get_run_number()
+        print "** Aborting Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1.0, wait=True)
 
     def post_abort_check(self, verbose=False):
@@ -184,6 +189,7 @@ class Dae(object):
         
     def end_run(self):
         """End the current run."""
+        print "** Ending Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
 
     def post_end_check(self, verbose=False):
@@ -207,7 +213,7 @@ class Dae(object):
         """Performs an update and a store operation in a combined operation.
         This is more efficient than doing the commands separately.
         """
-        print "** Saving Run %s **" % self.get_run_number()
+        print "** Saving Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1.0, wait=True)
 
     def post_update_store_check(self, verbose=False):
@@ -249,7 +255,7 @@ class Dae(object):
         
     def pause_run(self):
         """Pause the current run."""
-        print "** Pausing Run %s **" % self.get_run_number()
+        print "** Pausing Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1.0, wait=True)
 
     def post_pause_check(self, verbose=False):
@@ -259,7 +265,7 @@ class Dae(object):
         
     def resume_run(self):
         """Resume the current run after it has been paused."""
-        print "** Resuming Run %s **" % self.get_run_number()
+        print "** Resuming Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1.0, wait=True)
 
     def post_resume_check(self, verbose=False):
