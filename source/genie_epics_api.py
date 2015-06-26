@@ -35,23 +35,28 @@ class API(object):
     def set_instrument(self, pv_prefix, globs):
         """Set the instrument being used by setting the PV prefix"""
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
-        if pv_prefix.startswith("NDX") or pv_prefix.startswith("IN:"):        
+        if pv_prefix.startswith("NDX") or pv_prefix.startswith("IN:"):
             instrument = pv_prefix[3:]
             if instrument.endswith(":"):
-                instrument = instrument[:-1]            
+                instrument = instrument[:-1]
             print "THIS IS %s!" % instrument.upper()
             try:
                 name = instrument.lower()
+                # Load it
                 API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
-                # Load it - this puts any imports in the init file into the globals namespace
-                file_loc = API.__localmod.__file__[:-1]
+                if API.__localmod.__file__.endswith('.pyc'):
+                    file_loc = API.__localmod.__file__[:-1]
+                else:
+                    file_loc = API.__localmod.__file__
+                # execfile - this puts any imports in the init file into the globals namespace
+                # Note: Anything loose in the module like print statements will be run twice
                 execfile(file_loc, globs)
                 # Call the init command
                 init_func = getattr(API.__localmod, "init")
                 init_func(name)
             except Exception as err:
-                msg = "Could not find init_" + instrument.lower() + " so will use default"
-                print msg
+                print "There was a problem with loading init_" + instrument.lower() + " so will use default"
+                print "Error was: %s" % err
             pv_prefix = "IN:" + instrument + ":"
         if not pv_prefix.endswith(":"):
             pv_prefix += ":"
