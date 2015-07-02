@@ -102,9 +102,9 @@ class BlockServer(object):
             
     def get_config_name(self):
         """Get the name of the current configuration."""
-        raw = self._get_pv_value(self.__blockserver_prefix + "CONFIG", True)
+        raw = self._get_pv_value(self.__blockserver_prefix + "GET_CURR_CONFIG_DETAILS", True)
         raw = dehex_and_decompress(raw)
-        return json.loads(raw)
+        return json.loads(raw)['name']
 
     def load_config(self, name):
         """Load a configuration.
@@ -123,4 +123,8 @@ class BlockServer(object):
     def get_configs(self):
         raw = self._get_pv_value(self.__blockserver_prefix + "CONFIGS", True)
         raw = dehex_and_decompress(raw)
-        return json.loads(raw)
+        confs = json.loads(raw)
+        ans = list()
+        for c in confs:
+            ans.append(c['name'])
+        return ans

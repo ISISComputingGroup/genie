@@ -78,7 +78,7 @@ class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
 
 def _print_error_message(message):
     """Print the error message to screen"""
-    ## Look at using colorama ?
+    # Look at using colorama?
     if os.name == 'nt':
         # Is windows
         std_output_handle = -11
@@ -116,11 +116,11 @@ def _handle_exception(exception=None, message=None):
 @_log_command
 def set_instrument_internal(pv_prefix, globs):
     """Sets the instrument this session is communicating with.
-    Used for remote access.
+    Used for remote access - do not delete.
 
-    Parameters
-    ----------
-    pv_prefix : the PV prefix
+    Args:
+        pv_prefix (string) : the PV prefix
+        globs (dict) : the globals for the top-level
     """
     try:
         __api.set_instrument(pv_prefix, globs)
@@ -130,7 +130,10 @@ def set_instrument_internal(pv_prefix, globs):
 
 @_log_command
 def get_blocks():
-    """Returns a list of the blocknames.
+    """Get the names of the blocks.
+
+    Returns:
+        list : the blocknames
     """
     try:
         return __api.get_blocks()
@@ -142,47 +145,46 @@ def get_blocks():
 def cset(*args, **kwargs):
     """Sets the setpoint and runcontrol settings for blocks.
     
-    Parameters
-    ----------
-    runcontrol : whether to set runcontrol for this block (True/False) [optional]
-    wait : pause script/command line execution until setpoint reached (one block only) [optional]
-    Note: cannot use wait and runcontrol in the same command
-    lowlimit : the lower limit for runcontrol or waiting [optional]
-    highlimit : the upper limit for runcontrol or waiting [optional]
+    Args:
+        runcontrol (bool, optional) : whether to set runcontrol for this block
+        wait (string, optional) : pause execution until setpoint isreached (one block only)
+        lowlimit (float, optional) : the lower limit for runcontrol or waiting
+        highlimit (float, optional): the upper limit for runcontrol or waiting
 
-    EXAMPLES
-    --------
-    
-    Setting a value for a block:
-    
-    >>> cset(block1=100)
-    
-    Or:
-    
-    >>> cset("block1", 100)
-    
-    Setting values for more than one block:
-    
-    >>> cset(block1=100, block2=200, block3=300)
-    
-    NOTE: the order in which the values are set is random, e.g. block1 may or may not be set before block2 and block3
-       
-    Setting runcontrol values for a block:
-    
-    >>> cset(block1=100, runcontrol=True, lowlimit=99, highlimit=101)
-    
-    Changing runcontrol settings for a block without changing the setpoint:
-    
-    >>> cset("block1", runcontrol=False)    #Quotes round the block name
-    >>> cset(block1=None, runcontrol=False)
-    
-    Wait for setpoint to be reached (one block only):
-    
-    >>> cset(block1=100, wait=True)
-    
-    Wait for limits to be reached - this does NOT change the runcontrol limits:
-    
-    >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
+    Note: cannot use wait and runcontrol in the same command
+
+    Examples:
+        Setting a value for a block:
+
+        >>> cset(block1=100)
+
+        Or:
+
+        >>> cset("block1", 100)
+
+        Setting values for more than one block:
+
+        >>> cset(block1=100, block2=200, block3=300)
+
+        NOTE: the order in which the values are set is random,
+        e.g. block1 may or may not be set before block2 and block3
+
+        Setting runcontrol values for a block:
+
+        >>> cset(block1=100, runcontrol=True, lowlimit=99, highlimit=101)
+
+        Changing runcontrol settings for a block without changing the setpoint:
+
+        >>> cset("block1", runcontrol=False)
+        >>> cset(block1=None, runcontrol=False)
+
+        Wait for setpoint to be reached (one block only):
+
+        >>> cset(block1=100, wait=True)
+
+        Wait for limits to be reached - this does NOT change the runcontrol limits:
+
+        >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
     __api.log_info_msg("CSET %s" % (locals(),))
     # cset only works for blocks (currently)
@@ -253,7 +255,14 @@ def cset(*args, **kwargs):
         
 @_log_command
 def cget(block):
-    """Returns a dictionary of useful values associated with the block"""
+    """Gets the useful values associated with a block.
+
+    Args:
+        block (string) : the name of the block
+
+    Returns
+        dict : details about about the block
+    """
     try: 
         if not __api.block_exists(block):
             raise Exception('No block with that name exists')
@@ -277,17 +286,16 @@ def cget(block):
 @_log_command
 def cshow(block=None):
     """Show the current settings for one block or for all blocks.
-       
-    EXAMPLES
-    --------
 
-    Showing all block values:
-    
-    >>> cshow()
-    
-    Showing values for one block only (name must be quoted):
-    
-    >>> cshow("block1")
+    Args:
+        block (string, optional) : the name of the block
+       
+    Examples:
+        Showing all block values:
+        >>> cshow()
+
+        Showing values for one block only (name must be quoted):
+        >>> cshow("block1")
     """
     try:
         if block:
@@ -322,57 +330,47 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             frames=None, uamps=None, **pars):
     """Interrupts execution until certain conditions are met.
     
-    Parameters
-    ----------
-    block : the name of the block to wait for [optional]
-    value : the block value to wait for [optional]
-    lowlimit : wait for the block to be >= this value [optional]
-    highlimit : wait for the block to be <= this value [optional]
-    maxwait : wait no longer that the specified number of seconds [optional]
-    wait_all : wait for all conditions to be met (e.g. a number of frames and an amount of uamps) [optional]
-    seconds : wait for a specified number of seconds [optional]
-    minutes : wait for a specified number of minutes [optional]
-    hours : wait for a specified number of hours [optional]
-    time : a quicker way of setting hours, minutes and seconds (must be a string of format "HH:MM:SS") [optional]
-    frames : wait for a total number of good frames to be collected [optional]
-    uamps : wait for a total number of uamps to be received [optional]
+    Args:
+        block (string, optional) : the name of the block to wait for
+        value (float, optional) : the block value to wait for
+        lowlimit (float, optional): wait for the block to be >= this value
+        highlimit (float, optional) : wait for the block to be <= this value
+        maxwait (float, optional) : wait no longer that the specified number of seconds
+        wait_all (bool, optional) : wait for all conditions to be met (e.g. a number of frames and an amount of uamps)
+        seconds (float, optional) : wait for a specified number of seconds
+        minutes (float, optional) : wait for a specified number of minutes
+        hours (float, optional) : wait for a specified number of hours
+        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+        frames (int, optional) : wait for a total number of good frames to be collected
+        uamps (float, optional) : wait for a total number of uamps to be received
         
-    EXAMPLES
-    --------
-    
-    Wait for a block to reach a specific value:
-    
-    >>> waitfor(myblock=123)
-    >>> waitfor("myblock", 123)
-    >>> waitfor("myblock", True)
-    >>> waitfor("myblock", "OPEN")
-    
-    Wait for a block to be between limits:
-    
-    >>> waitfor("myblock", lowlimit=100, highlimit=110)
-    
-    Wait for a block to reach a specific value, but no longer than 60 seconds:
-    
-    >>> waitfor(myblock=123, maxwait=60)
-    
-    Wait for a specified time interval:
-    
-    >>> waitfor(seconds=10)
-    >>> waitfor(hours=1, minutes=30, seconds=15)
-    >>> waitfor(time="1:30:15")
-    
-    Wait for a data collection condition:
-    
-    >>> waitfor(frames=5000)
-    >>> waitfor(uamps=200)
-    
-    Wait for either a number of frames OR a time interval to occur:
-    
-    >>> waitfor(frames=5000, hours=2)
-    
-    Wait for a number of frames AND a time interval to occur:
-    
-    >>> waitfor(frames=5000, hours=2, wait_all=True)    
+    Example:
+        Wait for a block to reach a specific value:
+        >>> waitfor(myblock=123)
+        >>> waitfor("myblock", 123)
+        >>> waitfor("myblock", True)
+        >>> waitfor("myblock", "OPEN")
+
+        Wait for a block to be between limits:
+        >>> waitfor("myblock", lowlimit=100, highlimit=110)
+
+        Wait for a block to reach a specific value, but no longer than 60 seconds:
+        >>> waitfor(myblock=123, maxwait=60)
+
+        Wait for a specified time interval:
+        >>> waitfor(seconds=10)
+        >>> waitfor(hours=1, minutes=30, seconds=15)
+        >>> waitfor(time="1:30:15")
+
+        Wait for a data collection condition:
+        >>> waitfor(frames=5000)
+        >>> waitfor(uamps=200)
+
+        Wait for either a number of frames OR a time interval to occur:
+        >>> waitfor(frames=5000, hours=2)
+
+        Wait for a number of frames AND a time interval to occur:
+        >>> waitfor(frames=5000, hours=2, wait_all=True)
     """
     __api.log_info_msg("WAITFOR %s" % (locals(),))
     try:
@@ -399,21 +397,17 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
         
-    Parameters
-    ----------
-    state : the state to wait for (e.g. "paused")
-    maxwaitsecs : the maximum time to wait for the state before carrying on
-    onexit : wait for runstate to change from the specified state
+    Args:
+        state (string) : the state to wait for (e.g. "paused")
+        maxwaitsecs (int, optional) : the maximum time to wait for the state before carrying on
+        onexit (bool, optional) : wait for runstate to change from the specified state
             
-    EXAMPLES
-    --------
-    Wait for a run to enter the paused state:
-    
-    >>> waitfor_runstate("pause")
-        
-    Wait for a run to exit the paused state:
-    
-    >>> waitfor_runstate("pause", onexit=True)
+    Examples:
+        Wait for a run to enter the paused state:
+        >>> waitfor_runstate("pause")
+
+        Wait for a run to exit the paused state:
+        >>> waitfor_runstate("pause", onexit=True)
     """
     __api.log_info_msg("WAITFOR_RUNSTATE %s" % (locals(),))
     try:
@@ -429,10 +423,8 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 def waitfor_move(start_timeout=2, move_timeout=None):
     """ Wait for all motion to complete.
 
-        Parameters
-        ----------
-        start_timeout : the number of seconds to wait for the movement to begin [optional]
-
+    Args:
+        start_timeout (int, optional) : the number of seconds to wait for the movement to begin
     """
     __api.log_info_msg("WAITFOR_MOVE %s" % (locals(),))
     try:
@@ -448,10 +440,12 @@ def waitfor_move(start_timeout=2, move_timeout=None):
 def get_pv(name, to_string=False):
     """Get the value for the specified PV.
     
-    PARAMETERS
-    ----------
-    name : the name of the PV to get the value for
-    to_string : whether to get the value as a string
+    Args:
+        name (string) : the name of the PV to get the value for
+        to_string (bool, optional) : whether to get the value as a string
+
+    Returns:
+        the current PV value
     """
     try:
         if not __api.pv_exists(name):
@@ -465,26 +459,24 @@ def get_pv(name, to_string=False):
 def set_pv(name, value, wait=False):
     """Set the value for the specified PV.
         
-    Parameters
-    ----------
-    name : the PV name
-    value : the new value to set
-    wait : whether to wait until the value has been received by the hardware
+    Args:
+        name (string) : the PV name
+        value : the new value to set
+        wait (bool, optional) : whether to wait until the value has been received by the hardware
     """
     __api.log_info_msg("SET_PV %s" % (locals(),))
     try:
-        return __api.set_pv_value(name, value, wait)
+        __api.set_pv_value(name, value, wait)
     except Exception as e:
         _handle_exception(e)
 
         
 @_log_command
 def set_messages_verbosity(verbose):
-    """Set the global verbosity of messages
+    """Set the global verbosity of messages.
     
-    Parameters
-    ----------
-    verbose : set the verbosity (True or False)
+    Args:
+        verbose (bool): set the verbosity
     """   
     __api.dae.set_verbose(verbose)    
         
@@ -494,17 +486,16 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
           verbose=False):
     """Starts a data collection run.
         
-    Parameters
-    ----------
-    period : the period to begin data collection in [optional]
-    meas_id : the measurement id [optional]
-    meas_type : the type of measurement [optional]
-    meas_subid : the measurement sub-id[optional]
-    sample_id : the sample id [optional]
-    delayed : puts the period card to into delayed start mode [optional]
-    quiet : suppress the output to the screen [optional]
-    paused : begin in the paused state [optional]
-    verbose : show the messages from the DAE [optional]
+    Args:
+        period (int, optional) : the period to begin data collection in
+        meas_id (string, optional) : the measurement id
+        meas_type (string, optional) : the type of measurement
+        meas_subid (string, optional) : the measurement sub-id
+        sample_id (string, optional) : the sample id
+        delayed (bool, optional) : puts the period card to into delayed start mode
+        quiet (bool, optional) : suppress the output to the screen
+        paused (bool, optional) : begin in the paused state
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("BEGIN %s" % (locals(),))
     try:
@@ -521,9 +512,8 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
 def abort(verbose=False):
     """Abort the current run.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("ABORT %s" % (locals(),))
     try:
@@ -540,9 +530,8 @@ def abort(verbose=False):
 def end(verbose=False):
     """End the current run.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("END %s" % (locals(),))
     try:
@@ -559,9 +548,8 @@ def end(verbose=False):
 def pause(verbose=False):
     """Pause the current run.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("PAUSE %s" % (locals(),))
     try:
@@ -578,9 +566,8 @@ def pause(verbose=False):
 def resume(verbose=False):
     """Resume the current run after it has been paused.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("RESUME %s" % (locals(),))
     try:
@@ -600,9 +587,8 @@ def recover(verbose=False):
     
     Note: the run will be recovered in the paused state.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("RECOVER %s" % (locals(),))
     try:
@@ -618,9 +604,8 @@ def updatestore(verbose=False):
     """Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("SAVING %s" % (locals(),))
     try:
@@ -635,10 +620,9 @@ def updatestore(verbose=False):
 def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
         
-    Parameters
-    ----------
-    pause_run : whether to pause data collection first [optional]
-    verbose : show the messages from the DAE [optional]
+    Args:
+        pause_run (bool, optional) : whether to pause data collection first [optional]
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("UPDATE %s" % (locals(),))
     try:
@@ -662,9 +646,8 @@ def update(pause_run=True, verbose=False):
 def store(verbose=False):
     """Data loaded into memory by a previous update command is now written to disk.
     
-    Parameters
-    ----------
-    verbose : show the messages from the DAE [optional]
+    Args:
+        verbose (bool, optional) : show the messages from the DAE
     """
     __api.log_info_msg("STORING %s" % (locals(),))
     try:
@@ -674,19 +657,19 @@ def store(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
+
 @_log_command
 def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """Create a snapshot of the current data.
 
-    Parameters
-    ----------
-    filename : where to write the data file(s) [optional]
-    verbose : show the messages from the DAE [optional]
+    Args:
+        filename (string, optional) : where to write the data file(s)
+        verbose (bool, optional) : show the messages from the DAE
 
-    EXAMPLES
-    --------
+    Examples:
+        Snapshot to a file called my_snapshot:
 
-    >>> snapshot_crpt("c:\\Data\my_snapshot")
+        >>> snapshot_crpt("c:\\Data\my_snapshot")
     """
     __api.log_info_msg("SNAPSHOT %s" % (locals(),))
     try:
@@ -700,11 +683,13 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
         
 @_log_command
 def get_uamps(period=False):
-    """Returns the current number of micro-amp hours.
+    """Get the current number of micro-amp hours.
         
-    Parameters
-    ----------
-    period : whether to return the micro-amp hours for the current period [optional]
+    Args:
+        period (bool, optional) : whether to return the value for the current period only
+
+    Returns:
+        float : the number of uamps
     """
     try:
         return __api.dae.get_uamps(period)
@@ -714,11 +699,13 @@ def get_uamps(period=False):
         
 @_log_command
 def get_frames(period=False):
-    """Returns the current number of good frames.
+    """Gets the current number of good frames.
         
-    Parameters
-    ----------
-    period : whether to return the number of good frames for the current period [optional]
+    Args:
+        period (bool, optional) : whether to return the value for the current period only
+
+    Returns:
+        int : the number of frames
     """
     try:
         return __api.dae.get_good_frames(period)
@@ -728,9 +715,13 @@ def get_frames(period=False):
         
 @_log_command
 def get_runstate():
-    """Returns the current status of the instrument as a string.
+    """Get the current status of the instrument as a string.
     
-    Note: this value can take a few seconds to update after a change of state."""
+    Note: this value can take a few seconds to update after a change of state.
+
+    Returns:
+        string : the current run state
+    """
     try:
         return __api.dae.get_run_state()
     except Exception as e:
@@ -739,11 +730,10 @@ def get_runstate():
         
 @_log_command
 def get_mevents():
-    """Returns the total counts for all the detectors.
-        
-    Parameters
-    ----------
-    period : whether to return the total counts for the current period [optional]
+    """Gets the total counts for all the detectors.
+
+    Returns:
+        float : the number of mevents
     """
     try:
         return __api.dae.get_mevents()
@@ -753,7 +743,11 @@ def get_mevents():
         
 @_log_command
 def get_period():
-    """Returns the current period number."""
+    """Gets the current period number.
+
+    Returns:
+        int : the current period
+    """
     try:
         return __api.dae.get_period()
     except Exception as e:
@@ -762,7 +756,11 @@ def get_period():
         
 @_log_command
 def get_number_periods():
-    """Get the number of software periods."""
+    """Get the number of software periods.
+
+    Returns:
+        int : the number of periods
+    """
     try:
         return __api.dae.get_num_periods()
     except Exception as e:
@@ -771,16 +769,37 @@ def get_number_periods():
         
 @_log_command
 def set_period(period):
-    """Sets the current period number."""
+    """Sets the current period number.
+
+    Deprecated - use change_period
+
+    Args:
+        period (int) : the period to switch to
+    """
+    print "set_period is deprecated - use change_period"
+    change_period(period)
+
+
+@_log_command
+def change_period(period):
+    """Changes the current period number.
+
+    Args:
+        period (int) : the period to switch to
+    """
     try:
-        return __api.dae.set_period(period)
+        __api.dae.set_period(period)
     except Exception as e:
         _handle_exception(e)
 
         
 @_log_command
 def get_runnumber():
-    """Get the current run number."""
+    """Get the current run-number.
+
+    Returns:
+        string : the run-number
+    """
     try:
         return __api.dae.get_run_number()
     except Exception as e:
@@ -789,7 +808,11 @@ def get_runnumber():
         
 @_log_command
 def get_totalcounts():
-    """Get the total counts for the current run."""
+    """Get the total counts for the current run.
+
+    Returns:
+        int : the total counts
+    """
     try:
         return __api.dae.get_total_counts()
     except Exception as e:
@@ -798,20 +821,35 @@ def get_totalcounts():
 
 @_log_command
 def get_title():
-    """Returns the current title."""
+    """Returns the current title.
+
+    Returns:
+        string : the title
+    """
     try:
         return __api.dae.get_title()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def set_title(title):
     """Sets the current title.
+
+    Deprecated - use change_title
+
+    Args:
+        title : the new title
+    """
+    print "set_title is deprecated - use change_title"
+    change_title(title)
+
+
+@_log_command
+def change_title(title):
+    """Sets the current title.
     
-    PARAMETERS
-    ----------
-    title : the new title
+    Args:
+        title : the new title
     """
     try:
         __api.dae.set_title(title)
@@ -821,7 +859,11 @@ def set_title(title):
         
 @_log_command
 def get_rb():
-    """Returns the current RB number."""
+    """Returns the current RB number.
+
+    Returns:
+        string : the RB number
+    """
     try:
         return __api.dae.get_rb_number()
     except Exception as e:
@@ -831,7 +873,9 @@ def get_rb():
 @_log_command
 def get_dashboard():
     """Get the current experiment values.
-    Returns a dictionary.
+
+    Returns:
+        dict : the experiment values
     """
     try:
         data = dict()
@@ -863,7 +907,8 @@ def get_dashboard():
 def _correct_filepath(filepath):
     """Corrects the slashes"""
     return filepath.__repr__().replace("\\", "/").replace("'", "").replace("//", "/")
-        
+
+
 def _correct_filepath_existing(filepath):
     """If the file exists it get the correct path with the correct casing"""
     filepath = _correct_filepath(filepath)
@@ -902,10 +947,9 @@ def import_user_script_module(name, globs):
     """Loads user scripts from a module.
     This method should not be called directly instead use the load_script method.
 
-    Parameters
-    ----------
-    name : the name of the file to load
-    globs : the global settings dictionary of the caller
+    Args:
+        name (string) : the name of the file to load
+        globs (dict) : the global settings dictionary of the caller
     """
     try:
         name = _convert_to_rawstring(name)
@@ -978,17 +1022,32 @@ def __load_module(name, directory):
 
 @_log_command
 def get_script_dir():
-    """Get the current script directory."""
+    """Get the current script directory.
+
+    Returns:
+        string : the directory
+    """
     return SCRIPT_DIR
 
-    
-@_log_command
+
 def set_script_dir(directory):
     """Set the directory for loading scripts from.
+
+    Deprecated - use change_script_dir.
+
+    Args:
+        string : the directory to load scripts from
+    """
+    print "set_script_dir is deprecated - use change_script_dir"
+    change_script_dir(directory)
+
+
+@_log_command
+def change_script_dir(directory):
+    """Set the directory for loading scripts from.
     
-    Parameters
-    ----------
-    directory : the directory to load scripts from
+    Args:
+        string : the directory to load scripts from
     """
     try:
         directory = _convert_to_rawstring(directory)
@@ -1038,11 +1097,10 @@ def change_finish():
 def change_monitor(spec, low, high):
     """Change the monitor to a specified spectrum and range.
         
-    Parameters
-    ----------
-    spectrum : the spectrum number (integer)
-    low : the low end of the integral (float)
-    high : the high end of the integral (float)
+    Args:
+        spectrum (int) : the spectrum number
+        low (float) : the low end of the integral
+        high (float) : the high end of the integral
     """
     try:
         __api.dae.change_monitor(spec, low, high)
@@ -1054,11 +1112,10 @@ def change_monitor(spec, low, high):
 def change_tables(wiring=None, detector=None, spectra=None):
     """Load the wiring, detector and/or spectra tables.
         
-    Parameters
-    ----------
-    wiring : the filename of the wiring table file [optional]
-    detector : the filename of the detector table file [optional]
-    spectra : the filename of the spectra table file [optional]
+    Args:
+        wiring (string, optional) : the filename of the wiring table file
+        detector (string, optional) : the filename of the detector table file
+        spectra (string, optional) : the filename of the spectra table file
     """
     try:
         __api.dae.change_tables(wiring, detector, spectra)
@@ -1070,9 +1127,8 @@ def change_tables(wiring=None, detector=None, spectra=None):
 def change_sync(source):
     """Change the source the DAE using for synchronisation.
         
-    Parameters
-    ----------
-    source : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
+    Args:
+        source (string) : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
     """
     try:
         __api.dae.change_sync(source)
@@ -1084,10 +1140,9 @@ def change_sync(source):
 def change_tcb_file(tcbfile=None, default=False):
     """Change the time channel boundaries.
         
-    Parameters
-    ----------
-    tcbfile : the file to load [optional]
-    default : load the default file "c:\\labview modules\\dae\\tcb.dat" [optional]
+    Args:
+        tcbfile (string, optional) : the file to load
+        default (bool, optional): load the default file
     """
     try:
         __api.dae.change_tcb_file(tcbfile, default)
@@ -1099,14 +1154,13 @@ def change_tcb_file(tcbfile=None, default=False):
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """Change the time channel boundaries.
         
-    Parameters
-    ----------
-    low : the lower limit
-    high : the upper limit
-    step : the step size
-    trange : the time range (1 to 5)
-    log : whether to use LOG binning [optional]  
-    regime : the time regime to set (1 to 6)[optional]
+    Args
+        low (float) : the lower limit
+        high (float) : the upper limit
+        step (float) : the step size
+        trange (int) : the time range (1 to 5)
+        log (bool, optional) : whether to use LOG binning
+        regime (int, optional) : the time regime to set (1 to 6)
     """
     try:
         __api.dae.change_tcb(low, high, step, trange, log, regime)
@@ -1118,24 +1172,22 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 def change_vetos(**params):
     """Change the DAE veto settings.
         
-    Parameters
-    ----------
-    clearall : remove all vetos [optional]
-    smp : set SMP veto [optional]
-    ts2 : set TS2 veto [optional]
-    hz50 : set 50 hz veto [optional]
-    ext0 : set external veto 0 [optional]
-    ext1 : set external veto 1 [optional]
-    ext2 : set external veto 2 [optional]
-    ext3 : set external veto 3 [optional]
+    Args:
+        clearall (bool, optional) : remove all vetos
+        smp (bool, optional) : set SMP veto
+        ts2 (bool, optional) : set TS2 veto
+        hz50 (bool, optional) : set 50 hz veto
+        ext0  (bool, optional): set external veto 0
+        ext1  (bool, optional): set external veto 1
+        ext2 (bool, optional) : set external veto 2
+        ext3 (bool, optional) : set external veto 3
+
+    Note: If clearall is specified then all vetos are turned off,
+    but it is possible to turn other vetoes back on at the same time:
     
-    EXAMPLES
-    --------
-    
-    If clearall is specified then all vetos are turned off, but it is possible to turn other vetoes 
-    back on at the same time:
-        
-    >>> change_vetos(clearall=True, smp=True)    #Turns all vetoes off then turns the SMP veto back on
+    Examples:
+        Turns all vetoes off then turns the SMP veto back on:
+        >>> change_vetos(clearall=True, smp=True)
     """
     try:
         __api.dae.change_vetos(**params)
@@ -1144,14 +1196,13 @@ def change_vetos(**params):
 
         
 @_log_command
-def set_fermi_veto(enable=None, delay=1.0, width=1.0):
+def change_fermi_veto(enable=None, delay=1.0, width=1.0):
     """Configure the fermi chopper veto.
         
-    Parameters
-    ----------
-    enable : enable the fermi veto
-    delay : the veto delay
-    width : the veto width
+    Args:
+        enable (bool, optional) : enable the fermi veto
+        delay (float, optional) : the veto delay
+        width (float, optional) : the veto width
     """
     try:
         __api.dae.set_fermi_veto(enable, delay, width)
@@ -1163,9 +1214,8 @@ def set_fermi_veto(enable=None, delay=1.0, width=1.0):
 def enable_soft_periods(nperiods=None):
     """Switch the DAE to software periods mode.
         
-    Parameters
-    ----------
-    nperiods : the number of software periods [optional]
+    Args:
+        nperiods (int, optional) : the number of software periods
     """
     try:
         __api.dae.set_period_mode('soft')
@@ -1173,15 +1223,27 @@ def enable_soft_periods(nperiods=None):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def set_number_soft_periods(number, enable=None):
     """Sets the number of software periods for the DAE.
+
+    Deprecated - use change_number_soft_periods
+
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
+    """
+    print "set_number_soft_periods is deprecated - use change_number_soft_periods"
+    change_number_soft_periods(number, enable)
+
         
-    Parameters
-    ----------
-    number : the number of periods to create
-    enable : switch to soft period mode [optional]
+@_log_command
+def change_number_soft_periods(number, enable=None):
+    """Sets the number of software periods for the DAE.
+        
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
     """
     try:
         if enable:
@@ -1196,32 +1258,28 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
                         unused=False, frames=None, output=None, label=None):
     """Sets the DAE to use hardware periods.
         
-    Parameters
-    ----------
-    mode : set the mode to internal ('int') or external ('ext')
-    period_file : the file containing the internal period settings (ignores any other settings) [optional]
-    sequences : the number of times to repeat the period loop (0 = infinite loop) [optional]
-    output_delay : the output delay in microseconds  [optional]
-    period : the number of the period to set the following parameters for [optional]
-    Note: if the period number is unspecified then the settings will be applied to all periods
-    daq :  the specified period is a acquisition period [optional]
-    dwell : the specified period is a dwell period [optional]
-    unused : the specified period is a unused period [optional]
-    frames : the number of frames to count for the specified period [optional]
-    output : the binary output the specified period [optional]
-    label : the label for the period the specified period [optional]
-                 
-    EXAMPLES
-    --------
+    Args:
+        mode (string) : set the mode to internal ('int') or external ('ext')
+        period_file (string, optional) : the file containing the internal period settings (ignores any other settings)
+        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional) : the output delay in microseconds
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
 
-    Setting external periods:
-    
-    >>> enable_hard_periods('ext')
-        
-    Setting internal periods from a file:
-    
-    >>> enable_hard_periods('int', 'c:\\myperiods.txt')
-    """
+    Note: if the period number is unspecified then the settings will be applied to all periods
+
+    Examples:
+        Setting external periods:
+        >>> enable_hard_periods('ext')
+
+        Setting internal periods from a file:
+        >>> enable_hard_periods('int', 'c:\\myperiods.txt')
+        """
     try:
         __api.dae.configure_hard_periods(mode, period_file, sequences, output_delay, period, daq, dwell, unused, frames,
                                          output, label)
@@ -1233,20 +1291,19 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
                                frames=None, output=None, label=None):
     """Configure the internal periods without switching to internal period mode.
-        
-    Parameters
-    ----------
-    file : the file containing the internal period settings (ignores any other settings) [optional]
-    sequences : the number of times to repeat the period loop (0 = infinite loop) [optional]
-    output_delay : the output delay in microseconds [optional]
-    period : the number of the period to set the following parameters for [optional]
+
+    Args:
+        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional) : the output delay in microseconds
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
+
     Note: if the period number is unspecified then the settings will be applied to all periods
-    daq :  the specified period is a acquisition period [optional]
-    dwell : the specified period is a dwell period [optional]
-    unused : the specified period is a unused period [optional]
-    frames : the number of frames to count for the specified period [optional]
-    output : the binary output the specified period [optional]
-    label : the label for the period the specified period [optional]
     """
     try:
         __api.dae.configure_internal_periods(sequences, output_delay, period, daq, dwell, unused, frames, output, label)
@@ -1258,19 +1315,32 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
     """Define the internal hardware periods.
         
-    Parameters
-    ----------
-    period : the number of the period to set the following parameters for [optional]
+    Args:
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
+
     Note: if the period number is unspecified then the settings will be applied to all periods
-    daq :  the specified period is a acquisition period [optional]
-    dwell : the specified period is a dwell period [optional]
-    unused : the specified period is a unused period [optional]
-    frames : the number of frames to count for the specified period [optional]
-    output : the binary output the specified period [optional]
-    label : the label for the period the specified period [optional]
     """
     try:
         configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@_log_command
+def change_users(users):
+    """Define the internal hardware periods.
+
+    Args:
+        users (string): the names of the users
+    """
+    try:
+        __api.dae.set_users(users)
     except Exception as e:
         _handle_exception(e)
 
@@ -1281,37 +1351,32 @@ def change(**params):
 
     Note: it is possible to change more than one item at a time.
 
-    Parameters
-    ----------
-    title : change the current title
-    period : change to a different period (must be in a non-running state)
-    nperiods : change the number of software periods (must be in a non-running state)
-    user : change the user(s) (not implemented)
-    sample_name : change the sample name (not implemented)
-    rbno : change the RB number (not implemented)
-    aoi : change the angle of incidence (reflectometers only) (not implemented)
-    phi : change the sample angle PHI (reflectometers only) (not implemented)
+    Args:
+        title (string, optional) : change the current title
+        period (int, optional) : change to a different period (must be in a non-running state)
+        nperiods (int, optional) : change the number of software periods (must be in a non-running state)
+        user (string, optional) : change the user(s) (not implemented)
+        sample_name string, optional) : change the sample name (not implemented)
+        rbno (int, optional) : change the RB number (not implemented)
+        aoi (float, optional) : change the angle of incidence (reflectometers only) (not implemented)
+        phi (float, optional) : change the sample angle PHI (reflectometers only) (not implemented)
 
-    EXAMPLE
-    -------
+    Examples:
+        Change the title:
+        >>> change(title="The new title")
 
-    Change the title:
-
-    >>> change(title="The new title")
-
-    Change the RB number and the users:
-
-    >>> change(rbno=123456, user="A. User and Ann Other")
+        Change the RB number and the users:
+        >>> change(rbno=123456, user="A. User and Ann Other")
     """
     try:
         for k in params:
             key = k.lower().strip()
             if key == 'title':
-                set_title(params[k])
+                change_title(params[k])
             elif key == 'period':
-                set_period(params[k])
+                change_period(params[k])
             elif key == 'nperiods':
-                set_number_soft_periods(params[k])
+                change_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
                 __api.dae.set_users(params[k])
             # elif key == 'sample_name':
@@ -1332,11 +1397,13 @@ def change(**params):
 def get_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE.
         
-    Parameters
-    ----------
-    spectrum : the spectrum number
-    period : the period [optional]
-    dist : whether to get the spectrum as a distribution [optional]
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period
+        dist (bool, optional) : whether to get the spectrum as a distribution
+
+    Returns:
+        dict : dictionary of values
     """
     try:
         return __api.dae.get_spectrum(spectrum, period, dist)
@@ -1347,13 +1414,14 @@ def get_spectrum(spectrum, period=1, dist=False):
 @_log_command
 def plot_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE and plot it.
-    Returns a GeniePlot object.
         
-    Parameters
-    ----------
-    spectrum : the spectrum number
-    period : the period [optional]
-    dist : whether to get the spectrum as a distribution [optional]
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period
+        dist (bool, optional) : whether to get the spectrum as a distribution
+
+    Returns:
+        GeniePlot : the plot object
     """
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
@@ -1364,22 +1432,39 @@ def plot_spectrum(spectrum, period=1, dist=False):
 
 @_log_command
 def get_sample_pars():
-    """Get the current sample parameter values."""
+    """Get the current sample parameter values.
+
+    Returns:
+        dict : the sample parameters
+    """
     try:
         names = __api.get_sample_pars()
         return names
     except Exception as e:
         _handle_exception(e)
 
-        
+
 @_log_command
 def set_sample_par(name, value):
     """Set a new value for a sample parameter
 
-    Parameters
-    ----------
-        name : the name of the parameter to change
-        value : the new value
+    Deprecated - use change_sample_par
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    print "set_sample_par is deprecated - use change_sample_par"
+    change_sample_par(name, value)
+
+
+@_log_command
+def change_sample_par(name, value):
+    """Set a new value for a sample parameter
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
     """
     try:
         __api.set_sample_par(name, value)
@@ -1389,22 +1474,39 @@ def set_sample_par(name, value):
         
 @_log_command
 def get_beamline_pars():
-    """Get the current beamline parameter values."""
+    """Get the current beamline parameter values.
+
+    Returns:
+        dict : the beamline parameters
+    """
     try:
         names = __api.get_beamline_pars()
         return names
     except Exception as e:
         _handle_exception(e)
 
-        
+
 @_log_command
 def set_beamline_par(name, value):
     """Set a new value for a beamline parameter
 
-    Parameters
-    ----------
-        name : the name of the parameter to change
-        value : the new value
+    Deprecated - use change_beamline_par
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    print "set_beamline_par is deprecated - use change_beamline_par"
+    change_beamline_par(name, value)
+
+
+@_log_command
+def change_beamline_par(name, value):
+    """Set a new value for a beamline parameter
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
     """
     try:
         __api.set_beamline_par(name, value)
@@ -1413,59 +1515,12 @@ def set_beamline_par(name, value):
 
 
 @_log_command
-def add_block(blockname, pvname, **kwargs):
-    """Adds a block to Blockserver.
-
-    Parameters
-    ----------
-    blockname : the name for the block (don't include prefix)
-    pvname : the associated PV's name (include prefix)
-    group : the group to put the block in [optional]
-    local : is the PV local to the machine [optional, default=True]
-    visible : is the block visible on the GUI [optional, default=True]
-    save_rc : should the run-control settings be saved to the configuration [optional, default=False]
-
-    Examples
-    --------
-
-    Add a block called SAMPLE_TEMP and put it in the TEMPERATURE group:
-
-    >>> add_block("SAMPLE_TEMP", "IN:YOUR_INST:TEMP_CONTROL:TEMP_1", group="TEMPERATURE")
-    """
-    try:
-        __api.log_entered_command()
-        __api.blockserver.add_block(blockname, pvname, **kwargs)
-        print "Block added - type action_block_changes() to update blocks"
-    except Exception as e:
-        _handle_exception(e)
-
-
-@_log_command
-def remove_block(blockname):
-    """Removes a block from Blockserver.
-
-    Parameters
-    ----------
-    blockname : the name of the block (don't include prefix)
-    """
-    try:
-        __api.blockserver.remove_block(blockname)
-        print "Block removed - type action_block_changes() to update blocks"
-    except Exception as e:
-        _handle_exception(e)
-
-
-@_log_command
-def action_block_changes():
-    try:
-        __api.blockserver.action_block_changes()
-    except Exception as e:
-        _handle_exception(e)
-
-
-@_log_command
 def get_config():
-    """Get the name of the current configuration."""
+    """Get the name of the current configuration.
+
+    Returns:
+        string : configuration name
+    """
     try:
         return __api.blockserver.get_config_name()
     except Exception as e:
@@ -1474,50 +1529,13 @@ def get_config():
         
 @_log_command
 def get_configs():
-    """Get the names of the available configurations."""
-    try:
-        return __api.blockserver.get_configs()
-    except Exception as e:
-        _handle_exception(e)
+    """Get the names of the available configurations.
 
-
-@_log_command
-def load_config(name):
-    """Load a configuration.
-
-    Parameters
-    ----------
-    name : the name of the configuration to load
+    Returns:
+        list : the names
     """
     try:
-        __api.blockserver.load_config(name)
-    except Exception as e:
-        _handle_exception(e)
-        
-
-@_log_command
-def get_block_groups():
-    """Get the block groups"""
-    try:
-        return __api.blockserver.get_block_groups()
-    except Exception as e:
-        _handle_exception(e)
-        
-        
-@_log_command
-def get_iocs():
-    """Get the IOCs"""
-    try:
-        return __api.blockserver.get_iocs()
-    except Exception as e:
-        _handle_exception(e)
-        
-        
-@_log_command
-def get_config_iocs():
-    """Get the IOCs in the configuration"""
-    try:
-        return __api.blockserver.get_config_iocs()
+        return __api.blockserver.get_configs()
     except Exception as e:
         _handle_exception(e)
 
@@ -1526,10 +1544,9 @@ def get_config_iocs():
 def send_sms(phone_num, message):
     """Send a text message to a mobile phone
 
-    Parameters
-    ----------
-    phone_num : the mobile number to send to
-    message : the message to send
+    Args:
+        phone_num (string) : the mobile number to send to
+        message (string) : the message to send
     """
     try:
         from smslib.sms import send_sms
