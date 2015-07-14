@@ -70,6 +70,10 @@ DAE_PVS_LOOKUP = {
     "errormessage": "DAE:ERRMSGS",
     "allmessages": "DAE:ALLMSGS",
     "statetrans": "DAE:STATETRANS",
+    "wiringtables": "DAE:WIRINGTABLES",
+    "spectratables": "DAE:SPECTRATABLES",
+    "detectortables": "DAE:DETECTORTABLES",
+    "periodfiles": "DAE:PERIODFILES",
 }
 
 
@@ -307,8 +311,6 @@ class Dae(object):
         Parameters:
             period - the number of the period to change to
         """
-        # if self.get_run_state() != "SETUP" and self.get_run_state() != "PAUSED":
-            # raise Exception("Must be in a non-running state (e.g. SETUP or PAUSED)")
         self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
         
     def get_uamps(self, period=False):
@@ -470,7 +472,7 @@ class Dae(object):
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
         """
-        #Check in setup
+        # Check in setup
         if self.get_run_state() != "SETUP":
             raise Exception('Must be in SETUP before starting change!')
         if self.in_change:
@@ -899,3 +901,23 @@ class Dae(object):
             return True
         else:
             return False
+
+    def get_wiring_tables(self):
+        """Get a list of wiring table choices"""
+        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("wiringtables"), to_string=True))
+        return json.loads(raw)
+        
+    def get_spectra_tables(self):
+        """Get a list of spectra table choices"""
+        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("spectratables"), to_string=True))
+        return json.loads(raw)
+        
+    def get_detector_tables(self):
+        """Get a list of detector table choices"""
+        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("detectortables"), to_string=True))
+        return json.loads(raw)
+
+    def get_period_files(self):
+        """Get a list of period file choices"""
+        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("periodfiles"), to_string=True))
+        return json.loads(raw)
