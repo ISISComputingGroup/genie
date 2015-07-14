@@ -1553,3 +1553,55 @@ def send_sms(phone_num, message):
         send_sms(phone_num, message)
     except Exception as e:
         _handle_exception(e)
+
+
+@_log_command
+def get_wiring_tables():
+    """Gets a list of possible wiring table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_wiring_tables()
+    except Exception as e:
+        _handle_exception(e)
+        
+
+@_log_command
+def get_spectra_tables():
+    """Gets a list of possible spectra table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_spectra_tables()
+    except Exception as e:
+        _handle_exception(e)
+
+        
+@_log_command
+def get_detector_tables():
+    """Gets a list of possible detector table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_detector_tables()
+    except Exception as e:
+        _handle_exception(e)
+
+
+@_log_command
+def get_period_files():
+    """Gets a list of possible period file choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_period_files()
+    except Exception as e:
+        _handle_exception(e)
