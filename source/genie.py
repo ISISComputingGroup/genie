@@ -1580,7 +1580,7 @@ def get_spectra_tables():
     except Exception as e:
         _handle_exception(e)
 
-        
+
 @_log_command
 def get_detector_tables():
     """Gets a list of possible detector table choices.
