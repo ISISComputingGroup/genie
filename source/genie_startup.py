@@ -1,5 +1,14 @@
 from genie_python.genie import *
+import ctypes
+import os
 
+
+if os.name == "nt":
+    # Disable Windows console quick edit mode
+    win32 = ctypes.windll.kernel32
+    handle = win32.GetStdHandle(-10)
+    win32.SetConsoleMode(handle, 0x0080)
+    
 
 def load_script(script_file, globs=None, globs_holder=[]):
     """Load a script file
