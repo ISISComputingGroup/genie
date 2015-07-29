@@ -5,7 +5,6 @@ from genie_wait_for_move import WaitForMoveController
 from genie_blockserver import BlockServer
 import os
 import re
-import readline
 from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
 
 
@@ -240,7 +239,11 @@ class API(object):
             
     def log_entered_command(self):
         """Write the command to a log file"""
-        self.write_to_log(readline.get_line_buffer(), 'CMD')
+        try:
+            import readline
+            self.write_to_log(readline.get_line_buffer(), 'CMD')
+        except:
+            pass
 
     def log_info_msg(self, message):
         self.write_to_log(message, 'CMD')

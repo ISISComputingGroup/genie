@@ -2,7 +2,6 @@ import types
 import os
 import imp
 import sys
-import readline
 import glob
 import re
 import ctypes
@@ -20,6 +19,8 @@ if 'SCISOFT_RPC_PORT' in os.environ:
     from genie_scisoft_plot import GeniePlot, SpectraPlot
 else:
     from genie_plot import GeniePlot, SpectraPlot
+  
+    
 
 # INITIALISATION CODE - DO NOT DELETE
 try:
@@ -40,20 +41,25 @@ _exceptions_raised = False
 
 
 # TAB COMPLETE FOR LOAD_SCRIPT
-def complete(text, state):
-    if text.startswith('load_script("') or text.startswith("load_script('"):
-        temp = text[13:]
-        ans = (glob.glob(temp+'*')+[None])[state]
-        if ans is not None:
-            # return / to avoid a quoting issue with \ in paths
-            return (text[:13] + ans).replace('\\', '/')
-    else:
-        return __ipy_complete(text, state)
+try:
+    import readline
 
-__ipy_complete = readline.get_completer()
-readline.set_completer_delims(' \t\n;')
-readline.parse_and_bind("tab: complete")
-readline.set_completer(complete)
+    def complete(text, state):
+        if text.startswith('load_script("') or text.startswith("load_script('"):
+            temp = text[13:]
+            ans = (glob.glob(temp+'*')+[None])[state]
+            if ans is not None:
+                # return / to avoid a quoting issue with \ in paths
+                return (text[:13] + ans).replace('\\', '/')
+        else:
+            return __ipy_complete(text, state)
+
+    __ipy_complete = readline.get_completer()
+    readline.set_completer_delims(' \t\n;')
+    readline.parse_and_bind("tab: complete")
+    readline.set_completer(complete)
+except:
+    pass
 # END TAB COMPLETE
 
 
