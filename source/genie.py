@@ -455,7 +455,7 @@ def get_pv(name, to_string=False):
     """
     try:
         if not __api.pv_exists(name):
-            raise Exception('PV does not exist')
+            raise Exception('PV %s does not exist' % name)
         return __api.get_pv_value(name, to_string)
     except Exception as e:
         _handle_exception(e)
