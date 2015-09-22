@@ -112,12 +112,12 @@ class ChangeCache(object):
             
     def _change_tcb_table(self, root, changed):
         for row in self.tcb_tables:
-            regime = row[0]
-            trange = row[1]
+            regime = str(row[0])
+            trange = str(row[1])
             self._change_xml(root, 'DBL', 'TR%s From %s' % (regime, trange), row[2])
             self._change_xml(root, 'DBL', 'TR%s To %s' % (regime, trange), row[3])
             self._change_xml(root, 'DBL', 'TR%s Steps %s' % (regime, trange), row[4])
-            self._change_xml(root, 'DBL', 'TR%s In Mode %s' % (regime, trange), row[5])
+            self._change_xml(root, 'U16', 'TR%s In Mode %s' % (regime, trange), row[5])
             changed = True
         return changed
             
