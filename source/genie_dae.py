@@ -66,7 +66,9 @@ DAE_PVS_LOOKUP = {
     "periodsettings": "DAE:HARDWAREPERIODS",
     "periodsettings_sp": "DAE:HARDWAREPERIODS:SP",
     "getspectrum_x": "DAE:SPEC:%d:%d:X",
+    "getspectrum_x_size": "DAE:SPEC:%d:%d:X.NORD",
     "getspectrum_y": "DAE:SPEC:%d:%d:Y",
+    "getspectrum_y_size": "DAE:SPEC:%d:%d:Y.NORD",
     "errormessage": "DAE:ERRMSGS",
     "allmessages": "DAE:ALLMSGS",
     "statetrans": "DAE:STATETRANS",
@@ -892,7 +894,11 @@ class Dae(object):
     def get_spectrum(self, spectrum, period=1, dist=False):
         """Get a spectrum from the DAE via a PV"""
         y_data = self._get_pv_value(self._get_dae_pv_name("getspectrum_y") % (period, spectrum))
+        y_size = self._get_pv_value(self._get_dae_pv_name("getspectrum_y_size") % (period, spectrum))
+        y_data = y_data[:y_size]
         x_data = self._get_pv_value(self._get_dae_pv_name("getspectrum_x") % (period, spectrum))
+        x_size = self._get_pv_value(self._get_dae_pv_name("getspectrum_x_size") % (period, spectrum))
+        x_data = x_data[:x_size]
         return {'time': x_data, 'signal': y_data, 'sum': None, 'mode': 'distribution'}
 
     def in_transition(self):
