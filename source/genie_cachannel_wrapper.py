@@ -1,9 +1,9 @@
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
 
-TIMEOUT = 15
+TIMEOUT = 15         # default timeout for PV set/get
+EXIST_TIMEOUT = 3    # separate smaller timeout for pv_exists() and searchw() operations 
 CACHE = dict()
-
 
 class CaChannelWrapper(object):
     @staticmethod
@@ -33,13 +33,14 @@ class CaChannelWrapper(object):
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
-            chan.setTimeout(timeout)
+            chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
             try :
                 chan.searchw()
             except :
                 raise Exception("Unable to find PV %s" % name)
             CACHE[name] = chan
+        chan.setTimeout(timeout)
         if not chan.write_access() :
             raise Exception("Write access denied for PV %s" % name)
         if wait:
@@ -62,13 +63,14 @@ class CaChannelWrapper(object):
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
-            chan.setTimeout(timeout)
+            chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
             try :
                 chan.searchw()
             except :
                 raise Exception("Unable to find PV %s" % name)
             CACHE[name] = chan
+        chan.setTimeout(timeout)
         if not chan.read_access() :
             raise Exception("Read access denied for PV %s" % name)
         ftype = chan.field_type()
@@ -90,7 +92,7 @@ class CaChannelWrapper(object):
             return chan.getw()
 
     @staticmethod
-    def pv_exists(name, timeout=TIMEOUT):
+    def pv_exists(name, timeout=EXIST_TIMEOUT):
         """See if the PV exists"""
         if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn :
             return True
@@ -101,6 +103,9 @@ class CaChannelWrapper(object):
             try :
                 chan.searchw()
             except :
+                # ideally we should not print anything and just use the return code, but we get a timout message  
+                # printed by the channel access DLL anyway so best to say which PV this error refers to 
+                print("Unable to find PV %s" % name)
                 return False
             CACHE[name] = chan
             return True
