@@ -5,6 +5,7 @@ TIMEOUT = 15         # default timeout for PV set/get
 EXIST_TIMEOUT = 3    # separate smaller timeout for pv_exists() and searchw() operations 
 CACHE = dict()
 
+
 class CaChannelWrapper(object):
     @staticmethod
     def _waveform2string(data):
@@ -29,49 +30,51 @@ class CaChannelWrapper(object):
             value - the value to set
             wait - wait for the value to be set before returning
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn :
+        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
             chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
-            try :
+            try:
                 chan.searchw()
-            except :
+            except:
                 raise Exception("Unable to find PV %s" % name)
             CACHE[name] = chan
         chan.setTimeout(timeout)
-        if not chan.write_access() :
+        if not chan.write_access():
             raise Exception("Write access denied for PV %s" % name)
         if wait:
             ftype = chan.field_type()
             ecount = chan.element_count()
             event = Event()
             chan.array_put_callback(value, ftype, ecount, CaChannelWrapper.putCB, event)
-            # wait in a loop so keyboard interrupt is possible
-            # should use overall timeout somehow? need to make sure it is long enough for all requests to complete though
-            # did try flush_io() followed by event.wait(1.0) inside the loop, but a send got missed. Looks like pend_event() / poll() is needed  
+            # Wait in a loop so keyboard interrupt is possible.
+            # Should use overall timeout somehow? need to make sure it is long enough for all requests to complete
+            # though did try flush_io() followed by event.wait(1.0) inside the loop, but a send got missed.
+            # Looks like pend_event() / poll() is needed
             while not event.isSet():
                 chan.pend_event(0.1)
         else:
-            chan.putw(value)  # putw() flushes send buffer, but doesn't wait for a CA completion callback
+            # putw() flushes send buffer, but doesn't wait for a CA completion callback
+            chan.putw(value)
 
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
         """Get the current value of the PV"""
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn :
+        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
             chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
-            try :
+            try:
                 chan.searchw()
-            except :
+            except:
                 raise Exception("Unable to find PV %s" % name)
             CACHE[name] = chan
         chan.setTimeout(timeout)
-        if not chan.read_access() :
+        if not chan.read_access():
             raise Exception("Read access denied for PV %s" % name)
         ftype = chan.field_type()
         if ca.dbr_type_is_ENUM(ftype) or ca.dbr_type_is_CHAR(ftype) or ca.dbr_type_is_STRING(ftype):
@@ -94,15 +97,15 @@ class CaChannelWrapper(object):
     @staticmethod
     def pv_exists(name, timeout=EXIST_TIMEOUT):
         """See if the PV exists"""
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn :
+        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             return True
         else:
             chan = CaChannel(name)
             chan.setTimeout(timeout)
             # Try to connect - throws if cannot
-            try :
+            try:
                 chan.searchw()
-            except :
+            except:
                 # ideally we should not print anything and just use the return code, but we get a timout message  
                 # printed by the channel access DLL anyway so best to say which PV this error refers to 
                 print("Unable to find PV %s" % name)
