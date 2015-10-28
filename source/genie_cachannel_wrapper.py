@@ -106,7 +106,7 @@ class CaChannelWrapper(object):
             try:
                 chan.searchw()
             except:
-                # ideally we should not print anything and just use the return code, but we get a timout message  
+                # Ideally we should not print anything and just use the return code, but we get a timout message
                 # printed by the channel access DLL anyway so best to say which PV this error refers to 
                 print("Unable to find PV %s" % name)
                 return False

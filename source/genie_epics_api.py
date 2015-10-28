@@ -1,7 +1,6 @@
 from time import strftime, localtime
 import os
 import re
-
 from genie_dae import Dae
 from genie_waitfor import WaitForController
 from genie_wait_for_move import WaitForMoveController
