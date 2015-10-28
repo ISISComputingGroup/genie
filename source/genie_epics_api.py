@@ -2,11 +2,11 @@ from time import strftime, localtime
 import os
 import re
 
-from source.genie_dae import Dae
+from genie_dae import Dae
 from genie_waitfor import WaitForController
 from genie_wait_for_move import WaitForMoveController
 from genie_blockserver import BlockServer
-from source.genie_cachannel_wrapper import CaChannelWrapper as Wrapper
+from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
 
 
 class API(object):
