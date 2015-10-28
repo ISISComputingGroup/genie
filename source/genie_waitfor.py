@@ -48,7 +48,7 @@ class WaitForController(object):
             
         if block is not None:
             if not self.api.block_exists(block):
-                raise NameError("Block does not exist")
+                raise NameError('No block with the name "%s" exists' % block)
             block = self.api.correct_blockname(block)            
             if value is not None and (not isinstance(value, float) and not isinstance(value, int)):
                 raise Exception("The value entered for the block was invalid, it should be numeric.")
