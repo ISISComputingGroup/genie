@@ -28,7 +28,7 @@ class BlockServer(object):
         raw = self.get_raw_block_details(name)
         if raw is not None:
             rc_vals = dict()
-            if raw[7] == 1:
+            if raw[7] == "1":
                 rc_vals["ENABLE"] = True
             else:
                 rc_vals["ENABLE"] = False
@@ -55,7 +55,7 @@ class BlockServer(object):
                 newdata.append(data)
             else:
                 newdata.append(b)
-        self.session.setLabviewVar("C:\LabVIEW Modules\dae\monitor\dae_monitor.vi", "Parameter details", newdata)
+        self.session.setLabviewVarExt("C:\LabVIEW Modules\dae\monitor\dae_monitor.vi", "Parameter details", newdata)
         
     def get_labview_var(self, vi, control):
         """Get the value of a control on a LabVIEW VI.
@@ -93,7 +93,7 @@ class BlockServer(object):
             # Not using fullpath
             vi = self._get_vi_fullpath(vi)
         try:
-            self.session.setLabviewVar(vi, control, value)
+            self.session.setLabviewVarExt(vi, control, value)
         except:
             raise NameError("Could not set value. Are the VI and control names correct?")
             
