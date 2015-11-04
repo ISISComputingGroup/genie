@@ -6,8 +6,12 @@ import os
 if os.name == "nt":
     # Disable Windows console quick edit mode
     win32 = ctypes.windll.kernel32
-    handle = win32.GetStdHandle(-10)
-    win32.SetConsoleMode(handle, 0x0080)
+    hin = win32.GetStdHandle(-10)
+    mode = ctypes.c_ulong(0)
+    win32.GetConsoleMode(hin, ctypes.byref(mode))
+    # To disable quick edit need to disable the 7th bit and enable the 8th
+    new_mode = mode.value & ~(0x0040) | (0x0080)
+    win32.SetConsoleMode(hin, new_mode)
     
 
 def load_script(script_file, globs=None, globs_holder=[]):
