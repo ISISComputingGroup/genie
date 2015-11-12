@@ -1,6 +1,6 @@
 import win32com.client
 from time import strftime, localtime
-from genie_python.genie_dae import Dae
+from genie_python.seci.genie_seci_dae import Dae
 from genie_python.genie_waitfor import WaitForController
 from genie_python.seci.genie_seci_wait_for_move import WaitForMoveController
 from genie_python.seci.genie_seci_blockserver import BlockServer
@@ -63,12 +63,11 @@ class API(object):
         if not pv_prefix.endswith(":"):
             pv_prefix += ":"
         API.__inst_prefix = pv_prefix
-        API.dae = Dae(self, pv_prefix)
-        # TODO:
-        API.wait_for_move = WaitForMoveController(self, pv_prefix + API.__motion_suffix)
-        API.waitfor = WaitForController(self)
         self.dcom_api = win32com.client.Dispatch("instapi.api")
         self.dcom_session = self.dcom_api.create("", "", "")
+        API.dae = Dae(self, pv_prefix, self.dcom_session)
+        API.wait_for_move = WaitForMoveController(self)
+        API.waitfor = WaitForController(self)
         API.blockserver = BlockServer(self.dcom_session)
         
     def prefix_pv_name(self, name):
