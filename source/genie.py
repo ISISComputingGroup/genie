@@ -20,7 +20,6 @@ if 'SCISOFT_RPC_PORT' in os.environ:
 else:
     from genie_plot import GeniePlot, SpectraPlot
   
-    
 
 # INITIALISATION CODE - DO NOT DELETE
 try:
@@ -211,7 +210,7 @@ def cset(*args, **kwargs):
             if len(args) > 2:
                 raise Exception('Too many arguments, please type: help(cset) for more information on the syntax')
             if not __api.block_exists(args[0]):
-                raise Exception('No block with that name exists')
+                raise Exception('No block with the name "%s" exists' % args[0])
             else:
                 block = args[0]
             if len(args) == 2:
@@ -232,7 +231,7 @@ def cset(*args, **kwargs):
                     blocks.append(k)
                     values.append(kwargs[k])
                 else:
-                    raise Exception('No Block called ' + k + ' exists')
+                    raise Exception('No block with the name "%s" exists' % k)
 
         if block is not None and len(blocks) > 0:
             raise Exception('Incorrect syntax, please type: help(cset) for more information on the syntax')
@@ -271,7 +270,7 @@ def cget(block):
     """
     try: 
         if not __api.block_exists(block):
-            raise Exception('No block with that name exists')
+            raise Exception('No block with the name "%s" exists' % block)
             
         ans = OrderedDict()
         ans['name'] = __api.correct_blockname(block)
@@ -306,7 +305,7 @@ def cshow(block=None):
     try:
         if block:
             if __api.block_exists(block):
-                output = block + ' = ' + str(__api.get_block_value(block))
+                output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
                 rc = __api.get_runcontrol_settings(block)
                 if rc is not None:
                     output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
@@ -320,7 +319,7 @@ def cshow(block=None):
                 # output += ')'
                 print output
             else:
-                raise Exception('No block with that name exists')
+                raise Exception('No block with the name "%s" exists' % block)
         else:
             names = __api.get_blocks()
             if names is not None:
@@ -1516,32 +1515,6 @@ def change_beamline_par(name, value):
     """
     try:
         __api.set_beamline_par(name, value)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@_log_command
-def get_config():
-    """Get the name of the current configuration.
-
-    Returns:
-        string : configuration name
-    """
-    try:
-        return __api.blockserver.get_config_name()
-    except Exception as e:
-        _handle_exception(e)
-        
-        
-@_log_command
-def get_configs():
-    """Get the names of the available configurations.
-
-    Returns:
-        list : the names
-    """
-    try:
-        return __api.blockserver.get_configs()
     except Exception as e:
         _handle_exception(e)
 
