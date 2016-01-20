@@ -123,22 +123,11 @@ class WaitForMoveController(object):
         return False
 
     def _check_alarms(self, blocks):
-        minor = list()
-        major = list()
+        # Removing any missing blocks
+        blks = list()
         for b in blocks:
             if b in self._missing_blocks:
                 # Skip any missing blocks
                 continue
-            name = self._api.correct_blockname(b)
-            # Alarm states are: NO_ALARM, MINOR, MAJOR
-            try:
-                alarm_state = self._api.get_pv_value(name + ".SEVR", attempts=1)
-                if alarm_state == "MINOR":
-                    minor.append(b)
-                elif alarm_state == "MAJOR":
-                    major.append(b)
-            except:
-                # Could not get value
-                self._api.log_info_msg("WAITFOR_MOVE COULD NOT GET ALARM STATE FOR BLOCK: %s" % b)
-                print "\nCould not get alarm state for block %s" % b
-        return minor, major
+            blks.append(b)
+        return self._api.check_alarms(blks)

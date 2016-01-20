@@ -336,4 +336,31 @@ class API(object):
             return ans[name]
         return None
         
-        
+    def check_alarms(self, blocks):
+        """Checks whether the specified blocks are in alarm.
+
+        Args:
+            blocks (list) : the blocks to check
+
+        Returns:
+            list, list : the blocks in minor alarm and major alarm respectively
+        """
+        minor = list()
+        major = list()
+        for b in blocks:
+            if self.block_exists(b):
+                name = self.correct_blockname(b, False)
+                full_name = self.correct_blockname(b)
+                # Alarm states are: NO_ALARM, MINOR, MAJOR
+                try:
+                    alarm_state = self.get_pv_value(full_name + ".SEVR", attempts=1)
+                    if alarm_state == "MINOR":
+                        minor.append(name)
+                    elif alarm_state == "MAJOR":
+                        major.append(name)
+                except:
+                    # Could not get value
+                    print "\nCould not get alarm state for block %s" % b
+            else:
+                print "Block %s does not exist, so ignoring it" % b
+        return minor, major

@@ -1627,7 +1627,7 @@ def get_period_files():
 
 
 def check_alarms(*blocks):
-    """Checks with the specified blocks are in alarm.
+    """Checks whether the specified blocks are in alarm.
 
     Args:
         blocks (string, multiple) : the block(s) to check
@@ -1639,22 +1639,4 @@ def check_alarms(*blocks):
         Check alarm state for block1 and block2:
         >>> check_alarms("block1", "block2")
     """
-    minor = list()
-    major = list()
-    for b in blocks:
-        if __api.block_exists(b):
-            name = __api.correct_blockname(b, False)
-            full_name = __api.correct_blockname(b)
-            # Alarm states are: NO_ALARM, MINOR, MAJOR
-            try:
-                alarm_state = __api.get_pv_value(full_name + ".SEVR", attempts=1)
-                if alarm_state == "MINOR":
-                    minor.append(name)
-                elif alarm_state == "MAJOR":
-                    major.append(name)
-            except:
-                # Could not get value
-                print "\nCould not get alarm state for block %s" % b
-        else:
-            print "Block %s does not exist, so ignoring it" % b
-    return minor, major
+    return __api.check_alarms(blocks)
