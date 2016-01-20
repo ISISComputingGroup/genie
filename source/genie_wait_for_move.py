@@ -57,8 +57,6 @@ class WaitForMoveController(object):
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
             print "Block %s could not be found" % i
 
-        return minor, major
-
     def _do_wait(self, start_timeout, move_timeout, check_for_move):
         # Pause very briefly to avoid any "double move" that may occur when multiple motors are moved
         # and one of the motors is sent to its current position

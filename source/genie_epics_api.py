@@ -112,12 +112,15 @@ class API(object):
         """See if the PV exists"""
         return Wrapper.pv_exists(name)
         
-    def correct_blockname(self, name):
+    def correct_blockname(self, name, add_prefix=True):
         """Corrects the casing of the block."""
         blocks = self.get_blocks()
         for i in range(len(blocks)):
             if name.lower() == blocks[i].lower():
-                return self.__inst_prefix + API.__block_prefix + blocks[i]
+                if add_prefix:
+                    return self.__inst_prefix + API.__block_prefix + blocks[i]
+                else:
+                    return blocks[i]
         # If we get here then the block does not exist
         # but this should be picked up elsewhere
         return name

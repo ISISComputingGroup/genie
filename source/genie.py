@@ -425,10 +425,14 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 
         
 @_log_command
-def waitfor_move(*args, **kwargs):
-    """ Wait for all motion to complete.
+def waitfor_move(*blocks, **kwargs):
+    """ Wait for all motion or specific motion to complete.
+
+    If block names are supplied then it will only wait for those to stop moving. Otherwise, it will wait for all motion
+    to stop.
 
     Args:
+        blocks (string, multiple, optional) : the names of specific blocks to wait for
         start_timeout (int, optional) : the number of seconds to wait for the movement to begin (default = 2 seconds)
         move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
 
@@ -460,11 +464,11 @@ def waitfor_move(*args, **kwargs):
         if __api.wait_for_move is None:
             raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
 
-        if len(args) > 0:
+        if len(blocks) > 0:
             # Specified blocks waitfor_move
             move_blocks = list()
             # Check blocks exist
-            for b in args:
+            for b in blocks:
                 if __api.block_exists(b):
                     move_blocks.append(b)
                 else:
@@ -1620,3 +1624,37 @@ def get_period_files():
         return __api.dae.get_period_files()
     except Exception as e:
         _handle_exception(e)
+
+
+def check_alarms(*blocks):
+    """Checks with the specified blocks are in alarm.
+
+    Args:
+        blocks (string, multiple) : the block(s) to check
+
+    Returns:
+        list, list : the blocks in minor alarm and major alarm respectively
+
+    Example:
+        Check alarm state for block1 and block2:
+        >>> check_alarms("block1", "block2")
+    """
+    minor = list()
+    major = list()
+    for b in blocks:
+        if __api.block_exists(b):
+            name = __api.correct_blockname(b, False)
+            full_name = __api.correct_blockname(b)
+            # Alarm states are: NO_ALARM, MINOR, MAJOR
+            try:
+                alarm_state = __api.get_pv_value(full_name + ".SEVR", attempts=1)
+                if alarm_state == "MINOR":
+                    minor.append(name)
+                elif alarm_state == "MAJOR":
+                    major.append(name)
+            except:
+                # Could not get value
+                print "\nCould not get alarm state for block %s" % b
+        else:
+            print "Block %s does not exist, so ignoring it" % b
+    return minor, major
