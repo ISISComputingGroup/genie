@@ -110,7 +110,7 @@ class WaitForMoveController(object):
             name = self._api.correct_blockname(b)
             # DMOV = 0 when moving
             try:
-                moving = self._api.get_pv_value(name + ".DMOV", attempts=1) == 0
+                moving = self._api.get_pv_value(name + ":DMOV", attempts=1) == 0
             except:
                 # Could not find block so don't try it again
                 self._api.log_info_msg("WAITFOR_MOVE DISCONNECTED BLOCK: %s" % b)
