@@ -46,6 +46,7 @@ class WaitForMoveController(object):
         self._do_wait(start_timeout, move_timeout, check_blocks)
 
         # Check alarms
+        time.sleep(0.5)
         minor, major = self._check_alarms(blocks)
         for i in major:
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MAJOR ALARM" % i)
