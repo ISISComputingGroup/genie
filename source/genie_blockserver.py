@@ -17,6 +17,7 @@ class BlockServer(object):
         return self.api.set_pv_value(self.api.prefix_pv_name(pv), value, wait)
         
     def get_block_names(self):
+        """Get the names of all the blocks."""
         raw = self._get_pv_value(self.__blockserver_prefix + "BLOCKNAMES", True)
         raw = dehex_and_decompress(raw)
         return json.loads(raw)
@@ -36,6 +37,13 @@ class BlockServer(object):
         return json.loads(raw)
 
     def get_runcontrol_settings(self):
+        """Get the current run-control settings."""
         raw = self._get_pv_value(self.__blockserver_prefix + "GET_RC_PARS", True)
+        raw = dehex_and_decompress(raw)
+        return json.loads(raw)
+
+    def get_current_block_values(self):
+        """Get the cache values for the blocks."""
+        raw = self._get_pv_value(self.__blockserver_prefix + "BLOCKVALUES", True)
         raw = dehex_and_decompress(raw)
         return json.loads(raw)
