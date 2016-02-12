@@ -349,7 +349,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         frames (int, optional) : wait for a total number of good frames to be collected
         uamps (float, optional) : wait for a total number of uamps to be received
         
-    Example:
+    Examples:
         Wait for a block to reach a specific value:
         >>> waitfor(myblock=123)
         >>> waitfor("myblock", 123)
@@ -425,18 +425,58 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 
         
 @_log_command
-def waitfor_move(start_timeout=2, move_timeout=None):
-    """ Wait for all motion to complete.
+def waitfor_move(*blocks, **kwargs):
+    """ Wait for all motion or specific motion to complete.
+
+    If block names are supplied then it will only wait for those to stop moving. Otherwise, it will wait for all motion
+    to stop.
 
     Args:
-        start_timeout (int, optional) : the number of seconds to wait for the movement to begin
+        blocks (string, multiple, optional) : the names of specific blocks to wait for
+        start_timeout (int, optional) : the number of seconds to wait for the movement to begin (default = 2 seconds)
+        move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
+
+    Examples:
+        Wait for all motors to stop moving:
+        >>> waitfor_move()
+
+        Wait for all motors to stop moving with a timeout of 30 seconds:
+        >>> waitfor_move(move_timeout=30)
+
+        Wait for only slit1 and slit2 motors to stop moving:
+        >>> waitfor_move("slit1", "slit2")
     """
     __api.log_info_msg("WAITFOR_MOVE %s" % (locals(),))
+
+    # Sort out the parameters
+    # Standard parameters
+    if 'start_timeout' in kwargs:
+        start_timeout = kwargs['start_timeout']
+    else:
+        start_timeout = 2
+    if 'move_timeout' in kwargs:
+        move_timeout = kwargs['move_timeout']
+    else:
+        move_timeout = None
+
     try:
         # Check that wait_for_move object exists
         if __api.wait_for_move is None:
             raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
-        __api.wait_for_move.wait(start_timeout, move_timeout)
+
+        if len(blocks) > 0:
+            # Specified blocks waitfor_move
+            move_blocks = list()
+            # Check blocks exist
+            for b in blocks:
+                if __api.block_exists(b):
+                    move_blocks.append(b)
+                else:
+                    print "Block %s does not exist, so ignoring it" % b
+            __api.wait_for_move.wait_specific(move_blocks, start_timeout, move_timeout)
+        else:
+            # Standard waitfor_move
+            __api.wait_for_move.wait(start_timeout, move_timeout)
     except Exception as e:
         _handle_exception(e)
 
@@ -1584,3 +1624,19 @@ def get_period_files():
         return __api.dae.get_period_files()
     except Exception as e:
         _handle_exception(e)
+
+
+def check_alarms(*blocks):
+    """Checks whether the specified blocks are in alarm.
+
+    Args:
+        blocks (string, multiple) : the block(s) to check
+
+    Returns:
+        list, list : the blocks in minor alarm and major alarm respectively
+
+    Example:
+        Check alarm state for block1 and block2:
+        >>> check_alarms("block1", "block2")
+    """
+    return __api.check_alarms(blocks)
