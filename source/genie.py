@@ -295,6 +295,7 @@ def cshow_new():
         if bv[0] == "*** disconnected" or bv[0] is None:
             output = "%s = *** disconnected ***" % bn
         elif isinstance(bv[0], list) and bv[4] == "CHAR":
+            # If it is a char waveform it needs to be converted
             output = "%s = %s" % (bn, waveform_to_string(bv[0]))
             output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:

@@ -17,3 +17,4 @@ def waveform_to_string(data):
             break
         output += str(unichr(i))
     return output
+
