@@ -9,6 +9,7 @@ from functools import wraps
 from collections import OrderedDict
 from genie_epics_api import *
 from genie_script_checker import ScriptChecker
+from utilities import waveform_to_string
 
 # Windows specific stuff
 if os.name == 'nt':
@@ -293,6 +294,9 @@ def cshow_new():
     for bn, bv in blks.iteritems():
         if bv[0] == "*** disconnected" or bv[0] is None:
             output = "%s = *** disconnected ***" % bn
+        elif isinstance(bv[0], list) and bv[4] == "CHAR":
+            output = "%s = %s" % (bn, waveform_to_string(bv[0]))
+            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:
             output = "%s = %s" % (bn, bv[0])
             output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
