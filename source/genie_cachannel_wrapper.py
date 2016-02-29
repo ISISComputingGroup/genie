@@ -1,5 +1,6 @@
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
+from utilities import waveform_to_string
 
 TIMEOUT = 15         # default timeout for PV set/get
 EXIST_TIMEOUT = 3    # separate smaller timeout for pv_exists() and searchw() operations 
@@ -7,15 +8,6 @@ CACHE = dict()
 
 
 class CaChannelWrapper(object):
-    @staticmethod
-    def _waveform2string(data):
-        output = ""
-        for i in data:
-            if i == 0:
-                break
-            output += str(unichr(i))
-        return output
-
     @staticmethod
     def putCB(epics_args, user_args):
         user_args[0].set()
@@ -88,7 +80,7 @@ class CaChannelWrapper(object):
                 value = chan.getw(ca.DBR_CHAR)
             # Could see if the element count is > 1 instead
             if isinstance(value, list):
-                return CaChannelWrapper._waveform2string(value)
+                return waveform_to_string(value)
             else:
                 return str(value)
         else:

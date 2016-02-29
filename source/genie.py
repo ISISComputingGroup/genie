@@ -9,6 +9,7 @@ from functools import wraps
 from collections import OrderedDict
 from genie_epics_api import *
 from genie_script_checker import ScriptChecker
+from utilities import waveform_to_string
 
 # Windows specific stuff
 if os.name == 'nt':
@@ -287,14 +288,29 @@ def cget(block):
     except Exception as e:
         _handle_exception(e)
 
-        
+
+def cshow_new():
+    blks = __api.get_current_block_values()
+    for bn, bv in blks.iteritems():
+        if bv[0] == "*** disconnected" or bv[0] is None:
+            output = "%s = *** disconnected ***" % bn
+        elif isinstance(bv[0], list) and bv[4] == "CHAR":
+            # If it is a char waveform it needs to be converted
+            output = "%s = %s" % (bn, waveform_to_string(bv[0]))
+            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
+        else:
+            output = "%s = %s" % (bn, bv[0])
+            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
+        print output
+
+
 @_log_command
 def cshow(block=None):
     """Show the current settings for one block or for all blocks.
 
     Args:
         block (string, optional) : the name of the block
-       
+
     Examples:
         Showing all block values:
         >>> cshow()
@@ -307,16 +323,9 @@ def cshow(block=None):
             if __api.block_exists(block):
                 output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
                 rc = __api.get_runcontrol_settings(block)
-                if rc is not None:
+                if rc:
                     output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
                                                                                      rc["HIGH"])
-                
-                # output = str(api.blocks[block].name) + ' = ' + str(api.blocks[block].value)
-                # output += ' (setpoint = ' + str(api.blocks[block].setpoint)
-                # output += ', runcontrol = ' + str(api.blocks[block].runcontrol)
-                # output += ', lowlimit = '  + str(api.blocks[block].lowlimit)
-                # output += ', highlimit = '  + str(api.blocks[block].highlimit)
-                # output += ')'
                 print output
             else:
                 raise Exception('No block with the name "%s" exists' % block)

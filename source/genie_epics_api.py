@@ -328,13 +328,21 @@ class API(object):
         raise Exception("Beamline parameter %s does not exist" % name)
         
     def get_runcontrol_settings(self, name):
+        """Gets the current run-control settings for a block.
+
+        Parameters:
+            name - the name of the block
+
+        Returns:
+            dict - the run-control settings
+        """
         name = self.correct_blockname(name)
         name = name[name.rfind(':') + 1:]
-        pvname = self.prefix_pv_name(API.__blockserver_prefix + "GET_RC_PARS")
         ans = self.blockserver.get_runcontrol_settings()
         if name in ans:
             return ans[name]
-        return None
+
+        return dict()
         
     def check_alarms(self, blocks):
         """Checks whether the specified blocks are in alarm.
@@ -364,3 +372,12 @@ class API(object):
             else:
                 print "Block %s does not exist, so ignoring it" % b
         return minor, major
+       
+    def get_current_block_values(self):
+        """Gets the current block values including the run-control settings.
+
+        Returns:
+            dict - contains a tuple for each block containing the value and the run-control settings
+        """
+        return self.blockserver.get_current_block_values()
+
