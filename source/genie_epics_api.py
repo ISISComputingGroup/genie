@@ -265,7 +265,7 @@ class API(object):
             f_name = API.__log_dir + 'genie-' + strftime("%Y-%m-%d-%a", curr_time) + '.log'
             t_stamp = strftime("%Y-%m-%dT%H:%M:%S", curr_time)
             f = open(f_name, 'a')
-            message = t_stamp + '\t(' + str(source) + ')\t' + str(message) + '\n'
+            message = "%s\t(%s)\t(%s)\t%s\n" % (t_stamp, source, os.getpid(), message)
             f.write(message)
             f.close()
         except:
@@ -372,7 +372,7 @@ class API(object):
             else:
                 print "Block %s does not exist, so ignoring it" % b
         return minor, major
-       
+
     def get_current_block_values(self):
         """Gets the current block values including the run-control settings.
 

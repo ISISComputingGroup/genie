@@ -289,19 +289,27 @@ def cget(block):
         _handle_exception(e)
 
 
-def cshow_new():
+def _cshow_all():
     blks = __api.get_current_block_values()
     for bn, bv in blks.iteritems():
         if bv[0] == "*** disconnected" or bv[0] is None:
-            output = "%s = *** disconnected ***" % bn
+            _print_cshow(bn, connected=False)
         elif isinstance(bv[0], list) and bv[4] == "CHAR":
             # If it is a char waveform it needs to be converted
-            output = "%s = %s" % (bn, waveform_to_string(bv[0]))
+            val = waveform_to_string(bv[0])
+            _print_cshow(bn, val, bv[1], bv[2], bv[3])
             output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:
             output = "%s = %s" % (bn, bv[0])
             output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         print output
+
+
+def _print_cshow(name, value, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
+    if connected:
+        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value, rc_enabled, rc_low, rc_high)
+    else:
+        print "%s = *** disconnected ***" % name
 
 
 @_log_command
@@ -320,6 +328,7 @@ def cshow(block=None):
     """
     try:
         if block:
+            # Show only one block
             if __api.block_exists(block):
                 output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
                 rc = __api.get_runcontrol_settings(block)
@@ -330,10 +339,8 @@ def cshow(block=None):
             else:
                 raise Exception('No block with the name "%s" exists' % block)
         else:
-            names = __api.get_blocks()
-            if names is not None:
-                for k in names:
-                    cshow(k)
+            # Show all blocks
+            _cshow_all()
     except Exception as e:
         _handle_exception(e)
 
@@ -997,6 +1004,7 @@ def _convert_to_rawstring(data):
     return raw_string
 
 
+@_log_command
 def import_user_script_module(name, globs):
     """Loads user scripts from a module.
     This method should not be called directly instead use the load_script method.
