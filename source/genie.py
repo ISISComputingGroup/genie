@@ -63,15 +63,6 @@ except:
 # END TAB COMPLETE
 
 
-def _log_command(fn):
-    # Use wrappers to make decorator propogate the docstring for the wrapped function
-    @wraps(fn)
-    def logged(*args, **kwargs):
-        __api.log_entered_command()
-        return fn(*args, **kwargs)
-    return logged
-
-
 class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
     _fields_ = [
         ('dwSize', ctypes.wintypes._COORD),
@@ -119,7 +110,6 @@ def _handle_exception(exception=None, message=None):
         _print_error_message("UNSPECIFIED")
 
 
-@_log_command
 def set_instrument_internal(pv_prefix, globs):
     """Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
@@ -128,26 +118,26 @@ def set_instrument_internal(pv_prefix, globs):
         pv_prefix (string) : the PV prefix
         globs (dict) : the globals for the top-level
     """
+    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_instrument(pv_prefix, globs)
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def get_blocks():
     """Get the names of the blocks.
 
     Returns:
         list : the blocknames
     """
+    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
     try:
         return __api.get_blocks()
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def cset(*args, **kwargs):
     """Sets the setpoint and runcontrol settings for blocks.
     
@@ -192,7 +182,7 @@ def cset(*args, **kwargs):
 
         >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
-    __api.log_info_msg("CSET %s" % (locals(),))
+    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
     # cset only works for blocks (currently)
     # Block names contain alpha-numeric and underscores only
     # Run-control not implemented yet!
@@ -258,8 +248,7 @@ def cset(*args, **kwargs):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def cget(block):
     """Gets the useful values associated with a block.
 
@@ -269,6 +258,7 @@ def cget(block):
     Returns
         dict : details about about the block
     """
+    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
     try: 
         if not __api.block_exists(block):
             raise Exception('No block with the name "%s" exists' % block)
@@ -298,11 +288,8 @@ def _cshow_all():
             # If it is a char waveform it needs to be converted
             val = waveform_to_string(bv[0])
             _print_cshow(bn, val, bv[1], bv[2], bv[3])
-            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:
-            output = "%s = %s" % (bn, bv[0])
-            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
-        print output
+            _print_cshow(bn, bv[0], bv[1], bv[2], bv[3])
 
 
 def _print_cshow(name, value, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
@@ -312,7 +299,6 @@ def _print_cshow(name, value, rc_enabled=None, rc_low=None, rc_high=None, connec
         print "%s = *** disconnected ***" % name
 
 
-@_log_command
 def cshow(block=None):
     """Show the current settings for one block or for all blocks.
 
@@ -326,16 +312,13 @@ def cshow(block=None):
         Showing values for one block only (name must be quoted):
         >>> cshow("block1")
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if block:
             # Show only one block
             if __api.block_exists(block):
-                output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
                 rc = __api.get_runcontrol_settings(block)
-                if rc:
-                    output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
-                                                                                     rc["HIGH"])
-                print output
+                _print_cshow(block, __api.get_block_value(block, attempts=1), rc["ENABLE"], rc["LOW"],rc["HIGH"])
             else:
                 raise Exception('No block with the name "%s" exists' % block)
         else:
@@ -344,8 +327,7 @@ def cshow(block=None):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, 
             wait_all=False, seconds=None, minutes=None, hours=None, time=None, 
             frames=None, uamps=None, **pars):
@@ -393,7 +375,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         Wait for a number of frames AND a time interval to occur:
         >>> waitfor(frames=5000, hours=2, wait_all=True)
     """
-    __api.log_info_msg("WAITFOR %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if block is None:
             # Search through the params to see if there is a block there
@@ -414,7 +396,6 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         _handle_exception(e)
 
 
-@_log_command
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
         
@@ -430,7 +411,7 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
         Wait for a run to exit the paused state:
         >>> waitfor_runstate("pause", onexit=True)
     """
-    __api.log_info_msg("WAITFOR_RUNSTATE %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         # Check that wait_for object exists
         if __api.waitfor is None:
@@ -439,8 +420,7 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def waitfor_move(*blocks, **kwargs):
     """ Wait for all motion or specific motion to complete.
 
@@ -462,7 +442,7 @@ def waitfor_move(*blocks, **kwargs):
         Wait for only slit1 and slit2 motors to stop moving:
         >>> waitfor_move("slit1", "slit2")
     """
-    __api.log_info_msg("WAITFOR_MOVE %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
 
     # Sort out the parameters
     # Standard parameters
@@ -496,8 +476,7 @@ def waitfor_move(*blocks, **kwargs):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_pv(name, to_string=False):
     """Get the value for the specified PV.
     
@@ -508,6 +487,7 @@ def get_pv(name, to_string=False):
     Returns:
         the current PV value
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if not __api.pv_exists(name):
             raise Exception('PV %s does not exist' % name)
@@ -515,8 +495,7 @@ def get_pv(name, to_string=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def set_pv(name, value, wait=False):
     """Set the value for the specified PV.
         
@@ -525,24 +504,23 @@ def set_pv(name, value, wait=False):
         value : the new value to set
         wait (bool, optional) : whether to wait until the value has been received by the hardware
     """
-    __api.log_info_msg("SET_PV %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_pv_value(name, value, wait)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def set_messages_verbosity(verbose):
     """Set the global verbosity of messages.
     
     Args:
         verbose (bool): set the verbosity
-    """   
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.dae.set_verbose(verbose)    
         
-        
-@_log_command 
+
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
     """Starts a data collection run.
@@ -558,7 +536,7 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
         paused (bool, optional) : begin in the paused state
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("BEGIN %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.run_pre_post_cmd("begin_precmd", quiet=quiet)
         __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused)
@@ -568,15 +546,14 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def abort(verbose=False):
     """Abort the current run.
     
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("ABORT %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.run_pre_post_cmd("abort_precmd")
         __api.dae.abort_run()
@@ -586,15 +563,14 @@ def abort(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def end(verbose=False):
     """End the current run.
     
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("END %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.run_pre_post_cmd("end_precmd")
         __api.dae.end_run()
@@ -604,15 +580,14 @@ def end(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def pause(verbose=False):
     """Pause the current run.
     
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("PAUSE %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.run_pre_post_cmd("pause_precmd")
         __api.dae.pause_run()
@@ -622,15 +597,14 @@ def pause(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def resume(verbose=False):
     """Resume the current run after it has been paused.
     
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("RESUME %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.run_pre_post_cmd("resume_precmd")
         __api.dae.resume_run()
@@ -640,8 +614,7 @@ def resume(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def recover(verbose=False):
     """Recovers the run if it has been aborted.
     The command should be run before the next run is started.
@@ -651,7 +624,7 @@ def recover(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("RECOVER %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.recover_run()
         waitfor_runstate("SETUP", onexit=True)
@@ -659,8 +632,7 @@ def recover(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def updatestore(verbose=False):
     """Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
@@ -668,7 +640,7 @@ def updatestore(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("SAVING %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.update_store_run()
         waitfor_runstate("SAVING", onexit=True)
@@ -676,8 +648,7 @@ def updatestore(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
         
@@ -685,7 +656,7 @@ def update(pause_run=True, verbose=False):
         pause_run (bool, optional) : whether to pause data collection first [optional]
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("UPDATE %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if pause_run:
             # Pause
@@ -702,15 +673,14 @@ def update(pause_run=True, verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def store(verbose=False):
     """Data loaded into memory by a previous update command is now written to disk.
     
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    __api.log_info_msg("STORING %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.store_run()
         waitfor_runstate("STORING", onexit=True)
@@ -719,7 +689,6 @@ def store(verbose=False):
         _handle_exception(e)
 
 
-@_log_command
 def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """Create a snapshot of the current data.
 
@@ -732,7 +701,7 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
 
         >>> snapshot_crpt("c:\\Data\my_snapshot")
     """
-    __api.log_info_msg("SNAPSHOT %s" % (locals(),))
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         name = _correct_filepath(filename)
         __api.dae.snapshot_crpt(name)
@@ -741,8 +710,7 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_uamps(period=False):
     """Get the current number of micro-amp hours.
         
@@ -752,13 +720,13 @@ def get_uamps(period=False):
     Returns:
         float : the number of uamps
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_uamps(period)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_frames(period=False):
     """Gets the current number of good frames.
         
@@ -768,13 +736,13 @@ def get_frames(period=False):
     Returns:
         int : the number of frames
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_good_frames(period)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_runstate():
     """Get the current status of the instrument as a string.
     
@@ -783,52 +751,52 @@ def get_runstate():
     Returns:
         string : the current run state
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_run_state()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_mevents():
     """Gets the total counts for all the detectors.
 
     Returns:
         float : the number of mevents
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_mevents()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_period():
     """Gets the current period number.
 
     Returns:
         int : the current period
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_period()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_number_periods():
     """Get the number of software periods.
 
     Returns:
         int : the number of periods
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_num_periods()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def set_period(period):
     """Sets the current period number.
 
@@ -837,56 +805,57 @@ def set_period(period):
     Args:
         period (int) : the period to switch to
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_period is deprecated - use change_period"
     change_period(period)
 
 
-@_log_command
 def change_period(period):
     """Changes the current period number.
 
     Args:
         period (int) : the period to switch to
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_period(period)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_runnumber():
     """Get the current run-number.
 
     Returns:
         string : the run-number
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_run_number()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_totalcounts():
     """Get the total counts for the current run.
 
     Returns:
         int : the total counts
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_total_counts()
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def get_title():
     """Returns the current title.
 
     Returns:
         string : the title
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_title()
     except Exception as e:
@@ -901,43 +870,44 @@ def set_title(title):
     Args:
         title : the new title
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_title is deprecated - use change_title"
     change_title(title)
 
 
-@_log_command
 def change_title(title):
     """Sets the current title.
     
     Args:
         title : the new title
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_title(title)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_rb():
     """Returns the current RB number.
 
     Returns:
         string : the RB number
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_rb_number()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_dashboard():
     """Get the current experiment values.
 
     Returns:
         dict : the experiment values
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         data = dict()
         data["status"] = __api.dae.get_run_state()
@@ -1004,7 +974,6 @@ def _convert_to_rawstring(data):
     return raw_string
 
 
-@_log_command
 def import_user_script_module(name, globs):
     """Loads user scripts from a module.
     This method should not be called directly instead use the load_script method.
@@ -1013,6 +982,7 @@ def import_user_script_module(name, globs):
         name (string) : the name of the file to load
         globs (dict) : the global settings dictionary of the caller
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         name = _convert_to_rawstring(name)
 
@@ -1082,13 +1052,13 @@ def __load_module(name, directory):
             fpath.close()
 
 
-@_log_command
 def get_script_dir():
     """Get the current script directory.
 
     Returns:
         string : the directory
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     return SCRIPT_DIR
 
 
@@ -1100,17 +1070,18 @@ def set_script_dir(directory):
     Args:
         string : the directory to load scripts from
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_script_dir is deprecated - use change_script_dir"
     change_script_dir(directory)
 
 
-@_log_command
 def change_script_dir(directory):
     """Set the directory for loading scripts from.
     
     Args:
         string : the directory to load scripts from
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         directory = _convert_to_rawstring(directory)
         directory = _correct_filepath_existing(directory)
@@ -1125,8 +1096,7 @@ def change_script_dir(directory):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_start():
     """Start a change operation.
     The operaton is finished when change_finish is called.
@@ -1134,14 +1104,14 @@ def change_start():
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         
         __api.dae.change_start()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_finish():
     """End a change operation.
     The operaton is begun when change_start is called.
@@ -1149,13 +1119,13 @@ def change_finish():
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_finish()
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_monitor(spec, low, high):
     """Change the monitor to a specified spectrum and range.
         
@@ -1164,13 +1134,13 @@ def change_monitor(spec, low, high):
         low (float) : the low end of the integral
         high (float) : the high end of the integral
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_monitor(spec, low, high)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_tables(wiring=None, detector=None, spectra=None):
     """Load the wiring, detector and/or spectra tables.
         
@@ -1179,26 +1149,26 @@ def change_tables(wiring=None, detector=None, spectra=None):
         detector (string, optional) : the filename of the detector table file
         spectra (string, optional) : the filename of the spectra table file
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_tables(wiring, detector, spectra)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_sync(source):
     """Change the source the DAE using for synchronisation.
         
     Args:
         source (string) : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_sync(source)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_tcb_file(tcbfile=None, default=False):
     """Change the time channel boundaries.
         
@@ -1206,13 +1176,13 @@ def change_tcb_file(tcbfile=None, default=False):
         tcbfile (string, optional) : the file to load
         default (bool, optional): load the default file
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_tcb_file(tcbfile, default)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """Change the time channel boundaries.
         
@@ -1224,13 +1194,13 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
         log (bool, optional) : whether to use LOG binning
         regime (int, optional) : the time regime to set (1 to 6)
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_tcb(low, high, step, trange, log, regime)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_vetos(**params):
     """Change the DAE veto settings.
         
@@ -1251,13 +1221,13 @@ def change_vetos(**params):
         Turns all vetoes off then turns the SMP veto back on:
         >>> change_vetos(clearall=True, smp=True)
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_vetos(**params)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
     """Configure the fermi chopper veto.
         
@@ -1266,19 +1236,20 @@ def change_fermi_veto(enable=None, delay=1.0, width=1.0):
         delay (float, optional) : the veto delay
         width (float, optional) : the veto width
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_fermi_veto(enable, delay, width)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def enable_soft_periods(nperiods=None):
     """Switch the DAE to software periods mode.
         
     Args:
         nperiods (int, optional) : the number of software periods
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_period_mode('soft')
         __api.dae.set_num_soft_periods(nperiods)
@@ -1295,11 +1266,11 @@ def set_number_soft_periods(number, enable=None):
         number (int) : the number of periods to create
         enable (bool, optional) : switch to soft period mode
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_number_soft_periods is deprecated - use change_number_soft_periods"
     change_number_soft_periods(number, enable)
 
-        
-@_log_command
+
 def change_number_soft_periods(number, enable=None):
     """Sets the number of software periods for the DAE.
         
@@ -1307,6 +1278,7 @@ def change_number_soft_periods(number, enable=None):
         number (int) : the number of periods to create
         enable (bool, optional) : switch to soft period mode
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if enable:
             __api.dae.set_period_mode('soft')
@@ -1314,8 +1286,7 @@ def change_number_soft_periods(number, enable=None):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
     """Sets the DAE to use hardware periods.
@@ -1341,15 +1312,15 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 
         Setting internal periods from a file:
         >>> enable_hard_periods('int', 'c:\\myperiods.txt')
-        """
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.configure_hard_periods(mode, period_file, sequences, output_delay, period, daq, dwell, unused, frames,
                                          output, label)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
                                frames=None, output=None, label=None):
     """Configure the internal periods without switching to internal period mode.
@@ -1367,13 +1338,13 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.configure_internal_periods(sequences, output_delay, period, daq, dwell, unused, frames, output, label)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
     """Define the internal hardware periods.
         
@@ -1388,26 +1359,26 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def change_users(users):
     """Define the internal hardware periods.
 
     Args:
         users (string): the names of the users
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_users(users)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def change(**params):
     """Change experiment parameters.
 
@@ -1430,6 +1401,7 @@ def change(**params):
         Change the RB number and the users:
         >>> change(rbno=123456, user="A. User and Ann Other")
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         for k in params:
             key = k.lower().strip()
@@ -1454,8 +1426,7 @@ def change(**params):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE.
         
@@ -1472,8 +1443,7 @@ def get_spectrum(spectrum, period=1, dist=False):
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def plot_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE and plot it.
         
@@ -1485,6 +1455,7 @@ def plot_spectrum(spectrum, period=1, dist=False):
     Returns:
         GeniePlot : the plot object
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
         return graph
@@ -1492,13 +1463,13 @@ def plot_spectrum(spectrum, period=1, dist=False):
         _handle_exception(e)
 
 
-@_log_command
 def get_sample_pars():
     """Get the current sample parameter values.
 
     Returns:
         dict : the sample parameters
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         names = __api.get_sample_pars()
         return names
@@ -1506,7 +1477,6 @@ def get_sample_pars():
         _handle_exception(e)
 
 
-@_log_command
 def set_sample_par(name, value):
     """Set a new value for a sample parameter
 
@@ -1516,11 +1486,11 @@ def set_sample_par(name, value):
         name (string, optional) : the name of the parameter to change
         value (optional) : the new value
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_sample_par is deprecated - use change_sample_par"
     change_sample_par(name, value)
 
 
-@_log_command
 def change_sample_par(name, value):
     """Set a new value for a sample parameter
 
@@ -1528,19 +1498,20 @@ def change_sample_par(name, value):
         name (string, optional) : the name of the parameter to change
         value (optional) : the new value
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_sample_par(name, value)
     except Exception as e:
         _handle_exception(e)
 
-        
-@_log_command
+
 def get_beamline_pars():
     """Get the current beamline parameter values.
 
     Returns:
         dict : the beamline parameters
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         names = __api.get_beamline_pars()
         return names
@@ -1548,7 +1519,6 @@ def get_beamline_pars():
         _handle_exception(e)
 
 
-@_log_command
 def set_beamline_par(name, value):
     """Set a new value for a beamline parameter
 
@@ -1558,11 +1528,11 @@ def set_beamline_par(name, value):
         name (string, optional) : the name of the parameter to change
         value (optional) : the new value
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_beamline_par is deprecated - use change_beamline_par"
     change_beamline_par(name, value)
 
 
-@_log_command
 def change_beamline_par(name, value):
     """Set a new value for a beamline parameter
 
@@ -1570,13 +1540,13 @@ def change_beamline_par(name, value):
         name (string, optional) : the name of the parameter to change
         value (optional) : the new value
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_beamline_par(name, value)
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def send_sms(phone_num, message):
     """Send a text message to a mobile phone
 
@@ -1584,6 +1554,7 @@ def send_sms(phone_num, message):
         phone_num (string) : the mobile number to send to
         message (string) : the message to send
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         from smslib.sms import send_sms
         send_sms(phone_num, message)
@@ -1591,52 +1562,52 @@ def send_sms(phone_num, message):
         _handle_exception(e)
 
 
-@_log_command
 def get_wiring_tables():
     """Gets a list of possible wiring table choices.
 
     Returns:
         list : the files
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_wiring_tables()
     except Exception as e:
         _handle_exception(e)
         
 
-@_log_command
 def get_spectra_tables():
     """Gets a list of possible spectra table choices.
 
     Returns:
         list : the files
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_spectra_tables()
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def get_detector_tables():
     """Gets a list of possible detector table choices.
 
     Returns:
         list : the files
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_detector_tables()
     except Exception as e:
         _handle_exception(e)
 
 
-@_log_command
 def get_period_files():
     """Gets a list of possible period file choices.
 
     Returns:
         list : the files
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_period_files()
     except Exception as e:
@@ -1656,4 +1627,5 @@ def check_alarms(*blocks):
         Check alarm state for block1 and block2:
         >>> check_alarms("block1", "block2")
     """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     return __api.check_alarms(blocks)
