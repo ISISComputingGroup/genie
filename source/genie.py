@@ -72,14 +72,15 @@ def _log_command(fn):
     return logged
 
 
-class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
-    _fields_ = [
-        ('dwSize', ctypes.wintypes._COORD),
-        ('dwCursorPosition', ctypes.wintypes._COORD),
-        ('wAttributes', ctypes.c_ushort),
-        ('srWindow', ctypes.wintypes._SMALL_RECT),
-        ('dwMaximumWindowSize', ctypes.wintypes._COORD)
-    ]
+if os.name == 'nt':
+    class CONSOLE_SCREEN_BUFFER_INFO(ctypes.Structure):
+        _fields_ = [
+            ('dwSize', ctypes.wintypes._COORD),
+            ('dwCursorPosition', ctypes.wintypes._COORD),
+            ('wAttributes', ctypes.c_ushort),
+            ('srWindow', ctypes.wintypes._SMALL_RECT),
+            ('dwMaximumWindowSize', ctypes.wintypes._COORD)
+        ]
 
 
 def _print_error_message(message):
