@@ -5,6 +5,12 @@ block_dict = dict()
 _exceptions_raised = False
 global run_state
 run_state = "SETUP"
+global period
+period = 1
+global num_periods
+num_periods = 1
+global run_number
+run_number = 123456
 
 def cshow(block=None):
     """
@@ -310,7 +316,6 @@ def updatestore(verbose=False):
         _handle_exception(e)
 
 
-
 def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
 
@@ -338,5 +343,178 @@ def store(verbose=False):
             pass
         else:
             raise Exception("Can only be run in RUNNING or PAUSED")
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_runstate():
+    return run_state
+
+
+def get_period():
+    """Gets the current period number.
+
+    Returns:
+        int : the current period
+    """
+    return period
+
+
+def get_number_periods():
+    """Get the number of software periods.
+
+    Returns:
+        int : the number of periods
+    """
+    return num_periods
+
+
+def set_period(number):
+    """Changes the current period number.
+
+    Deprecated - use change_period
+
+    Args:
+        number (int) : the period to switch to
+    """
+    global period
+    try:
+        print "set_period is deprecated - use change_period"
+        if period > num_periods:
+            raise Exception("Number of periods is less than " + number)
+        else:
+            period = number
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_period(number):
+    """Changes the current period number.
+
+    Args:
+        number (int) : the period to switch to
+    """
+    global period
+    try:
+        if period > num_periods:
+            raise Exception("Number of periods is less than " + number)
+        else:
+            period = number
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_blocks():
+    """Get the names of the blocks.
+
+    Returns:
+        list : the blocknames
+    """
+    return block_dict.keys()
+
+
+def cget(block):
+    """Gets the useful values associated with a block.
+
+    Args:
+        block (string) : the name of the block
+
+    Returns
+        dict : details about about the block
+    """
+    try:
+        if block not in block_dict.keys():
+            raise Exception('No block with the name "%s" exists' % block)
+
+        ans = dict()
+        ans['name'] = block
+        ans['value'] = block_dict[block][0]
+
+        rc = block_dict[block][1:]
+
+        if rc is not None:
+            ans['runcontrol'] = rc[1]
+            ans['lowlimit'] = rc[2]
+            ans['highlimit'] = rc[3]
+
+        return ans
+    except Exception as e:
+        _handle_exception(e)
+
+
+def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
+    """Wait for a particular instrument run state.
+
+    Args:
+        state (string) : the state to wait for (e.g. "paused")
+        maxwaitsecs (int, optional) : the maximum time to wait for the state before carrying on
+        onexit (bool, optional) : wait for runstate to change from the specified state
+
+    Examples:
+        Wait for a run to enter the paused state:
+        >>> waitfor_runstate("pause")
+
+        Wait for a run to exit the paused state:
+        >>> waitfor_runstate("pause", onexit=True)
+    """
+    try:
+        None
+    except Exception as e:
+        _handle_exception(e)
+
+
+def waitfor_move(*blocks, **kwargs):
+    """ Wait for all motion or specific motion to complete.
+
+    If block names are supplied then it will only wait for those to stop moving. Otherwise, it will wait for all motion
+    to stop.
+
+    Args:
+        blocks (string, multiple, optional) : the names of specific blocks to wait for
+        start_timeout (int, optional) : the number of seconds to wait for the movement to begin (default = 2 seconds)
+        move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
+
+    Examples:
+        Wait for all motors to stop moving:
+        >>> waitfor_move()
+
+        Wait for all motors to stop moving with a timeout of 30 seconds:
+        >>> waitfor_move(move_timeout=30)
+
+        Wait for only slit1 and slit2 motors to stop moving:
+        >>> waitfor_move("slit1", "slit2")
+    """
+    try:
+        None
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_runnumber():
+    """Get the current run-number.
+
+    Returns:
+        string : the run-number
+    """
+    try:
+        return run_number
+    except Exception as e:
+        _handle_exception(e)
+
+
+def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
+    """Create a snapshot of the current data.
+
+    Args:
+        filename (string, optional) : where to write the data file(s)
+        verbose (bool, optional) : show the messages from the DAE
+
+    Examples:
+        Snapshot to a file called my_snapshot:
+
+        >>> snapshot_crpt("c:\\Data\my_snapshot")
+    """
+    try:
+        None
     except Exception as e:
         _handle_exception(e)
