@@ -1,60 +1,221 @@
 import os
 
-global block_dict
-block_dict = dict()
-_exceptions_raised = False
-global run_state
-run_state = "SETUP"
-global period
-period = 1
-global num_periods
-num_periods = 1
-global run_number
-run_number = 123456
+
+class Waitfor(object):
+    def __init__(self):
+        pass
+
+    def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False,
+                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None):
+        pass
+
+
+class Dae(object):
+    def __init__(self):
+        self.run_state = "SETUP"
+        self.run_number = 123456
+
+    def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
+                  sample_id=None, delayed=False, quiet=False, paused=False):
+        if self.run_state == "SETUP":
+            self.run_state = "RUNNING"
+        else:
+            raise Exception("Can only begin run from SETUP")
+
+    def post_begin_check(self, verbose=False):
+        pass
+
+    def abort_run(self):
+        if self.run_state == "RUNNING" or self.run_state == "PAUSED":
+            self.run_state = "SETUP"
+        else:
+            raise Exception("Can only abort when RUNNING or PAUSED")
+
+    def post_abort_check(self, verbose=False):
+        pass
+
+    def get_run_state(self):
+        return self.run_state
+
+    def get_run_number(self):
+        return self.run_number
+
+
+class SimulationAPI(object):
+    def __init__(self):
+        self.block_dict = dict()
+        self.period = 1
+        self.num_periods = 1
+        self.run_number = 123456
+        self.waitfor = Waitfor()
+        self.dae = Dae()
+
+    def log_info_msg(self, *args, **kwargs):
+        pass
+
+    def block_exists(self, name):
+        # Create an entry for it and return True
+        self.set_block_value(name)
+        return True
+
+    def get_blocks(self):
+        return self.block_dict.keys()
+
+    def get_block_value(self, name, to_string=False, attempts=3):
+        if to_string:
+            return str(self.block_dict[name][0])
+        return self.block_dict[name][0]
+
+    def get_run_control_settings(self, name):
+        rc = dict()
+        rc["ENABLE"] = self.block_dict[name][1]
+        rc["LOW"] = self.block_dict[name][2]
+        rc["HIGH"] = self.block_dict[name][3]
+        return rc
+
+    def get_current_block_values(self):
+        return self.block_dict
+
+    def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
+        try:
+            # Final value in list is the EPICS record type
+            self.block_dict[name] = [value, runcontrol, lowlimit, highlimit, ""]
+        except Exception as e:
+            _handle_exception(e)
+
+    def set_multiple_blocks(self, names, values):
+        """
+
+        Args:
+            names: list of block names
+            values: list of block values (nested if multiple)
+
+        Examples:
+            Setting multiple blocks
+            >>>set_multiple_blocks(["x","y"], [ [1, 2, 3, True], [1, 2, 3, False] ])
+
+        """
+        try:
+            temp = zip(names, values)
+            for name, value in temp:
+                if name in self.block_dict:
+                    self.block_dict[name][0] = value
+                else:
+                    self.block_dict[name] = [value, False, None, None, None]
+        except Exception as e:
+            _handle_exception(e)
+
+    def run_pre_post_cmd(self, command, **pars):
+        pass
+
+
+__api = SimulationAPI()
+
+
+def _handle_exception(e):
+    print e
+
+
+def waveform_to_string():
+    pass
+
+
+def _cshow_all():
+    blks = __api.get_current_block_values()
+    for bn, bv in blks.iteritems():
+        if bv[0] == "*** disconnected" or bv[0] is None:
+            _print_cshow(bn, connected=False)
+        else:
+            _print_cshow(bn, bv[0], bv[1], bv[2], bv[3])
+
+
+def _print_cshow(name, value=None, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
+    if connected:
+        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value, rc_enabled, rc_low, rc_high)
+    else:
+        print "%s = *** disconnected ***" % name
+
 
 def cshow(block=None):
-    """
+    """Show the current settings for one block or for all blocks.
 
     Args:
-        block: Block name
+        block (string, optional) : the name of the block
 
     Examples:
-        Show one block
-        >>>cshow_sim("x")
+        Showing all block values:
+        >>> cshow()
 
-        Show all blocks
-        >>>cshow_sim()
+        Showing values for one block only (name must be quoted):
+        >>> cshow("block1")
     """
     try:
         if block:
             # Show only one block
-            if block in block_dict.keys():
-                print block_dict[block]
-                output = block + ' = ' + str(block_dict[block][0])
-                output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)\n' % (block_dict[block][1], block_dict[block][2], block_dict[block][3])
+            if __api.block_exists(block):
+                output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
+                rc = __api.get_runcontrol_settings(block)
+                if rc:
+                    output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
+                                                                                     rc["HIGH"])
                 print output
             else:
                 raise Exception('No block with the name "%s" exists' % block)
         else:
             # Show all blocks
-            for block in block_dict.keys():
-                print block_dict[block]
-                output = block + ' = ' + str(block_dict[block][0])
-                output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)\n' % (block_dict[block][1], block_dict[block][2], block_dict[block][3])
-                print output
+            _cshow_all()
     except Exception as e:
         _handle_exception(e)
 
 
 def cset(*args, **kwargs):
-    """
+    """Sets the setpoint and runcontrol settings for blocks.
 
     Args:
-        *args: block name and value
-        **kwargs: other values (runcontrol, wait, highlimit, lowlimit)
+        runcontrol (bool, optional) : whether to set runcontrol for this block
+        wait (string, optional) : pause execution until setpoint isreached (one block only)
+        lowlimit (float, optional) : the lower limit for runcontrol or waiting
+        highlimit (float, optional): the upper limit for runcontrol or waiting
 
+    Note: cannot use wait and runcontrol in the same command
 
+    Examples:
+        Setting a value for a block:
+
+        >>> cset(block1=100)
+
+        Or:
+
+        >>> cset("block1", 100)
+
+        Setting values for more than one block:
+
+        >>> cset(block1=100, block2=200, block3=300)
+
+        NOTE: the order in which the values are set is random,
+        e.g. block1 may or may not be set before block2 and block3
+
+        Setting runcontrol values for a block:
+
+        >>> cset(block1=100, runcontrol=True, lowlimit=99, highlimit=101)
+
+        Changing runcontrol settings for a block without changing the setpoint:
+
+        >>> cset("block1", runcontrol=False)
+        >>> cset(block1=None, runcontrol=False)
+
+        Wait for setpoint to be reached (one block only):
+
+        >>> cset(block1=100, wait=True)
+
+        Wait for limits to be reached - this does NOT change the runcontrol limits:
+
+        >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
+    __api.log_info_msg("CSET %s" % (locals(),))
+    # cset only works for blocks (currently)
+    # Block names contain alpha-numeric and underscores only
+    # Run-control not implemented yet!
     try:
         block = None
         blocks = []
@@ -69,10 +230,10 @@ def cset(*args, **kwargs):
         if len(args) > 0:
             if len(args) > 2:
                 raise Exception('Too many arguments, please type: help(cset) for more information on the syntax')
-            # if not __api.block_exists(args[0]):
-            #     raise Exception('No block with the name "%s" exists' % args[0])
-            # else:
-            block = args[0]
+            if not __api.block_exists(args[0]):
+                raise Exception('No block with the name "%s" exists' % args[0])
+            else:
+                block = args[0]
             if len(args) == 2:
                 value = args[1]
 
@@ -87,8 +248,11 @@ def cset(*args, **kwargs):
                 wait = kwargs['wait']
             else:
                 # Perhaps it is a block?
-                blocks.append(k)
-                values.append(kwargs[k])
+                if __api.block_exists(k):
+                    blocks.append(k)
+                    values.append(kwargs[k])
+                else:
+                    raise Exception('No block with the name "%s" exists' % k)
 
         if block is not None and len(blocks) > 0:
             raise Exception('Incorrect syntax, please type: help(cset) for more information on the syntax')
@@ -97,79 +261,20 @@ def cset(*args, **kwargs):
             # Something like cset("block1", runcontrol=True) or cset("block1", 10)
             if wait:
                 raise Exception('Cannot wait as no setpoint specified. Please type: help(cset) for help')
-            set_block_value(block, value, runcontrol, lowlimit, highlimit, wait)
+            __api.set_block_value(block, value, runcontrol, lowlimit, highlimit, wait)
         elif len(blocks) == 1:
             # Something like cset(block1=123, runcontrol=True)
             if wait and runcontrol is not None:
                 raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
             else:
-                set_block_value(blocks[0], values[0], runcontrol, lowlimit, highlimit, wait)
+                __api.set_block_value(blocks[0], values[0], runcontrol, lowlimit, highlimit, wait)
         else:
             # Setting multiple blocks, so runcontrol and waiting are not allowed
             if runcontrol is not None or lowlimit is not None or highlimit is not None:
                 raise Exception('Runcontrol settings can only be changed for one block at a time')
             if wait is not None:
                 raise Exception('Cannot wait for more than one block')
-            set_multiple_blocks(blocks, values)
-    except Exception as e:
-        _handle_exception(e)
-
-
-def _handle_exception(exception=None, message=None):
-    """Handles any exception in the way we want"""
-    if exception is not None:
-        if message is not None:
-            _print_error_message(message)
-        else:
-            _print_error_message(str(exception))
-        if _exceptions_raised:
-            raise exception
-    elif message is not None:
-        _print_error_message(message)
-        if _exceptions_raised:
-            raise Exception(message)
-    else:
-        _print_error_message("UNSPECIFIED")
-
-
-def _print_error_message(message):
-    """Print the error message to screen"""
-    # Look at using colorama?
-    if os.name == 'nt':
-        # Is windows
-        print "ERROR: " + message
-    else:
-        # Non-windows
-        print '\033[91m' + "ERROR: " + message + '\033[0m'
-
-
-def set_block_value(name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
-    try:
-        block_values = [value, runcontrol, lowlimit, highlimit, wait]
-        block_dict[name] = block_values
-    except Exception as e:
-        _handle_exception(e)
-
-
-def set_multiple_blocks(names, values):
-    """
-
-    Args:
-        names: list of block names
-        values: list of block values (nested if multiple)
-
-    Examples:
-        Setting multiple blocks
-        >>>set_multiple_blocks(["x","y"], [ [1, 2, 3, True], [1, 2, 3, False] ])
-
-    """
-    try:
-        temp = zip(names, values)
-        for name, value in temp:
-            if name in block_dict:
-                block_dict[name][0] = value
-            else:
-                block_dict[name] = [value, False, None, None, None]
+            __api.set_multiple_blocks(blocks, values)
     except Exception as e:
         _handle_exception(e)
 
@@ -177,10 +282,55 @@ def set_multiple_blocks(names, values):
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
+    """Interrupts execution until certain conditions are met.
+
+    Args:
+        block (string, optional) : the name of the block to wait for
+        value (float, optional) : the block value to wait for
+        lowlimit (float, optional): wait for the block to be >= this value
+        highlimit (float, optional) : wait for the block to be <= this value
+        maxwait (float, optional) : wait no longer that the specified number of seconds
+        wait_all (bool, optional) : wait for all conditions to be met (e.g. a number of frames and an amount of uamps)
+        seconds (float, optional) : wait for a specified number of seconds
+        minutes (float, optional) : wait for a specified number of minutes
+        hours (float, optional) : wait for a specified number of hours
+        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+        frames (int, optional) : wait for a total number of good frames to be collected
+        uamps (float, optional) : wait for a total number of uamps to be received
+
+    Examples:
+        Wait for a block to reach a specific value:
+        >>> waitfor(myblock=123)
+        >>> waitfor("myblock", 123)
+        >>> waitfor("myblock", True)
+        >>> waitfor("myblock", "OPEN")
+
+        Wait for a block to be between limits:
+        >>> waitfor("myblock", lowlimit=100, highlimit=110)
+
+        Wait for a block to reach a specific value, but no longer than 60 seconds:
+        >>> waitfor(myblock=123, maxwait=60)
+
+        Wait for a specified time interval:
+        >>> waitfor(seconds=10)
+        >>> waitfor(hours=1, minutes=30, seconds=15)
+        >>> waitfor(time="1:30:15")
+
+        Wait for a data collection condition:
+        >>> waitfor(frames=5000)
+        >>> waitfor(uamps=200)
+
+        Wait for either a number of frames OR a time interval to occur:
+        >>> waitfor(frames=5000, hours=2)
+
+        Wait for a number of frames AND a time interval to occur:
+        >>> waitfor(frames=5000, hours=2, wait_all=True)
+    """
+    __api.log_info_msg("WAITFOR %s" % (locals(),))
     try:
         if block is None:
             # Search through the params to see if there is a block there
-            blks = block_dict.keys()
+            blks = __api.get_blocks()
             for k in pars:
                 if k in blks:
                     if block is not None:
@@ -188,22 +338,13 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
                     block = k
                     value = pars[k]
         # Check that wait_for object exists
-        if waitfor_sim is None:
+        if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         # Start_waiting checks the block exists
-        waitfor_start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
-                              frames, uamps)
+        __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
+                                    frames, uamps)
     except Exception as e:
         _handle_exception(e)
-
-
-def waitfor_sim():
-    pass
-
-
-def waitfor_start_waiting(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False,
-                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None):
-        pass
 
 
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
@@ -221,13 +362,13 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
         paused (bool, optional) : begin in the paused state
         verbose (bool, optional) : show the messages from the DAE
     """
-    global run_state
+    __api.log_info_msg("BEGIN %s" % (locals(),))
     try:
-        if run_state == "SETUP":
-
-            run_state = "RUNNING"
-        else:
-            raise Exception("Can only begin run from SETUP")
+        __api.run_pre_post_cmd("begin_precmd", quiet=quiet)
+        __api.dae.begin_run(period, meas_id, meas_type, meas_subid, sample_id, delayed, quiet, paused)
+        waitfor_runstate("SETUP", onexit=True)
+        __api.dae.post_begin_check(verbose)
+        __api.run_pre_post_cmd("begin_postcmd", run_num=__api.dae.get_run_number(), quiet=quiet)
     except Exception as e:
         _handle_exception(e)
 
@@ -238,15 +379,17 @@ def abort(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    global run_state
-
+    __api.log_info_msg("ABORT %s" % (locals(),))
     try:
-        if run_state == "RUNNING" or run_state == "PAUSED":
-            run_state = "SETUP"
-        else:
-            raise Exception("Can only abort when RUNNING or PAUSED")
+        __api.run_pre_post_cmd("abort_precmd")
+        __api.dae.abort_run()
+        waitfor_runstate("SETUP")
+        __api.dae.post_abort_check(verbose)
+        __api.run_pre_post_cmd("abort_postcmd")
     except Exception as e:
         _handle_exception(e)
+
+### TODO: HERE DOWNWARDS
 
 
 def end(verbose=False):
@@ -348,7 +491,10 @@ def store(verbose=False):
 
 
 def get_runstate():
-    return run_state
+    try:
+        return __api.dae.get_run_state()
+    except Exception as e:
+        _handle_exception(e)
 
 
 def get_period():
