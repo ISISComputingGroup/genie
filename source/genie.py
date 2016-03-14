@@ -295,18 +295,11 @@ def _cshow_all():
     for bn, bv in blks.iteritems():
         if bv[0] == "*** disconnected" or bv[0] is None:
             _print_cshow(bn, connected=False)
-        elif isinstance(bv[0], list) and bv[4] == "CHAR":
-            # If it is a char waveform it needs to be converted
-            val = waveform_to_string(bv[0])
-            _print_cshow(bn, val, bv[1], bv[2], bv[3])
-            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:
-            output = "%s = %s" % (bn, bv[0])
-            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
-        print output
+            _print_cshow(bn, bv[0], bv[1], bv[2], bv[3])
 
 
-def _print_cshow(name, value, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
+def _print_cshow(name, value=None, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
     if connected:
         print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value, rc_enabled, rc_low, rc_high)
     else:
