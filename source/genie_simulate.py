@@ -9,11 +9,16 @@ class Waitfor(object):
                       seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None):
         pass
 
+    def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
+        pass
+
 
 class Dae(object):
     def __init__(self):
         self.run_state = "SETUP"
         self.run_number = 123456
+        self.period_current = 1
+        self.num_periods = 1
 
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
                   sample_id=None, delayed=False, quiet=False, paused=False):
@@ -25,14 +30,32 @@ class Dae(object):
     def post_begin_check(self, verbose=False):
         pass
 
+    def post_end_check(self, verbose=False):
+        pass
+
+    def post_abort_check(self, verbose=False):
+        pass
+
+    def post_pause_check(self, verbose=False):
+        pass
+
+    def post_resume_check(self, verbose=False):
+        pass
+
+    def post_update_store_check(self, verbose=False):
+        pass
+
+    def post_update_check(self, verbose=False):
+        pass
+
+    def post_store_check(self, verbose=False):
+        pass
+
     def abort_run(self):
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             self.run_state = "SETUP"
         else:
             raise Exception("Can only abort when RUNNING or PAUSED")
-
-    def post_abort_check(self, verbose=False):
-        pass
 
     def get_run_state(self):
         return self.run_state
@@ -40,11 +63,59 @@ class Dae(object):
     def get_run_number(self):
         return self.run_number
 
+    def end_run(self):
+        if self.run_state == "RUNNING" or self.run_state == "PAUSED":
+            self.run_state = "SETUP"
+        else:
+            raise Exception("Can only end when RUNNING or PAUSED")
+
+    def pause_run(self):
+        if self.run_state == "RUNNING":
+            self.run_state = "PAUSED"
+        else:
+            raise Exception("Can only pause when RUNNING")
+
+    def resume_run(self):
+        if self.run_state == "PAUSED":
+            self.run_state = "RUNNING"
+        else:
+            raise Exception("Can only resume when PAUSED")
+
+    def update_store_run(self):
+        if self.run_state == "RUNNING" or self.run_state == "PAUSED":
+            pass
+        else:
+            raise Exception("Can only be run when RUNNING or PAUSED")
+
+    def update_run(self):
+        if self.run_state == "RUNNING" or self.run_state == "PAUSED":
+            pass
+        else:
+            raise Exception("Can only be run when RUNNING or PAUSED")
+
+    def store_run(self):
+        if self.run_state == "RUNNING" or self.run_state == "PAUSED":
+            pass
+        else:
+            raise Exception("Can only be run when RUNNING or PAUSED")
+
+    def get_period(self):
+        return self.period_current
+
+    def get_num_periods(self):
+        return self.num_periods
+
+    def set_period(self, period):
+        if period <= self.num_periods:
+            self.period_current = period
+        else:
+            raise Exception("Cannot set period as it is higher than the number of periods")
+
 
 class SimulationAPI(object):
+
     def __init__(self):
         self.block_dict = dict()
-        self.period = 1
         self.num_periods = 1
         self.run_number = 123456
         self.waitfor = Waitfor()
@@ -55,7 +126,8 @@ class SimulationAPI(object):
 
     def block_exists(self, name):
         # Create an entry for it and return True
-        self.set_block_value(name)
+        if name not in self.block_dict:
+            self.set_block_value(name)
         return True
 
     def get_blocks(self):
@@ -108,6 +180,9 @@ class SimulationAPI(object):
     def run_pre_post_cmd(self, command, **pars):
         pass
 
+    def get_blocks(self):
+        return self.block_dict.keys()
+
 
 __api = SimulationAPI()
 
@@ -154,7 +229,7 @@ def cshow(block=None):
             # Show only one block
             if __api.block_exists(block):
                 output = block + ' = ' + str(__api.get_block_value(block, attempts=1))
-                rc = __api.get_runcontrol_settings(block)
+                rc = __api.get_run_control_settings(block)
                 if rc:
                     output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (rc["ENABLE"], rc["LOW"],
                                                                                      rc["HIGH"])
@@ -389,22 +464,20 @@ def abort(verbose=False):
     except Exception as e:
         _handle_exception(e)
 
-### TODO: HERE DOWNWARDS
-
 
 def end(verbose=False):
     """End the current run.
 
-    Args:
-        verbose (bool, optional) : show the messages from the DAE
-    """
-    global run_state
-
+        Args:
+            verbose (bool, optional) : show the messages from the DAE
+        """
+    __api.log_info_msg("END %s" % (locals(),))
     try:
-        if run_state == "RUNNING" or run_state == "PAUSED":
-            run_state = "SETUP"
-        else:
-            raise Exception("Can only abort when RUNNING or PAUSED")
+        __api.run_pre_post_cmd("end_precmd")
+        __api.dae.end_run()
+        waitfor_runstate("SETUP")
+        __api.dae.post_end_check(verbose)
+        __api.run_pre_post_cmd("end_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -415,13 +488,13 @@ def pause(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    global run_state
-
+    __api.log_info_msg("PAUSE %s" % (locals(),))
     try:
-        if run_state == "RUNNING":
-            run_state = "PAUSED"
-        else:
-            raise Exception("Can only pause when state is RUNNING")
+        __api.run_pre_post_cmd("pause_precmd")
+        __api.dae.pause_run()
+        waitfor_runstate("PAUSED")
+        __api.dae.post_pause_check(verbose)
+        __api.run_pre_post_cmd("pause_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -432,13 +505,13 @@ def resume(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
-    global run_state
-
+    __api.log_info_msg("RESUME %s" % (locals(),))
     try:
-        if run_state == "PAUSED":
-            run_state = "RUNNING"
-        else:
-            raise Exception("Can only resume when state is PAUSED")
+        __api.run_pre_post_cmd("resume_precmd")
+        __api.dae.resume_run()
+        waitfor_runstate("PAUSED", onexit=True)
+        __api.dae.post_resume_check(verbose)
+        __api.run_pre_post_cmd("resume_postcmd")
     except Exception as e:
         _handle_exception(e)
 
@@ -450,11 +523,11 @@ def updatestore(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
+    __api.log_info_msg("SAVING %s" % (locals(),))
     try:
-        if run_state == "RUNNING" or run_state == "PAUSED":
-            pass
-        else:
-            raise Exception("Can only be run in RUNNING or PAUSED")
+        __api.dae.update_store_run()
+        waitfor_runstate("SAVING", onexit=True)
+        __api.dae.post_update_store_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
@@ -466,11 +539,20 @@ def update(pause_run=True, verbose=False):
         pause_run (bool, optional) : whether to pause data collection first [optional]
         verbose (bool, optional) : show the messages from the DAE
     """
+    __api.log_info_msg("UPDATE %s" % (locals(),))
     try:
-        if run_state == "RUNNING" or run_state == "PAUSED":
-            pass
-        else:
-            raise Exception("Can only be run in RUNNING or PAUSED")
+        if pause_run:
+            # Pause
+            pause(verbose=verbose)
+
+        # Update
+        __api.dae.update_run()
+        waitfor_runstate("UPDATING", onexit=True)
+        __api.dae.post_update_check(verbose)
+
+        if pause_run:
+            # Resume
+            resume(verbose=verbose)
     except Exception as e:
         _handle_exception(e)
 
@@ -481,16 +563,23 @@ def store(verbose=False):
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
+    __api.log_info_msg("STORING %s" % (locals(),))
     try:
-        if run_state == "RUNNING" or run_state == "PAUSED":
-            pass
-        else:
-            raise Exception("Can only be run in RUNNING or PAUSED")
+        __api.dae.store_run()
+        waitfor_runstate("STORING", onexit=True)
+        __api.dae.post_store_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
 
 def get_runstate():
+    """Get the current status of the instrument as a string.
+
+    Note: this value can take a few seconds to update after a change of state.
+
+    Returns:
+        string : the current run state
+    """
     try:
         return __api.dae.get_run_state()
     except Exception as e:
@@ -503,7 +592,10 @@ def get_period():
     Returns:
         int : the current period
     """
-    return period
+    try:
+        return __api.dae.get_period()
+    except Exception as e:
+        _handle_exception(e)
 
 
 def get_number_periods():
@@ -512,40 +604,32 @@ def get_number_periods():
     Returns:
         int : the number of periods
     """
-    return num_periods
-
-
-def set_period(number):
-    """Changes the current period number.
-
-    Deprecated - use change_period
-
-    Args:
-        number (int) : the period to switch to
-    """
-    global period
     try:
-        print "set_period is deprecated - use change_period"
-        if period > num_periods:
-            raise Exception("Number of periods is less than " + number)
-        else:
-            period = number
+        return __api.dae.get_num_periods()
     except Exception as e:
         _handle_exception(e)
 
 
-def change_period(number):
+def set_period(period):
+    """Sets the current period number.
+
+    Deprecated - use change_period
+
+    Args:
+        period (int) : the period to switch to
+    """
+    print "set_period is deprecated - use change_period"
+    change_period(period)
+
+
+def change_period(period):
     """Changes the current period number.
 
     Args:
-        number (int) : the period to switch to
+        period (int) : the period to switch to
     """
-    global period
     try:
-        if period > num_periods:
-            raise Exception("Number of periods is less than " + number)
-        else:
-            period = number
+        __api.dae.set_period(period)
     except Exception as e:
         _handle_exception(e)
 
@@ -556,7 +640,11 @@ def get_blocks():
     Returns:
         list : the blocknames
     """
-    return block_dict.keys()
+    try:
+        return __api.get_blocks()
+    except Exception as e:
+        _handle_exception(e)
+
 
 
 def cget(block):
@@ -569,14 +657,14 @@ def cget(block):
         dict : details about about the block
     """
     try:
-        if block not in block_dict.keys():
+        if block not in __api.block_dict.keys():
             raise Exception('No block with the name "%s" exists' % block)
 
         ans = dict()
         ans['name'] = block
-        ans['value'] = block_dict[block][0]
+        ans['value'] = __api.block_dict[block][0]
 
-        rc = block_dict[block][1:]
+        rc = __api.block_dict[block][1:]
 
         if rc is not None:
             ans['runcontrol'] = rc[1]
@@ -603,8 +691,12 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
         Wait for a run to exit the paused state:
         >>> waitfor_runstate("pause", onexit=True)
     """
+    __api.log_info_msg("WAITFOR_RUNSTATE %s" % (locals(),))
     try:
-        None
+        # Check that wait_for object exists
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit)
     except Exception as e:
         _handle_exception(e)
 
@@ -643,7 +735,7 @@ def get_runnumber():
         string : the run-number
     """
     try:
-        return run_number
+        return __api.run_number
     except Exception as e:
         _handle_exception(e)
 
