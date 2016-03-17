@@ -20,6 +20,25 @@ class Dae(object):
         self.period_current = 1
         self.num_periods = 1
         self.uamps_current = 0
+        self.total_counts = 0
+        self.title_current = "Simulation"
+        self.rb_number = ""
+        self.mevents = 1.0
+        self.good_frames = 1
+        self.users = ""
+        self.run_duration = 1
+        self.raw_frames = 1
+        self.beam_current = 1
+        self.total_uamps = 1
+        self.num_spectra = 1
+        self.num_timechannels = 1
+        self.monitor_spectrum = ""
+        self.monitor_counts = 1
+        self.in_change = False
+        self.wiring_tables = [""]
+        self.spectra_tables = [""]
+        self.detector_tables = [""]
+        self.period_files = [""]
 
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
                   sample_id=None, delayed=False, quiet=False, paused=False):
@@ -178,6 +197,138 @@ class Dae(object):
         else:
             return self.uamps_current
 
+    def get_total_counts(self):
+        """Get the total counts for the current run."""
+        return self.total_counts
+
+    def get_title(self):
+        """Returns the current title
+
+        Returns: String : the current title
+
+        """
+        return self.title_current
+
+    def set_title(self, title):
+        """Sets the current title
+
+        Args:
+            title: String: the new title
+
+        Returns:
+
+        """
+        self.title_current = title
+
+    def get_rb_number(self):
+        """Returns the current RB number
+
+        Returns: String : the RB number
+
+        """
+        return self.rb_number
+
+    def get_mevents(self):
+        return self.mevents
+
+    def get_good_frames(self, period=False):
+        if period:
+            return self.good_frames
+        else:
+            return self.good_frames
+
+    def get_users(self):
+        return self.users
+
+    def get_run_duration(self):
+        return self.run_duration
+
+    def get_raw_frames(self):
+        return self.raw_frames
+
+    def get_beam_current(self):
+        return self.beam_current
+
+    def get_total_uamps(self):
+        return self.total_uamps
+
+    def get_num_spectra(self):
+        return self.num_spectra
+
+    def get_num_timechannels(self):
+        return self.num_timechannels
+
+    def get_monitor_spectrum(self):
+        return self.monitor_spectrum
+
+    def get_monitor_from(self):
+        return ""
+
+    def get_monitor_to(self):
+        return ""
+
+    def get_monitor_counts(self):
+        return 1
+
+    def set_users(self, users):
+        self.users = users
+
+    def change_start(self):
+        """Start a change operation.
+        The operaton is finished when change_finish is called.
+        Between these two calls a sequence of other change commands can be called.
+        For example: change_tables, change_tcb etc.
+        """
+        # Check in setup
+        if self.get_run_state() != "SETUP":
+            raise Exception('Must be in SETUP before starting change!')
+        else:
+            self.in_change = True
+
+    def change_finish(self):
+        if self.in_change:
+            self.in_change = False
+
+    def change_monitor(self, spec, low, high):
+        """Change the monitor to a specified spectrum and range.
+
+        Parameters:
+            spectrum - the spectrum number (integer)
+            low - the low end of the integral (float)
+            high - the high end of the integral (float)
+        """
+        try:
+            spec = int(spec)
+        except ValueError:
+            raise TypeError("Spectrum number must be an integer")
+        try:
+            low = float(low)
+        except ValueError:
+            raise TypeError("Low must be a float")
+        try:
+            high = float(high)
+        except ValueError:
+            raise TypeError("High must be a float")
+        did_change = False
+        if not self.in_change:
+            self.change_start()
+            did_change = True
+        self.change_cache.set_monitor(spec, low, high)
+        if did_change:
+            self.change_finish()
+
+    def get_wiring_tables(self):
+        return self.wiring_tables
+
+    def get_spectra_tables(self):
+        return self.spectra_tables
+
+    def get_detector_tables(self):
+        return self.detector_tables
+
+    def get_period_files(self):
+        return self.period_files
+
 
 class SimulationAPI(object):
 
@@ -187,6 +338,8 @@ class SimulationAPI(object):
         self.run_number = 123456
         self.waitfor = Waitfor()
         self.dae = Dae()
+        self.beamline_pars = {}
+        self.sample_pars = {}
 
     def log_info_msg(self, *args, **kwargs):
         pass
@@ -262,6 +415,24 @@ class SimulationAPI(object):
 
     def get_blocks(self):
         return self.block_dict.keys()
+
+    def get_beamline_pars(self):
+        return self.beamline_pars
+
+    def set_beamline_par(self, name, value):
+        try:
+            self.beamline_pars[name] = value
+        except Exception as e:
+            _handle_exception(e)
+
+    def get_sample_pars(self):
+        return self.sample_pars
+
+    def set_sample_par(self, name, value):
+        try:
+            self.sample_pars[name] = value
+        except Exception as e:
+            _handle_exception(e)
 
 
 __api = SimulationAPI()
@@ -854,3 +1025,782 @@ def get_uamps(period=False):
         return __api.dae.get_uamps(period)
     except Exception as e:
         _handle_exception(e)
+
+
+def get_frames(period=False):
+    """Gets the current number of good frames.
+
+    Args:
+        period (bool, optional) : whether to return the value for the current period only
+
+    Returns:
+        int : the number of frames
+    """
+    try:
+        return __api.dae.get_good_frames(period)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_mevents():
+    """Gets the total counts for all the detectors.
+
+    Returns:
+        float : the number of mevents
+    """
+    try:
+        return __api.dae.get_mevents()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_totalcounts():
+    """Get the total counts for the current run.
+
+    Returns:
+        int : the total counts
+    """
+    try:
+        return __api.dae.get_total_counts()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_title():
+    """Returns the current title.
+
+    Returns:
+        string : the title
+    """
+    try:
+        return __api.dae.get_title()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def set_title(title):
+    """Sets the current title.
+
+    Deprecated - use change_title
+
+    Args:
+        title : the new title
+    """
+    print "set_title is deprecated - use change_title"
+    change_title(title)
+
+
+def change_title(title):
+    """Sets the current title.
+
+    Args:
+        title : the new title
+    """
+    try:
+        __api.dae.set_title(title)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_rb():
+    """Returns the current RB number.
+
+    Returns:
+        string : the RB number
+    """
+    try:
+        return __api.dae.get_rb_number()
+    except Exception as e:
+        _handle_exception(e)
+
+def get_dashboard():
+    """Get the current experiment values.
+
+    Returns:
+        dict : the experiment values
+    """
+    try:
+        data = dict()
+        data["status"] = __api.dae.get_run_state()
+        data["run_number"] = __api.dae.get_run_number()
+        data["rb_number"] = __api.dae.get_rb_number()
+        data["user"] = __api.dae.get_users()
+        data["title"] = __api.dae.get_title()
+        data["run_time"] = __api.dae.get_run_duration()
+        data["good_frames_total"] = __api.dae.get_good_frames()
+        data["good_frames_period"] = __api.dae.get_good_frames(True)
+        data["raw_frames_total"] = __api.dae.get_raw_frames()
+        data["raw_frames_period"] = __api.dae.get_good_frames(True)
+        data["beam_current"] = __api.dae.get_beam_current()
+        data["total_current"] = __api.dae.get_total_uamps()
+        data["spectra"] = __api.dae.get_num_spectra()
+        # data["dae_memory_used"] = __api.dae.get_memory_used()         #Not implemented in EPICS system
+        data["periods"] = __api.dae.get_num_periods()
+        data["time_channels"] = __api.dae.get_num_timechannels()
+        data["monitor_spectrum"] = __api.dae.get_monitor_spectrum()
+        data["monitor_from"] = __api.dae.get_monitor_from()
+        data["monitor_to"] = __api.dae.get_monitor_to()
+        data["monitor_counts"] = __api.dae.get_monitor_counts()
+        return data
+    except Exception as e:
+        _handle_exception(e)
+
+
+def _correct_filepath(filepath):
+    """Corrects the slashes"""
+    return filepath.__repr__().replace("\\", "/").replace("'", "").replace("//", "/")
+
+def _correct_filepath_existing(filepath):
+    """If the file exists it get the correct path with the correct casing"""
+    filepath = _correct_filepath(filepath)
+    if os.name == 'nt':
+        try:
+            # Correct path case for windows as Python needs correct casing
+            return win32api.GetLongPathName(win32api.GetShortPathName(filepath))
+        except Exception as err:
+            raise Exception("Invalid file path entered: %s" % err)
+    else:
+        # Nothing to do for unix
+        return filepath
+
+
+def _convert_to_rawstring(data):
+    escape_dict = {'\a': r'\a',
+                   '\b': r'\b',
+                   '\c': r'\c',
+                   '\f': r'\f',
+                   '\n': r'\n',
+                   '\r': r'\r',
+                   '\t': r'\t',
+                   '\v': r'\v',
+                   '\'': r'\'',
+                   '\"': r'\"'}
+    raw_string = ''
+    for char in data:
+        try:
+            raw_string += escape_dict[char]
+        except KeyError:
+            raw_string += char
+    return raw_string
+
+
+def import_user_script_module(name, globs):
+    """Loads user scripts from a module.
+    This method should not be called directly instead use the load_script method.
+
+    Args:
+        name (string) : the name of the file to load
+        globs (dict) : the global settings dictionary of the caller
+    """
+    try:
+        name = _convert_to_rawstring(name)
+
+        try:
+            if "/" in name:
+                # Probably a fullpath name
+                name = _correct_filepath_existing(name)
+            else:
+                # May be a file in the SCRIPT_DIR
+                name = _correct_filepath_existing(SCRIPT_DIR + name)
+            directory, filename = os.path.split(os.path.abspath(name))
+            directory += '\\'
+        except:
+            raise Exception("Script file was not found")
+
+        mod = __load_module(filename[0:-3], directory)
+        # If we get this far then the script is syntactically correct as far as Python is concerned
+        # Now check the script details manually
+        sc = ScriptChecker(__file__)
+        errs = sc.check_script(name)
+        if len(errs) > 0:
+            combined = "script not loaded as errors found in script: "
+            for e in errs:
+                combined += "\n\t" + e
+            raise Exception(combined)
+
+        # Safe to load
+        # Read the file to get the name of the functions
+        funcs = []
+        f = open(directory + filename, "r")
+        for l in f.readlines():
+            m = re.match("^def\s+(.+)\(", l)
+            if m is not None:
+                funcs.append(m.group(1))
+        f.close()
+        scripts = []
+        for att in dir(mod):
+            if isinstance(mod.__dict__.get(att), types.FunctionType):
+                # Check function comes from script file not an import
+                if att in funcs:
+                    scripts.append(att)
+        if len(scripts) > 0:
+            # This is where the script file is actually loaded
+            execfile(directory + filename, globs)
+            msg = "Loaded the following script(s): "
+            for script in scripts:
+                msg += script + ", "
+            print msg[0:-2]
+            print "From: %s%s" % (directory, filename)
+        else:
+            raise Exception("No script found")
+    except Exception as e:
+        _handle_exception(e)
+
+
+def __load_module(name, directory):
+    """This will reload the module if it has already been loaded."""
+    fpath = None
+    try:
+        fpath, pathname, description = imp.find_module(name, [directory])
+        return imp.load_module(name, fpath, pathname, description)
+    except Exception as e:
+        raise Exception(e)
+    finally:
+        # Since we may exit via an exception, close fpath explicitly.
+        if fpath is not None:
+            fpath.close()
+
+
+def get_script_dir():
+    """Get the current script directory.
+
+    Returns:
+        string : the directory
+    """
+    return SCRIPT_DIR
+
+
+def set_script_dir(directory):
+    """Set the directory for loading scripts from.
+
+    Deprecated - use change_script_dir.
+
+    Args:
+        string : the directory to load scripts from
+    """
+    print "set_script_dir is deprecated - use change_script_dir"
+    change_script_dir(directory)
+
+
+def change_script_dir(directory):
+    """Set the directory for loading scripts from.
+
+    Args:
+        string : the directory to load scripts from
+    """
+    try:
+        directory = _convert_to_rawstring(directory)
+        directory = _correct_filepath_existing(directory)
+        if os.path.exists(directory):
+            global SCRIPT_DIR
+            if directory[-1] == "/":
+                SCRIPT_DIR = directory
+            else:
+                SCRIPT_DIR = directory + "/"
+        else:
+            raise Exception("Directory does not exist")
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_start():
+    """Start a change operation.
+    The operaton is finished when change_finish is called.
+
+    Between these two calls a sequence of other change commands can be called.
+    For example: change_tables, change_tcb etc.
+    """
+    try:
+
+        __api.dae.change_start()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_finish():
+    """End a change operation.
+    The operaton is begun when change_start is called.
+
+    Between these two calls a sequence of other change commands can be called.
+    For example: change_tables, change_tcb etc.
+    """
+    try:
+        __api.dae.change_finish()
+    except Exception as e:
+        _handle_exception(e)
+
+def change_monitor(spec, low, high):
+    """Change the monitor to a specified spectrum and range.
+
+    Args:
+        spectrum (int) : the spectrum number
+        low (float) : the low end of the integral
+        high (float) : the high end of the integral
+    """
+    try:
+        __api.dae.change_monitor(spec, low, high)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_tables(wiring=None, detector=None, spectra=None):
+    """Load the wiring, detector and/or spectra tables.
+
+    Args:
+        wiring (string, optional) : the filename of the wiring table file
+        detector (string, optional) : the filename of the detector table file
+        spectra (string, optional) : the filename of the spectra table file
+    """
+    try:
+        __api.dae.change_tables(wiring, detector, spectra)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_sync(source):
+    """Change the source the DAE using for synchronisation.
+
+    Args:
+        source (string) : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
+    """
+    try:
+        __api.dae.change_sync(source)
+    except Exception as e:
+        _handle_exception(e)
+
+###
+def change_tcb_file(tcbfile=None, default=False):
+    """Change the time channel boundaries.
+
+    Args:
+        tcbfile (string, optional) : the file to load
+        default (bool, optional): load the default file
+    """
+    try:
+        __api.dae.change_tcb_file(tcbfile, default)
+    except Exception as e:
+        _handle_exception(e)
+###
+
+def change_tcb(low, high, step, trange, log=False, regime=1):
+    """Change the time channel boundaries.
+
+    Args
+        low (float) : the lower limit
+        high (float) : the upper limit
+        step (float) : the step size
+        trange (int) : the time range (1 to 5)
+        log (bool, optional) : whether to use LOG binning
+        regime (int, optional) : the time regime to set (1 to 6)
+    """
+    try:
+        __api.dae.change_tcb(low, high, step, trange, log, regime)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_vetos(**params):
+    """Change the DAE veto settings.
+
+    Args:
+        clearall (bool, optional) : remove all vetos
+        smp (bool, optional) : set SMP veto
+        ts2 (bool, optional) : set TS2 veto
+        hz50 (bool, optional) : set 50 hz veto
+        ext0  (bool, optional): set external veto 0
+        ext1  (bool, optional): set external veto 1
+        ext2 (bool, optional) : set external veto 2
+        ext3 (bool, optional) : set external veto 3
+
+    Note: If clearall is specified then all vetos are turned off,
+    but it is possible to turn other vetoes back on at the same time:
+
+    Examples:
+        Turns all vetoes off then turns the SMP veto back on:
+        >>> change_vetos(clearall=True, smp=True)
+    """
+    try:
+        __api.dae.change_vetos(**params)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_fermi_veto(enable=None, delay=1.0, width=1.0):
+    """Configure the fermi chopper veto.
+
+    Args:
+        enable (bool, optional) : enable the fermi veto
+        delay (float, optional) : the veto delay
+        width (float, optional) : the veto width
+    """
+    try:
+        __api.dae.set_fermi_veto(enable, delay, width)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def enable_soft_periods(nperiods=None):
+    """Switch the DAE to software periods mode.
+
+    Args:
+        nperiods (int, optional) : the number of software periods
+    """
+    try:
+        __api.dae.set_period_mode('soft')
+        __api.dae.set_num_soft_periods(nperiods)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def set_number_soft_periods(number, enable=None):
+    """Sets the number of software periods for the DAE.
+
+    Deprecated - use change_number_soft_periods
+
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
+    """
+    print "set_number_soft_periods is deprecated - use change_number_soft_periods"
+    change_number_soft_periods(number, enable)
+
+
+def change_number_soft_periods(number, enable=None):
+    """Sets the number of software periods for the DAE.
+
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
+    """
+    try:
+        if enable:
+            __api.dae.set_period_mode('soft')
+        __api.dae.set_num_soft_periods(number)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
+                        unused=False, frames=None, output=None, label=None):
+    """Sets the DAE to use hardware periods.
+
+    Args:
+        mode (string) : set the mode to internal ('int') or external ('ext')
+        period_file (string, optional) : the file containing the internal period settings (ignores any other settings)
+        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional) : the output delay in microseconds
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
+
+    Note: if the period number is unspecified then the settings will be applied to all periods
+
+    Examples:
+        Setting external periods:
+        >>> enable_hard_periods('ext')
+
+        Setting internal periods from a file:
+        >>> enable_hard_periods('int', 'c:\\myperiods.txt')
+        """
+    try:
+        __api.dae.configure_hard_periods(mode, period_file, sequences, output_delay, period, daq, dwell, unused, frames,
+                                         output, label)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
+                               frames=None, output=None, label=None):
+    """Configure the internal periods without switching to internal period mode.
+
+    Args:
+        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional) : the output delay in microseconds
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
+
+    Note: if the period number is unspecified then the settings will be applied to all periods
+    """
+    try:
+        __api.dae.configure_internal_periods(sequences, output_delay, period, daq, dwell, unused, frames, output, label)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
+    """Define the internal hardware periods.
+
+    Args:
+        period (int, optional) : the number of the period to set the following parameters for
+        daq (bool, optional) :  the specified period is a acquisition period
+        dwell (bool, optional) : the specified period is a dwell period
+        unused (bool, optional) : the specified period is a unused period
+        frames (int, optional) : the number of frames to count for the specified period
+        output (int, optional) : the binary output the specified period
+        label (string, optional) : the label for the period the specified period
+
+    Note: if the period number is unspecified then the settings will be applied to all periods
+    """
+    try:
+        configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change_users(users):
+    """Define the internal hardware periods.
+
+    Args:
+        users (string): the names of the users
+    """
+    try:
+        __api.dae.set_users(users)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def change(**params):
+    """Change experiment parameters.
+
+    Note: it is possible to change more than one item at a time.
+
+    Args:
+        title (string, optional) : change the current title
+        period (int, optional) : change to a different period (must be in a non-running state)
+        nperiods (int, optional) : change the number of software periods (must be in a non-running state)
+        user (string, optional) : change the user(s) (not implemented)
+        sample_name string, optional) : change the sample name (not implemented)
+        rbno (int, optional) : change the RB number (not implemented)
+        aoi (float, optional) : change the angle of incidence (reflectometers only) (not implemented)
+        phi (float, optional) : change the sample angle PHI (reflectometers only) (not implemented)
+
+    Examples:
+        Change the title:
+        >>> change(title="The new title")
+
+        Change the RB number and the users:
+        >>> change(rbno=123456, user="A. User and Ann Other")
+    """
+    try:
+        for k in params:
+            key = k.lower().strip()
+            if key == 'title':
+                change_title(params[k])
+            elif key == 'period':
+                change_period(params[k])
+            elif key == 'nperiods':
+                change_number_soft_periods(params[k])
+            elif key == 'user' or key == 'users':
+                __api.dae.set_users(params[k])
+            # elif key == 'sample_name':
+                # api.set_sample_name(params[k])
+            # elif key == 'thickness':
+                # api.set_sample_par('thickness', params[k])
+            # elif key == 'rb' or key == 'rbno':
+                # api.set_rb_number(params[k])
+            # elif key == 'aoi':
+                # api.change_vars(aoi=params[k])
+            # elif key == 'phi':
+                # api.change_vars(phi=params[k])
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_spectrum(spectrum, period=1, dist=False):
+    """Get the specified spectrum from the DAE.
+
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period
+        dist (bool, optional) : whether to get the spectrum as a distribution
+
+    Returns:
+        dict : dictionary of values
+    """
+    try:
+        return __api.dae.get_spectrum(spectrum, period, dist)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def plot_spectrum(spectrum, period=1, dist=False):
+    """Get the specified spectrum from the DAE and plot it.
+
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period
+        dist (bool, optional) : whether to get the spectrum as a distribution
+
+    Returns:
+        GeniePlot : the plot object
+    """
+    try:
+        graph = SpectraPlot(__api, spectrum, period, dist)
+        return graph
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_sample_pars():
+    """Get the current sample parameter values.
+
+    Returns:
+        dict : the sample parameters
+    """
+    try:
+        names = __api.get_sample_pars()
+        return names
+    except Exception as e:
+        _handle_exception(e)
+
+
+def set_sample_par(name, value):
+    """Set a new value for a sample parameter
+
+    Deprecated - use change_sample_par
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    print "set_sample_par is deprecated - use change_sample_par"
+    change_sample_par(name, value)
+
+
+def change_sample_par(name, value):
+    """Set a new value for a sample parameter
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    try:
+        __api.set_sample_par(name, value)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_beamline_pars():
+    """Get the current beamline parameter values.
+
+    Returns:
+        dict : the beamline parameters
+    """
+    try:
+        names = __api.get_beamline_pars()
+        return names
+    except Exception as e:
+        _handle_exception(e)
+
+
+def set_beamline_par(name, value):
+    """Set a new value for a beamline parameter
+
+    Deprecated - use change_beamline_par
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    print "set_beamline_par is deprecated - use change_beamline_par"
+    change_beamline_par(name, value)
+
+
+def change_beamline_par(name, value):
+    """Set a new value for a beamline parameter
+
+    Args:
+        name (string, optional) : the name of the parameter to change
+        value (optional) : the new value
+    """
+    try:
+        __api.set_beamline_par(name, value)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def send_sms(phone_num, message):
+    """Send a text message to a mobile phone
+
+    Args:
+        phone_num (string) : the mobile number to send to
+        message (string) : the message to send
+    """
+    try:
+        from smslib.sms import send_sms
+        send_sms(phone_num, message)
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_wiring_tables():
+    """Gets a list of possible wiring table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_wiring_tables()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_spectra_tables():
+    """Gets a list of possible spectra table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_spectra_tables()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_detector_tables():
+    """Gets a list of possible detector table choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_detector_tables()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_period_files():
+    """Gets a list of possible period file choices.
+
+    Returns:
+        list : the files
+    """
+    try:
+        return __api.dae.get_period_files()
+    except Exception as e:
+        _handle_exception(e)
+
+
+def check_alarms(*blocks):
+    """Checks whether the specified blocks are in alarm.
+
+    Args:
+        blocks (string, multiple) : the block(s) to check
+
+    Returns:
+        list, list : the blocks in minor alarm and major alarm respectively
+
+    Example:
+        Check alarm state for block1 and block2:
+        >>> check_alarms("block1", "block2")
+    """
+    return __api.check_alarms(blocks)
