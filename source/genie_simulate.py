@@ -19,9 +19,22 @@ class Dae(object):
         self.run_number = 123456
         self.period_current = 1
         self.num_periods = 1
+        self.uamps_current = 0
 
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
                   sample_id=None, delayed=False, quiet=False, paused=False):
+        """Starts a data collection run.
+
+        Parameters:
+            period - the period to begin data collection in [optional]
+            meas_id - the measurement id [optional]
+            meas_type - the type of measurement [optional]
+            meas_subid - the measurement sub-id[optional]
+            sample_id - the sample id [optional]
+            delayed - puts the period card to into delayed start mode [optional]
+            quiet - suppress the output to the screen [optional]
+            paused - begin in the paused state [optional]
+        """
         if self.run_state == "SETUP":
             self.run_state = "RUNNING"
         else:
@@ -52,64 +65,118 @@ class Dae(object):
         pass
 
     def abort_run(self):
+        """
+        Aborts the run and sets run_state to "SETUP"
+        """
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             self.run_state = "SETUP"
         else:
             raise Exception("Can only abort when RUNNING or PAUSED")
 
     def get_run_state(self):
+        """
+        Returns the current run state
+        Returns: String
+        """
         return self.run_state
 
     def get_run_number(self):
+        """
+        Returns the run number
+        Returns: Int
+        """
         return self.run_number
 
     def end_run(self):
+        """
+        ends the run and sets run_state to "SETUP"
+        """
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             self.run_state = "SETUP"
         else:
             raise Exception("Can only end when RUNNING or PAUSED")
 
     def pause_run(self):
+        """
+        pauses run and sets run_state to "PAUSED"
+        """
         if self.run_state == "RUNNING":
             self.run_state = "PAUSED"
         else:
             raise Exception("Can only pause when RUNNING")
 
     def resume_run(self):
+        """
+        resumes the run and sets run_state to "RUNNING"
+        """
         if self.run_state == "PAUSED":
             self.run_state = "RUNNING"
         else:
             raise Exception("Can only resume when PAUSED")
 
     def update_store_run(self):
+        """
+        Does nothing but throw error if run_state is not "RUNNING" or "PAUSED"
+        """
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             pass
         else:
             raise Exception("Can only be run when RUNNING or PAUSED")
 
     def update_run(self):
+        """
+        Does nothing but throw error if run_state is not "RUNNING" or "PAUSED"
+        """
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             pass
         else:
             raise Exception("Can only be run when RUNNING or PAUSED")
 
     def store_run(self):
+        """
+        Does nothing but throw error if run_state is not "RUNNING" or "PAUSED"
+        """
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             pass
         else:
             raise Exception("Can only be run when RUNNING or PAUSED")
 
     def get_period(self):
+        """
+        returns the current period number
+        Returns: Int
+
+        """
         return self.period_current
 
     def get_num_periods(self):
+        """
+        returns the current number of periods
+        Returns: Int
+        """
         return self.num_periods
 
     def set_period(self, period):
+        """
+        sets the current period to the period parameter if it is equal to or less than the number of periods
+        Args:
+            period: Int
+        """
         if period <= self.num_periods:
             self.period_current = period
         else:
             raise Exception("Cannot set period as it is higher than the number of periods")
+
+    def get_uamps(self, period=False):
+        """Returns the current number of micro-amp hours.
+
+        Parameters:
+            period - whether to return the micro-amp hours for the current period [optional]
+        """
+        if period:
+            return self.uamps_current
+        else:
+            return self.uamps_current
 
 
 class SimulationAPI(object):
@@ -131,6 +198,11 @@ class SimulationAPI(object):
         return True
 
     def get_blocks(self):
+        """
+        returns a list of the block names
+        Returns: List
+
+        """
         return self.block_dict.keys()
 
     def get_block_value(self, name, to_string=False, attempts=3):
@@ -139,6 +211,14 @@ class SimulationAPI(object):
         return self.block_dict[name][0]
 
     def get_run_control_settings(self, name):
+        """
+
+        Args:
+            name: String - block name
+
+        Returns: Dict - a dictionary of all the runcontrol settings
+
+        """
         rc = dict()
         rc["ENABLE"] = self.block_dict[name][1]
         rc["LOW"] = self.block_dict[name][2]
@@ -196,6 +276,9 @@ def waveform_to_string():
 
 
 def _cshow_all():
+    """
+    Shows all blocks and their values and runcontrol settings
+    """
     blks = __api.get_current_block_values()
     for bn, bv in blks.iteritems():
         if bv[0] == "*** disconnected" or bv[0] is None:
@@ -754,5 +837,20 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """
     try:
         None
+    except Exception as e:
+        _handle_exception(e)
+
+
+def get_uamps(period=False):
+    """Get the current number of micro-amp hours.
+
+    Args:
+        period (bool, optional) : whether to return the value for the current period only
+
+    Returns:
+        float : the number of uamps
+    """
+    try:
+        return __api.dae.get_uamps(period)
     except Exception as e:
         _handle_exception(e)
