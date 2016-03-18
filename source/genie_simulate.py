@@ -480,7 +480,7 @@ class Dae(object):
                 p_label = None  # unchanged
                 if label is not None:
                     p_label = label
-                self.period_settings.append((period, p_type, p_frames, p_output, p_label))
+                self.change_cache.periods_settings.append((period, p_type, p_frames, p_output, p_label))
             else:
                 raise Exception("Period number must be an integer from 1 to 8")
         if did_change:
@@ -576,10 +576,10 @@ class Dae(object):
             did_change = True
         if log:
             print "Setting TCB range", low, "to", high, "step", step, "(LOG binning)"
-            self.tcb_tables.append((regime, trange, low, high, step, 2))
+            self.change_cache.tcb_tables.append((regime, trange, low, high, step, 2))
         else:
             print "Setting TCB range", low, "to", high, "step", step, "(LINEAR binning)"
-            self.tcb_tables.append((regime, trange, low, high, step, 1))
+            self.change_cache.tcb_tables.append((regime, trange, low, high, step, 1))
         if did_change:
             self.change_finish()
 
