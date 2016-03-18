@@ -53,6 +53,8 @@ class Dae(object):
         self.spectra_tables = [""]
         self.detector_tables = [""]
         self.tcb_tables = []
+        self.period_files = []
+        self.spectrum = {'time':1, 'signal':1, 'sum':None, 'mode': 'distribution'}
         self.change_cache = ChangeCache()
 
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
@@ -307,6 +309,9 @@ class Dae(object):
         if self.in_change:
             self.in_change = False
             self.change_cache = ChangeCache()
+
+    def get_spectrum(self, spectrum=None, period=None, dist=None):
+        return self.spectrum
 
     def change_monitor(self, spec, low, high):
         """Change the monitor to a specified spectrum and range.
@@ -793,6 +798,12 @@ class SimulationAPI(object):
     def set_sample_par(self, name, value):
         try:
             self.sample_pars[name] = value
+        except Exception as e:
+            _handle_exception(e)
+
+    def check_alarms(self, blocks):
+        try:
+            return None
         except Exception as e:
             _handle_exception(e)
 
@@ -1437,7 +1448,6 @@ def get_blocks():
         return __api.get_blocks()
     except Exception as e:
         _handle_exception(e)
-
 
 
 def cget(block):
