@@ -52,8 +52,6 @@ class Dae(object):
         self.wiring_tables = [""]
         self.spectra_tables = [""]
         self.detector_tables = [""]
-        self.period_files = [""]
-        self.period_settings = []
         self.tcb_tables = []
         self.change_cache = ChangeCache()
 
