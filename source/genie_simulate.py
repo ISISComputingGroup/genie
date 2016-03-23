@@ -697,6 +697,12 @@ class Dae(object):
         if did_change:
             self.change_finish()
 
+    def snapshot_crpt(self, name):
+        None
+
+    def post_snapshot_check(self, verbose=False):
+        None
+
 
 class SimulationAPI(object):
 
@@ -1560,7 +1566,10 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
         >>> snapshot_crpt("c:\\Data\my_snapshot")
     """
     try:
-        None
+        name = _correct_filepath(filename)
+        __api.dae.snapshot_crpt(name)
+        waitfor_runstate("STORING", onexit=True)
+        __api.dae.post_snapshot_check(verbose)
     except Exception as e:
         _handle_exception(e)
 
