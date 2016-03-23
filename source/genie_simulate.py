@@ -698,10 +698,10 @@ class Dae(object):
             self.change_finish()
 
     def snapshot_crpt(self, name):
-        None
+        pass
 
     def post_snapshot_check(self, verbose=False):
-        None
+        pass
 
 
 class SimulationAPI(object):
