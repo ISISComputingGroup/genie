@@ -3,6 +3,7 @@ import re
 from genie_script_checker import ScriptChecker
 import imp
 import types
+from utilities import waveform_to_string
 
 if 'SCISOFT_RPC_PORT' in os.environ:
     from genie_scisoft_plot import GeniePlot, SpectraPlot
@@ -992,10 +993,6 @@ def _handle_exception(e):
     print e
 
 
-def waveform_to_string():
-    pass
-
-
 def _cshow_all():
     """
     Shows all blocks and their values and runcontrol settings
@@ -1004,8 +1001,15 @@ def _cshow_all():
     for bn, bv in blks.iteritems():
         if bv[0] == "*** disconnected" or bv[0] is None:
             _print_cshow(bn, connected=False)
+        elif isinstance(bv[0], list) and bv[4] == "CHAR":
+            # If it is a char waveform it needs to be converted
+            val = waveform_to_string(bv[0])
+            _print_cshow(bn, val, bv[1], bv[2], bv[3])
+            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
         else:
-            _print_cshow(bn, bv[0], bv[1], bv[2], bv[3])
+            output = "%s = %s" % (bn, bv[0])
+            output += ' (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (bv[1], bv[2], bv[3])
+        print output
 
 
 def _print_cshow(name, value=None, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
