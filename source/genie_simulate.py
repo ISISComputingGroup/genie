@@ -36,7 +36,7 @@ class Dae(object):
         self.uamps_current = 0
         self.total_counts = 0
         self.title_current = "Simulation"
-        self.rb_number = ""
+        self.rb_number = 1
         self.mevents = 1.0
         self.good_frames = 1
         self.users = ""
@@ -1684,6 +1684,7 @@ def get_dashboard():
         data["beam_current"] = __api.dae.get_beam_current()
         data["total_current"] = __api.dae.get_total_uamps()
         data["spectra"] = __api.dae.get_num_spectra()
+        data["spectra"] = __api.dae.get_num_spectra()
         data["periods"] = __api.dae.get_num_periods()
         data["time_channels"] = __api.dae.get_num_timechannels()
         data["monitor_spectrum"] = __api.dae.get_monitor_spectrum()
@@ -1879,6 +1880,7 @@ def change_finish():
     except Exception as e:
         _handle_exception(e)
 
+
 def change_monitor(spec, low, high):
     """Change the monitor to a specified spectrum and range.
 
@@ -1918,7 +1920,7 @@ def change_sync(source):
     except Exception as e:
         _handle_exception(e)
 
-###
+
 def change_tcb_file(tcbfile=None, default=False):
     """Change the time channel boundaries.
 
@@ -1930,7 +1932,7 @@ def change_tcb_file(tcbfile=None, default=False):
         __api.dae.change_tcb_file(tcbfile, default)
     except Exception as e:
         _handle_exception(e)
-###
+
 
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """Change the time channel boundaries.
