@@ -1275,7 +1275,8 @@ def enable_soft_periods(nperiods=None):
     """
     try:
         __api.dae.set_period_mode('soft')
-        __api.dae.set_num_soft_periods(nperiods)
+        if nperiods is not None:
+            __api.dae.set_num_soft_periods(nperiods)
     except Exception as e:
         _handle_exception(e)
 
