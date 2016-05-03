@@ -64,12 +64,27 @@ except:
 
 
 def _log_command(fn):
-    # Use wrappers to make decorator propogate the docstring for the wrapped function
+    # Use wrappers to make decorator propagate the docstring for the wrapped function
     @wraps(fn)
     def logged(*args, **kwargs):
         __api.log_entered_command()
         return fn(*args, **kwargs)
     return logged
+
+def usercommand(func):
+    """Decorator that marks a function as a user command (e.g. for NICOS)."""
+    func.is_usercommand = True
+    func.is_hidden = False
+    return func
+
+def helparglist(args):
+    """Decorator that supplies a custom argument list to be displayed by
+    a help (e.g. for NICOS).
+    """
+    def deco(func):
+        func.help_arglist = args
+        return func
+    return deco
 
 
 if os.name == 'nt':
@@ -136,6 +151,8 @@ def set_instrument_internal(pv_prefix, globs):
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_blocks():
     """Get the names of the blocks.
 
@@ -149,6 +166,8 @@ def get_blocks():
 
 
 @_log_command
+@usercommand
+@helparglist('...')
 def cset(*args, **kwargs):
     """Sets the setpoint and runcontrol settings for blocks.
     
@@ -261,6 +280,8 @@ def cset(*args, **kwargs):
 
         
 @_log_command
+@usercommand
+@helparglist('block')
 def cget(block):
     """Gets the useful values associated with a block.
 
@@ -340,6 +361,8 @@ def cshow(block=None):
 
         
 @_log_command
+@usercommand
+@helparglist('...')
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, 
             wait_all=False, seconds=None, minutes=None, hours=None, time=None, 
             frames=None, uamps=None, **pars):
@@ -409,6 +432,8 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 
 @_log_command
+@usercommand
+@helparglist('state[, maxwaitsecs][, onexit]')
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
         
@@ -435,6 +460,8 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[block, ...][, start_timeout][, move_timeout]')
 def waitfor_move(*blocks, **kwargs):
     """ Wait for all motion or specific motion to complete.
 
@@ -492,6 +519,8 @@ def waitfor_move(*blocks, **kwargs):
 
         
 @_log_command
+@usercommand
+@helparglist('name[, to_string]')
 def get_pv(name, to_string=False):
     """Get the value for the specified PV.
     
@@ -511,6 +540,8 @@ def get_pv(name, to_string=False):
 
         
 @_log_command
+@usercommand
+@helparglist('name, value[, wait]')
 def set_pv(name, value, wait=False):
     """Set the value for the specified PV.
         
@@ -527,6 +558,8 @@ def set_pv(name, value, wait=False):
 
         
 @_log_command
+@usercommand
+@helparglist('verbose')
 def set_messages_verbosity(verbose):
     """Set the global verbosity of messages.
     
@@ -536,7 +569,9 @@ def set_messages_verbosity(verbose):
     __api.dae.set_verbose(verbose)    
         
         
-@_log_command 
+@_log_command
+@usercommand
+@helparglist('...')
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
     """Starts a data collection run.
@@ -564,6 +599,8 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def abort(verbose=False):
     """Abort the current run.
     
@@ -582,6 +619,8 @@ def abort(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def end(verbose=False):
     """End the current run.
     
@@ -600,6 +639,8 @@ def end(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def pause(verbose=False):
     """Pause the current run.
     
@@ -618,6 +659,8 @@ def pause(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def resume(verbose=False):
     """Resume the current run after it has been paused.
     
@@ -636,6 +679,8 @@ def resume(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def recover(verbose=False):
     """Recovers the run if it has been aborted.
     The command should be run before the next run is started.
@@ -655,6 +700,8 @@ def recover(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def updatestore(verbose=False):
     """Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
@@ -672,6 +719,8 @@ def updatestore(verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[pause_run], [verbose]')
 def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
         
@@ -698,6 +747,8 @@ def update(pause_run=True, verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[verbose]')
 def store(verbose=False):
     """Data loaded into memory by a previous update command is now written to disk.
     
@@ -714,6 +765,8 @@ def store(verbose=False):
 
 
 @_log_command
+@usercommand
+@helparglist('[filename], [verbose]')
 def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """Create a snapshot of the current data.
 
@@ -737,6 +790,8 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[period]')
 def get_uamps(period=False):
     """Get the current number of micro-amp hours.
         
@@ -753,6 +808,8 @@ def get_uamps(period=False):
 
         
 @_log_command
+@usercommand
+@helparglist('[period]')
 def get_frames(period=False):
     """Gets the current number of good frames.
         
@@ -769,6 +826,8 @@ def get_frames(period=False):
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_runstate():
     """Get the current status of the instrument as a string.
     
@@ -784,6 +843,8 @@ def get_runstate():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_mevents():
     """Gets the total counts for all the detectors.
 
@@ -797,6 +858,8 @@ def get_mevents():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_period():
     """Gets the current period number.
 
@@ -810,6 +873,8 @@ def get_period():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_number_periods():
     """Get the number of software periods.
 
@@ -836,6 +901,8 @@ def set_period(period):
 
 
 @_log_command
+@usercommand
+@helparglist('period')
 def change_period(period):
     """Changes the current period number.
 
@@ -849,6 +916,8 @@ def change_period(period):
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_runnumber():
     """Get the current run-number.
 
@@ -862,6 +931,8 @@ def get_runnumber():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_totalcounts():
     """Get the total counts for the current run.
 
@@ -875,6 +946,8 @@ def get_totalcounts():
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_title():
     """Returns the current title.
 
@@ -900,6 +973,8 @@ def set_title(title):
 
 
 @_log_command
+@usercommand
+@helparglist('title')
 def change_title(title):
     """Sets the current title.
     
@@ -913,6 +988,8 @@ def change_title(title):
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_rb():
     """Returns the current RB number.
 
@@ -926,6 +1003,8 @@ def get_rb():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_dashboard():
     """Get the current experiment values.
 
@@ -1121,9 +1200,11 @@ def change_script_dir(directory):
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def change_start():
     """Start a change operation.
-    The operaton is finished when change_finish is called.
+    The operation is finished when change_finish is called.
     
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
@@ -1136,6 +1217,8 @@ def change_start():
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def change_finish():
     """End a change operation.
     The operaton is begun when change_start is called.
@@ -1150,6 +1233,8 @@ def change_finish():
 
         
 @_log_command
+@usercommand
+@helparglist('spec, low, high')
 def change_monitor(spec, low, high):
     """Change the monitor to a specified spectrum and range.
         
@@ -1165,6 +1250,8 @@ def change_monitor(spec, low, high):
 
         
 @_log_command
+@usercommand
+@helparglist('[wiring], [detector], [spectra]')
 def change_tables(wiring=None, detector=None, spectra=None):
     """Load the wiring, detector and/or spectra tables.
         
@@ -1180,6 +1267,8 @@ def change_tables(wiring=None, detector=None, spectra=None):
 
         
 @_log_command
+@usercommand
+@helparglist('source')
 def change_sync(source):
     """Change the source the DAE using for synchronisation.
         
@@ -1193,6 +1282,8 @@ def change_sync(source):
 
         
 @_log_command
+@usercommand
+@helparglist('[tcbfile], [default]')
 def change_tcb_file(tcbfile=None, default=False):
     """Change the time channel boundaries.
         
@@ -1207,6 +1298,8 @@ def change_tcb_file(tcbfile=None, default=False):
 
         
 @_log_command
+@usercommand
+@helparglist('low, high, step, trange[, log][, regime]')
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """Change the time channel boundaries.
         
@@ -1225,6 +1318,8 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 
         
 @_log_command
+@usercommand
+@helparglist('[...]')
 def change_vetos(**params):
     """Change the DAE veto settings.
         
@@ -1252,6 +1347,8 @@ def change_vetos(**params):
 
         
 @_log_command
+@usercommand
+@helparglist('[enable], [delay], [width]')
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
     """Configure the fermi chopper veto.
         
@@ -1267,6 +1364,8 @@ def change_fermi_veto(enable=None, delay=1.0, width=1.0):
 
         
 @_log_command
+@usercommand
+@helparglist('[nperiods]')
 def enable_soft_periods(nperiods=None):
     """Switch the DAE to software periods mode.
         
@@ -1295,6 +1394,8 @@ def set_number_soft_periods(number, enable=None):
 
         
 @_log_command
+@usercommand
+@helparglist('number[, enable]')
 def change_number_soft_periods(number, enable=None):
     """Sets the number of software periods for the DAE.
         
@@ -1311,6 +1412,8 @@ def change_number_soft_periods(number, enable=None):
 
         
 @_log_command
+@usercommand
+@helparglist('mode[, ...]')
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
     """Sets the DAE to use hardware periods.
@@ -1345,6 +1448,8 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 
         
 @_log_command
+@usercommand
+@helparglist('[...]')
 def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
                                frames=None, output=None, label=None):
     """Configure the internal periods without switching to internal period mode.
@@ -1369,6 +1474,8 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 
         
 @_log_command
+@usercommand
+@helparglist('[...]')
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
     """Define the internal hardware periods.
         
@@ -1390,8 +1497,10 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 
 
 @_log_command
+@usercommand
+@helparglist('users')
 def change_users(users):
-    """Define the internal hardware periods.
+    """Change the users for the current run.
 
     Args:
         users (string): the names of the users
@@ -1403,6 +1512,8 @@ def change_users(users):
 
         
 @_log_command
+@usercommand
+@helparglist('[...]')
 def change(**params):
     """Change experiment parameters.
 
@@ -1451,6 +1562,8 @@ def change(**params):
 
         
 @_log_command
+@usercommand
+@helparglist('spectrum[, period][, dist]')
 def get_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE.
         
@@ -1488,6 +1601,8 @@ def plot_spectrum(spectrum, period=1, dist=False):
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_sample_pars():
     """Get the current sample parameter values.
 
@@ -1516,6 +1631,8 @@ def set_sample_par(name, value):
 
 
 @_log_command
+@usercommand
+@helparglist('name, value')
 def change_sample_par(name, value):
     """Set a new value for a sample parameter
 
@@ -1530,6 +1647,8 @@ def change_sample_par(name, value):
 
         
 @_log_command
+@usercommand
+@helparglist('')
 def get_beamline_pars():
     """Get the current beamline parameter values.
 
@@ -1558,6 +1677,8 @@ def set_beamline_par(name, value):
 
 
 @_log_command
+@usercommand
+@helparglist('name, value')
 def change_beamline_par(name, value):
     """Set a new value for a beamline parameter
 
@@ -1572,6 +1693,8 @@ def change_beamline_par(name, value):
 
 
 @_log_command
+@usercommand
+@helparglist('phone_num, message')
 def send_sms(phone_num, message):
     """Send a text message to a mobile phone
 
@@ -1587,6 +1710,8 @@ def send_sms(phone_num, message):
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_wiring_tables():
     """Gets a list of possible wiring table choices.
 
@@ -1600,6 +1725,8 @@ def get_wiring_tables():
         
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_spectra_tables():
     """Gets a list of possible spectra table choices.
 
@@ -1613,6 +1740,8 @@ def get_spectra_tables():
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_detector_tables():
     """Gets a list of possible detector table choices.
 
@@ -1626,6 +1755,8 @@ def get_detector_tables():
 
 
 @_log_command
+@usercommand
+@helparglist('')
 def get_period_files():
     """Gets a list of possible period file choices.
 
