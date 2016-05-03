@@ -136,8 +136,6 @@ def _handle_exception(exception=None, message=None):
 
 
 @_log_command
-@usercommand
-@helparglist('pv_prefix, globals')
 def set_instrument_internal(pv_prefix, globs):
     """Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
@@ -1583,8 +1581,6 @@ def get_spectrum(spectrum, period=1, dist=False):
 
         
 @_log_command
-@usercommand
-@helparglist('spectrum[, period][, dist]')
 def plot_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE and plot it.
         
