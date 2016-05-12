@@ -1,19 +1,4 @@
 import os
-import re
-from genie_script_checker import ScriptChecker
-import imp
-import types
-from utilities import waveform_to_string
-
-if 'SCISOFT_RPC_PORT' in os.environ:
-    from genie_scisoft_plot import GeniePlot, SpectraPlot
-else:
-    from genie_plot import GeniePlot, SpectraPlot
-
-
-if os.name == 'nt':
-    # Needed for correcting file paths
-    import win32api
 
 
 class Waitfor(object):
@@ -27,6 +12,7 @@ class Waitfor(object):
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
         # TODO: Check state entered is valid and not a misspelling
         pass
+
 
 class WaitForMoveController(object):
     def __init__(self):
