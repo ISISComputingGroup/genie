@@ -136,7 +136,7 @@ def set_instrument_internal(pv_prefix, globs):
         pv_prefix (string) : the PV prefix
         globs (dict) : the globals for the top-level
     """
-    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_instrument(pv_prefix, globs)
     except Exception as e:
@@ -151,7 +151,7 @@ def get_blocks():
     Returns:
         list : the blocknames
     """
-    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.get_blocks()
     except Exception as e:
@@ -204,7 +204,7 @@ def cset(*args, **kwargs):
 
         >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
-    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     # cset only works for blocks (currently)
     # Block names contain alpha-numeric and underscores only
     # Run-control not implemented yet!
@@ -282,7 +282,7 @@ def cget(block):
     Returns
         dict : details about about the block
     """
-    __api.log_info_msg(sys._getframe().f_code.co_name, locals())
+    __api.log_command(sys._getframe().f_code.co_name, locals())
     try: 
         if not __api.block_exists(block):
             raise Exception('No block with the name "%s" exists' % block)
