@@ -1,5 +1,5 @@
 import json
-from utilities import compress_and_hex, dehex_and_decompress
+from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
 
 
 class BlockServer(object):
@@ -46,4 +46,9 @@ class BlockServer(object):
         """Get the cache values for the blocks."""
         raw = self._get_pv_value(self.__blockserver_prefix + "BLOCKVALUES", True)
         raw = dehex_and_decompress(raw)
-        return json.loads(raw)
+        blks = json.loads(raw)
+        # Convert any char waveforms into correct format
+        for bn, bv in blks.iteritems():
+            if isinstance(bv[0], list) and bv[4] == "CHAR":
+                bv[0] = waveform_to_string(bv[0])
+        return blks
