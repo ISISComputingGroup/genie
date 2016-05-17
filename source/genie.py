@@ -1086,7 +1086,6 @@ def _get_correct_globals():
 
     globs = dict()
 
-    ans = inspect.stack()
     for i in inspect.stack():
         if "cshow" in i[0].f_globals:
             globs = i[0].f_globals
