@@ -136,15 +136,15 @@ def _handle_exception(exception=None, message=None):
 
 
 @_log_command
-def set_instrument_internal(pv_prefix, globs):
+def set_instrument(pv_prefix):
     """Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
 
     Args:
         pv_prefix (string) : the PV prefix
-        globs (dict) : the globals for the top-level
     """
     try:
+        globs = _get_correct_globals()
         __api.set_instrument(pv_prefix, globs)
     except Exception as e:
         _handle_exception(e)
@@ -1077,16 +1077,37 @@ def _convert_to_rawstring(data):
     return raw_string
 
 
+def _get_correct_globals():
+    """This is a hack to find the frame in which to add the script function(s).
+
+    The frame we want is the outermost one that contains a reference to cshow().
+    """
+    import inspect
+
+    globs = dict()
+
+    for i in inspect.stack():
+        if "cshow" in i[0].f_globals:
+            globs = i[0].f_globals
+    return globs
+
+
 @_log_command
-def import_user_script_module(name, globs):
-    """Loads user scripts from a module.
-    This method should not be called directly instead use the load_script method.
+def load_script(name, dummy=None):
+    """Loads a user script.
 
     Args:
         name (string) : the name of the file to load
-        globs (dict) : the global settings dictionary of the caller
+        dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
+        remove this
     """
+    # This check can be removed once the GUI is updated to no longer use the second parameter
+    if name is None:
+        return
+
     try:
+        globs = _get_correct_globals()
+
         name = _convert_to_rawstring(name)
 
         try:
