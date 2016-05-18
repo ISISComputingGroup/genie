@@ -1068,7 +1068,6 @@ def _get_correct_globals():
     return globs
 
 
-@_log_command
 def load_script(name, dummy=None):
     """Loads a user script.
 
