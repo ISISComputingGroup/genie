@@ -43,20 +43,21 @@ class API(object):
         if instrument.endswith(":"):
             instrument = instrument[:-1]
 
-        if instrument.startswith("NDX") or instrument.startswith("IN:"):
-            instrument = instrument[3:]
+        if instrument.startswith("NDX") or instrument.startswith("IN:") or instrument in self.valid_instruments:
+            if instrument.startswith("NDX") or instrument.startswith("IN:"):
+                instrument = instrument[3:]
             self.init_instrument(instrument, globs)
             pv_prefix = "IN:" + instrument + ":"
-        elif instrument in self.valid_instruments:
-            self.init_instrument(instrument, globs)
-            pv_prefix = "IN:" + instrument + ":"
+
         elif instrument.startswith("NDW") or instrument.startswith("NDLT"):
             print "THIS IS %s!" % instrument.upper()
             print instrument.lower() + " will use init_default "
-            pv_prefix = instrument + ":" + getpass.getuser().upper()
+            if not pv_prefix.startswith(socket.gethostname() + ":" + getpass.getuser().upper()):
+                pv_prefix = pv_prefix + ":" + getpass.getuser().upper()
 
         if not pv_prefix.endswith(":"):
             pv_prefix += ":"
+        print "PV prefix is " + pv_prefix
         API.__inst_prefix = pv_prefix
         API.dae = Dae(self, pv_prefix)
         API.wait_for_move = WaitForMoveController(self, pv_prefix + API.__motion_suffix)
