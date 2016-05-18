@@ -7,9 +7,15 @@ import re
 import ctypes
 from functools import wraps
 from collections import OrderedDict
-from genie_epics_api import *
 from genie_script_checker import ScriptChecker
 from utilities import waveform_to_string
+
+# Determine whether to start in simulation mode
+if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
+    print "\n=========== RUNNING IN SIMULATION MODE ===========\n"
+    from genie_simulate import API
+else:
+    from genie_epics_api import API
 
 # Windows specific stuff
 if os.name == 'nt':
@@ -29,12 +35,12 @@ try:
         raise Exception("API does not exist")
 except:
     # This should only get called the first time genie is imported
+    my_pv_prefix = None
     if 'MYPVPREFIX' in os.environ:
-        MY_PV_PREFIX = os.environ['MYPVPREFIX']
-        __api = API(MY_PV_PREFIX, globals())
+        prefix = os.environ['MYPVPREFIX']
     else:
         print "No instrument specified - to set the instrument use the 'set_instrument' command"
-        __api = API(None, globals())
+    __api = API(my_pv_prefix, globals())
 SCRIPT_DIR = "C:/scripts/"
 _exceptions_raised = False
 # END INITIALISATION CODE
