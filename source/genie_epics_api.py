@@ -234,17 +234,12 @@ class API(object):
             return func(**pars)
         except Exception as msg:
             print msg
-            
-    def log_entered_command(self):
-        """Write the command to a log file"""
-        try:
-            import readline
-            self.write_to_log(readline.get_line_buffer(), 'CMD')
-        except:
-            pass
 
     def log_info_msg(self, message):
         self.write_to_log(message, 'CMD')
+
+    def log_command(self, function_name, arguments):
+        self.write_to_log("%s %s" % (function_name, arguments), 'CMD')
 
     def log_error_msg(self, error_msg):
         """Log the error to the log file"""
