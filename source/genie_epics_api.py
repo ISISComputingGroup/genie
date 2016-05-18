@@ -1,3 +1,5 @@
+import getpass
+import socket
 from time import strftime, localtime
 import os
 import re
@@ -21,6 +23,7 @@ class API(object):
     __blockserver_prefix = "CS:BLOCKSERVER:"
     __block_prefix = "CS:SB:"
     __motion_suffix = "CS:MOT:MOVING"
+    valid_instruments = ["DEMO", "LARMOR", "IMAT"]
 
     def __init__(self, pv_prefix, globs):
         """Constructor for the EPICS enabled API
@@ -28,35 +31,30 @@ class API(object):
         Parameters:
             pv_prefix - used for prefixing the PV and block names
         """
-        if pv_prefix is not None:
-            self.set_instrument(pv_prefix, globs)
+        self.set_instrument(pv_prefix, globs)
 
     def set_instrument(self, pv_prefix, globs):
-        """Set the instrument being used by setting the PV prefix"""
+        """Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed"""
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
-        if pv_prefix.startswith("NDX") or pv_prefix.startswith("IN:"):
-            instrument = pv_prefix[3:]
-            if instrument.endswith(":"):
-                instrument = instrument[:-1]
-            print "THIS IS %s!" % instrument.upper()
-            try:
-                name = instrument.lower()
-                # Load it
-                API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
-                if API.__localmod.__file__.endswith('.pyc'):
-                    file_loc = API.__localmod.__file__[:-1]
-                else:
-                    file_loc = API.__localmod.__file__
-                # execfile - this puts any imports in the init file into the globals namespace
-                # Note: Anything loose in the module like print statements will be run twice
-                execfile(file_loc, globs)
-                # Call the init command
-                init_func = getattr(API.__localmod, "init")
-                init_func(name)
-            except Exception as err:
-                print "There was a problem with loading init_" + instrument.lower() + " so will use default"
-                print "Error was: %s" % err
+
+        if pv_prefix is None:
+            pv_prefix = socket.gethostname()
+        instrument = pv_prefix
+        if instrument.endswith(":"):
+            instrument = instrument[:-1]
+
+        if instrument.startswith("NDX") or instrument.startswith("IN:"):
+            instrument = instrument[3:]
+            self.init_instrument(instrument, globs)
             pv_prefix = "IN:" + instrument + ":"
+        elif instrument in self.valid_instruments:
+            self.init_instrument(instrument, globs)
+            pv_prefix = "IN:" + instrument + ":"
+        elif instrument.startswith("NDW") or instrument.startswith("NDLT"):
+            print "THIS IS %s!" % instrument.upper()
+            print instrument.lower() + " will use init_default "
+            pv_prefix = instrument + ":" + getpass.getuser().upper()
+
         if not pv_prefix.endswith(":"):
             pv_prefix += ":"
         API.__inst_prefix = pv_prefix
@@ -70,6 +68,26 @@ class API(object):
         if API.__inst_prefix is not None:
             return API.__inst_prefix + name
         return name
+
+    def init_instrument(self, instrument, globs):
+        print "THIS IS %s!" % instrument.upper()
+        try:
+            name = instrument.lower()
+            # Load it
+            API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
+            if API.__localmod.__file__.endswith('.pyc'):
+                file_loc = API.__localmod.__file__[:-1]
+            else:
+                file_loc = API.__localmod.__file__
+            # execfile - this puts any imports in the init file into the globals namespace
+            # Note: Anything loose in the module like print statements will be run twice
+            execfile(file_loc, globs)
+            # Call the init command
+            init_func = getattr(API.__localmod, "init")
+            init_func(name)
+        except Exception as err:
+            print "There was a problem with loading init_" + instrument.lower() + " so will use default"
+            print "Error was: %s" % err
 
     def set_pv_value(self, name, value, wait=False):
         """Set the PV to a value.
