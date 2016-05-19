@@ -144,7 +144,8 @@ def set_instrument(pv_prefix):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        __api.set_instrument(pv_prefix)
+        globs = _get_correct_globals()
+        __api.set_instrument(pv_prefix, globs)
     except Exception as e:
         _handle_exception(e)
 
@@ -1205,7 +1206,7 @@ def change_script_dir(directory):
 @helparglist('')
 def change_start():
     """Start a change operation.
-    The operaton is finished when change_finish is called.
+    The operation is finished when change_finish is called.
     
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
@@ -1222,7 +1223,7 @@ def change_start():
 @helparglist('')
 def change_finish():
     """End a change operation.
-    The operaton is begun when change_start is called.
+    The operation is begun when change_start is called.
     
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
@@ -1376,7 +1377,8 @@ def enable_soft_periods(nperiods=None):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.set_period_mode('soft')
-        __api.dae.set_num_soft_periods(nperiods)
+        if nperiods is not None:
+            __api.dae.set_num_soft_periods(nperiods)
     except Exception as e:
         _handle_exception(e)
 
@@ -1501,7 +1503,7 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 @usercommand
 @helparglist('users')
 def change_users(users):
-    """Define the internal hardware periods.
+    """Change the users for the current run.
 
     Args:
         users (string): the names of the users
