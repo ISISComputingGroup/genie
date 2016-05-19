@@ -39,8 +39,9 @@ except:
     if 'MYPVPREFIX' in os.environ:
         prefix = os.environ['MYPVPREFIX']
     else:
-        print "No instrument specified - to set the instrument use the 'set_instrument' command"
-    __api = API(my_pv_prefix, globals())
+        print "No instrument specified - loading local instrument"
+        __api = API(None, globals())
+
 SCRIPT_DIR = "C:/scripts/"
 _exceptions_raised = False
 # END INITIALISATION CODE
@@ -357,7 +358,7 @@ def cshow(block=None):
 @usercommand
 @helparglist('...')
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
-            wait_all=False, seconds=None, minutes=None, hours=None, time=None, 
+            wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
     """Interrupts execution until certain conditions are met.
     
@@ -561,7 +562,6 @@ def set_messages_verbosity(verbose):
 
 @usercommand
 @helparglist('...')
-
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
     """Starts a data collection run.
@@ -1076,7 +1076,6 @@ def _get_correct_globals():
 
 def load_script(name, dummy=None):
     """Loads a user script.
-
     Args:
         name (string) : the name of the file to load
         dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
@@ -1224,7 +1223,7 @@ def change_start():
 @helparglist('')
 def change_finish():
     """End a change operation.
-    The operaton is begun when change_start is called.
+    The operation is begun when change_start is called.
     
     Between these two calls a sequence of other change commands can be called. 
     For example: change_tables, change_tcb etc.
@@ -1234,6 +1233,7 @@ def change_finish():
         __api.dae.change_finish()
     except Exception as e:
         _handle_exception(e)
+
 
 @usercommand
 @helparglist('spec, low, high')
