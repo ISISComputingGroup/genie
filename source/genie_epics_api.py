@@ -26,7 +26,7 @@ class API(object):
     valid_instruments = ["DEMO", "LARMOR", "IMAT"]
 
     def __init__(self, pv_prefix, globs):
-        """Constructor for the EPICS enabled API
+        """Constructor for the EPICS enabled API.
         
         Parameters:
             pv_prefix - used for prefixing the PV and block names
@@ -43,20 +43,21 @@ class API(object):
         if instrument.endswith(":"):
             instrument = instrument[:-1]
 
-        if instrument.startswith("NDX") or instrument.startswith("IN:"):
-            instrument = instrument[3:]
+        if instrument.startswith("NDX") or instrument.startswith("IN:") or instrument in self.valid_instruments:
+            if instrument.startswith("NDX") or instrument.startswith("IN:"):
+                instrument = instrument[3:]
             self.init_instrument(instrument, globs)
             pv_prefix = "IN:" + instrument + ":"
-        elif instrument in self.valid_instruments:
-            self.init_instrument(instrument, globs)
-            pv_prefix = "IN:" + instrument + ":"
+
         elif instrument.startswith("NDW") or instrument.startswith("NDLT"):
             print "THIS IS %s!" % instrument.upper()
             print instrument.lower() + " will use init_default "
-            pv_prefix = instrument + ":" + getpass.getuser().upper()
+            if not pv_prefix.startswith(socket.gethostname() + ":" + getpass.getuser().upper()):
+                pv_prefix = pv_prefix + ":" + getpass.getuser().upper()
 
         if not pv_prefix.endswith(":"):
             pv_prefix += ":"
+        print "PV prefix is " + pv_prefix
         API.__inst_prefix = pv_prefix
         API.dae = Dae(self, pv_prefix)
         API.wait_for_move = WaitForMoveController(self, pv_prefix + API.__motion_suffix)
@@ -252,17 +253,12 @@ class API(object):
             return func(**pars)
         except Exception as msg:
             print msg
-            
-    def log_entered_command(self):
-        """Write the command to a log file"""
-        try:
-            import readline
-            self.write_to_log(readline.get_line_buffer(), 'CMD')
-        except:
-            pass
 
     def log_info_msg(self, message):
         self.write_to_log(message, 'CMD')
+
+    def log_command(self, function_name, arguments):
+        self.write_to_log("%s %s" % (function_name, arguments), 'CMD')
 
     def log_error_msg(self, error_msg):
         """Log the error to the log file"""
