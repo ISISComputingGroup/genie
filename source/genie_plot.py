@@ -2,6 +2,30 @@ import matplotlib.pyplot as pyplt
 import matplotlib.dates as dates
 
 
+class PlotController(object):
+    def __init__(self):
+        self.plots = dict()
+        self.last_plot = None
+        self.count = 1
+
+    def set_last_plot(self, last_plot):
+        self.last_plot = last_plot
+
+    def get_last_plot(self):
+        return self.last_plot
+
+    def add_plot(self, plot):
+        self.plots[self.count] = plot
+        self.set_last_plot(plot)
+        self.count += 1
+
+    def get_plot(self, plot_id):
+        return self.plots[plot_id]
+
+    def get_count(self):
+        return self.count
+
+
 class SePlot(object):
     def __init__(self):
         pyplt.ion()
@@ -35,11 +59,11 @@ class SpectraPlot(object):
         self.ax.autoscale_view(True, True, True)
         self.ax.set_xlabel("Time")
         self.ax.set_ylabel("Counts")
-        #self.ax.set_title("Spectrum %s" % spectrum)
+        # self.ax.set_title("Spectrum %s" % spectrum)
         pyplt.draw()
         self.add_spectrum(spectrum, period, dist)
         
-    def add_spectrum(self, spectrum, period, dist):
+    def add_spectrum(self, spectrum, period=1, dist=False):
         self.spectra.append((spectrum, period, dist))
         data = self.api.dae.get_spectrum(spectrum, period, dist)
         name = "Spect %s " % spectrum
@@ -64,7 +88,8 @@ class SpectraPlot(object):
     def __update_legend(self):
         handles, labels = self.ax.get_legend_handles_labels()
         self.ax.legend(handles, labels)
-        
+
+
 class GeniePlot(object):
     def __init__(self, x_label="X", y_label="Y", title=None):
         pyplt.ion()

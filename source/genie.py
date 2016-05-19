@@ -1598,9 +1598,32 @@ def plot_spectrum(spectrum, period=1, dist=False):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
+        __api.plots.add_plot(graph)
         return graph
     except Exception as e:
         _handle_exception(e)
+
+
+def add_spectrum(spectrum, period=1, dist=False, figure=None):
+    """Add a spectrum graph to an existing plot
+
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period
+        dist (bool, optional) : whether to get the spectrum as a distribution
+        figure (int, optional) : specifies which figure to plot the spectrum in (defaults to last used)
+
+    Returns:
+
+    """
+    if figure is None:
+        figure = __api.plots.get_last_plot()
+    else:
+        figure = __api.plots.get_plot(figure)
+    try:
+        figure.add_spectrum(spectrum, period, dist)
+    except AttributeError:
+        print "Plot not found"
 
 
 @usercommand
