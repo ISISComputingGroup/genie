@@ -37,7 +37,8 @@ except:
     # This should only get called the first time genie is imported
     my_pv_prefix = None
     if 'MYPVPREFIX' in os.environ:
-        prefix = os.environ['MYPVPREFIX']
+        my_pv_prefix = os.environ['MYPVPREFIX']
+        __api = API(my_pv_prefix, globals())
     else:
         print "No instrument specified - loading local instrument"
         __api = API(None, globals())
