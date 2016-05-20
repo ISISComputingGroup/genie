@@ -1590,18 +1590,15 @@ def plot_spectrum(spectrum, period=1, dist=False):
         
     Args:
         spectrum (int) : the spectrum number
-        period (int, optional) : the period
-        dist (bool, optional) : whether to get the spectrum as a distribution
+        period (int, optional) : the period. Default is 1
+        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
 
-    Returns:
-        GeniePlot : the plot object
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.plots.remove_closed()
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
         __api.plots.add_plot(graph)
-        return graph
     except Exception as e:
         _handle_exception(e)
 
@@ -1611,16 +1608,27 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
 
     Args:
         spectrum (int) : the spectrum number
-        period (int, optional) : the period
-        dist (bool, optional) : whether to get the spectrum as a distribution
-        figure (int, optional) : specifies which figure to plot the spectrum in (defaults to last used)
+        period (int, optional) : the period. Default is 1
+        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
+        figure (int, optional) : specifies which figure to plot the spectrum in. Default is last active plot
 
-    Returns:
+    Examples:
+        Add Spectrum 2 to last active plot window
+        >>> add_spectrum(2)
 
+        Add Spectrum 1 to Figure 3
+        >>> add_spectrum(2, figure=3)
+
+        Add Spectrum 1 with period=2 to last active plot window as distribution
+        >>> add_spectrum(1, period=2, dist=True)
+
+        Add Spectrum 4 to Figure 1 as distribution
+        >>> add_spectrum(4, dist=True, figure=1)
     """
     __api.plots.remove_closed()
     try:
         if figure is None:
+            __api.plots.has_last_changed()
             figure = __api.plots.get_last_plot()
         else:
             figure = __api.plots.get_plot(figure)

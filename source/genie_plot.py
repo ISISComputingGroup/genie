@@ -4,11 +4,26 @@ import matplotlib.dates as dates
 
 class PlotController(object):
     def __init__(self):
+        """
+        Class for managing open SpectraPlot windows
+
+        Variables:
+        self.plot_by_index: Dictionary mapping Figure index to SpectraPlot object
+        self.last_plots: list of last active plots; most recent being at the end
+        self.max_index: holds the highest index out of all active SpectraPlot windows
+        """
         self.plot_by_index = dict()
         self.last_plots = list()
+        self.last_changed = False
         self.max_index = 1
 
     def set_last_plot(self, last_plot):
+        """
+        Updates the self.last_plot list, moving the most recently active SpectraPlot object to the end
+
+        Args:
+            last_plot: The last active plot
+        """
         if last_plot in self.last_plots:
             self.last_plots.append(self.last_plots.pop(self.last_plots.index(last_plot)))
         else:
@@ -16,15 +31,29 @@ class PlotController(object):
         print "Figure " + repr(self.get_plot_index(last_plot)) + ": new default plot window"
 
     def get_last_plot(self):
+        """
+        Returns the last active SpectraPlot object
+        """
         pos_last = len(self.last_plots)-1
         return self.last_plots[pos_last]
 
     def add_plot(self, plot):
+        """
+        Adds a new SpectraPlot to the list of active plots, updates last_plots and max_index
+        Args:
+            plot: The new SpectraPlot object
+
+        """
         self.max_index = self.find_max_index()
         self.plot_by_index[self.max_index] = plot
         self.set_last_plot(plot)
 
     def delete_plot(self, plot):
+        """
+        Removes SpectraPlot object from the controller that has become inactive (after closing the relevant window)
+        Args:
+            plot: The SpectraPlot object to be removed
+        """
         index = self.get_plot_index(plot)
         if index in self.plot_by_index:
             del self.plot_by_index[index]
@@ -32,14 +61,36 @@ class PlotController(object):
             self.last_plots.remove(plot)
 
     def get_plot(self, index):
+        """
+        Returns SpectraPlot object associated to a Figure index
+
+        Args:
+            index: The index of the plot
+        """
         return self.plot_by_index[index]
 
     def get_plot_index(self, plot):
+        """
+        Returns the index associated to a SpectraPlot object
+
+        Args:
+            plot: The plot whose index is sought
+
+        Returns:
+
+        """
         inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
         index = inv_plots.get(plot)
         return index
 
     def find_max_index(self):
+        """
+        Finds the maximum Index to be used for the next SpectraPlot object. 1 if there are no active plots, otherwise
+        highest index of all active plots + 1
+
+        Returns: the maximum Index
+
+        """
         if len(self.plot_by_index) != 0:
             maxind = max(self.plot_by_index.keys()) + 1
         else:
@@ -47,11 +98,26 @@ class PlotController(object):
         return maxind
 
     def remove_closed(self):
+        """
+        Checks if any of the active plot windows have been closed in the meantime, and deletes them from the controller
+        if needed.
+        """
         inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
         for plot in inv_plots:
             fignum = plot.fig.number
             if not pyplt.fignum_exists(fignum):
+                if plot == self.get_last_plot():
+                    self.last_changed = True
                 self.delete_plot(plot)
+
+    def has_last_changed(self):
+        """
+        Checks if the last active plot window has changed (due to last active being closed)
+        """
+        if self.last_changed:
+            self.last_changed = False
+            print "Figure " + repr(self.get_plot_index(self.get_last_plot())) + ": new default plot window"
+
 
 
 class SePlot(object):
