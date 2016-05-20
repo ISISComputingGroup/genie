@@ -1617,12 +1617,15 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
     Returns:
 
     """
-    if figure is None:
-        figure = __api.plots.get_last_plot()
-    else:
-        figure = __api.plots.get_plot(figure)
     try:
+        if figure is None:
+            figure = __api.plots.get_last_plot()
+        else:
+            figure = __api.plots.get_plot(figure)
+            __api.plots.set_last_plot(figure)
         figure.add_spectrum(spectrum, period, dist)
+    except IndexError:
+        print "No plots found - create a plot with plot_spectrum() first."
     except AttributeError:
         print "Plot not found"
 

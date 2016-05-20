@@ -5,19 +5,31 @@ import matplotlib.dates as dates
 class PlotController(object):
     def __init__(self):
         self.plots = dict()
-        self.last_plot = None
+        self.last_plots = list()
         self.count = 1
 
     def set_last_plot(self, last_plot):
-        self.last_plot = last_plot
+        if last_plot in self.last_plots:
+            self.last_plots.append(self.last_plots.pop(self.last_plots.index(last_plot)))
+        else:
+            self.last_plots.append(last_plot)
 
     def get_last_plot(self):
-        return self.last_plot
+        pos_last = len(self.last_plots)-1
+        return self.last_plots[pos_last]
 
     def add_plot(self, plot):
         self.plots[self.count] = plot
         self.set_last_plot(plot)
         self.count += 1
+
+    def delete_plot(self, plot):
+        inv_plots = {v: k for k, v in self.plots.iteritems()}
+        if plot in inv_plots:
+            key = inv_plots.get(plot)
+            del self.plots[key]
+        if plot in self.last_plots:
+            self.last_plots.remove(plot)
 
     def get_plot(self, plot_id):
         return self.plots[plot_id]
@@ -59,7 +71,7 @@ class SpectraPlot(object):
         self.ax.autoscale_view(True, True, True)
         self.ax.set_xlabel("Time")
         self.ax.set_ylabel("Counts")
-        # self.ax.set_title("Spectrum %s" % spectrum)
+        self.ax.set_title("Spectrum %s" % spectrum)
         pyplt.draw()
         self.add_spectrum(spectrum, period, dist)
         
