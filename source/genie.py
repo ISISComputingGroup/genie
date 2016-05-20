@@ -1597,6 +1597,7 @@ def plot_spectrum(spectrum, period=1, dist=False):
         GeniePlot : the plot object
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
+    __api.plots.remove_closed()
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
         __api.plots.add_plot(graph)
@@ -1617,6 +1618,7 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
     Returns:
 
     """
+    __api.plots.remove_closed()
     try:
         if figure is None:
             figure = __api.plots.get_last_plot()
@@ -1624,10 +1626,11 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
             figure = __api.plots.get_plot(figure)
             __api.plots.set_last_plot(figure)
         figure.add_spectrum(spectrum, period, dist)
-    except IndexError:
-        print "No plots found - create a plot with plot_spectrum() first."
-    except AttributeError:
-        print "Plot not found"
+    except Exception:
+        if figure is None:
+            print "Plotting failed: Create a plot first using plot_spectrum(<number>)"
+        else:
+            print "Plotting failed: Figure " + repr(figure) + " not found."
 
 
 @usercommand

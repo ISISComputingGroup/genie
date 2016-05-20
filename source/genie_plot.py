@@ -4,38 +4,54 @@ import matplotlib.dates as dates
 
 class PlotController(object):
     def __init__(self):
-        self.plots = dict()
+        self.plot_by_index = dict()
         self.last_plots = list()
-        self.count = 1
+        self.max_index = 1
 
     def set_last_plot(self, last_plot):
         if last_plot in self.last_plots:
             self.last_plots.append(self.last_plots.pop(self.last_plots.index(last_plot)))
         else:
             self.last_plots.append(last_plot)
+        print "Figure " + repr(self.get_plot_index(last_plot)) + ": new default plot window"
 
     def get_last_plot(self):
         pos_last = len(self.last_plots)-1
         return self.last_plots[pos_last]
 
     def add_plot(self, plot):
-        self.plots[self.count] = plot
+        self.max_index = self.find_max_index()
+        self.plot_by_index[self.max_index] = plot
         self.set_last_plot(plot)
-        self.count += 1
 
     def delete_plot(self, plot):
-        inv_plots = {v: k for k, v in self.plots.iteritems()}
-        if plot in inv_plots:
-            key = inv_plots.get(plot)
-            del self.plots[key]
+        index = self.get_plot_index(plot)
+        if index in self.plot_by_index:
+            del self.plot_by_index[index]
         if plot in self.last_plots:
             self.last_plots.remove(plot)
 
-    def get_plot(self, plot_id):
-        return self.plots[plot_id]
+    def get_plot(self, index):
+        return self.plot_by_index[index]
 
-    def get_count(self):
-        return self.count
+    def get_plot_index(self, plot):
+        inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
+        index = inv_plots.get(plot)
+        return index
+
+    def find_max_index(self):
+        if len(self.plot_by_index) != 0:
+            maxind = max(self.plot_by_index.keys()) + 1
+        else:
+            maxind = 1
+        return maxind
+
+    def remove_closed(self):
+        inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
+        for plot in inv_plots:
+            fignum = plot.fig.number
+            if not pyplt.fignum_exists(fignum):
+                self.delete_plot(plot)
 
 
 class SePlot(object):
