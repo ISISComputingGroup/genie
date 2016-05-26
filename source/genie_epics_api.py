@@ -4,6 +4,7 @@ from time import strftime, localtime
 import os
 import re
 from genie_dae import Dae
+from genie_plot import PlotController
 from genie_waitfor import WaitForController
 from genie_wait_for_move import WaitForMoveController
 from genie_blockserver import BlockServer
@@ -24,6 +25,7 @@ class API(object):
     __block_prefix = "CS:SB:"
     __motion_suffix = "CS:MOT:MOVING"
     valid_instruments = ["DEMO", "LARMOR", "IMAT"]
+    plots = PlotController()
 
     def __init__(self, pv_prefix, globs):
         """Constructor for the EPICS enabled API.
@@ -39,7 +41,7 @@ class API(object):
 
         if pv_prefix is None:
             pv_prefix = socket.gethostname()
-        instrument = pv_prefix
+        instrument = pv_prefix.upper()
         if instrument.endswith(":"):
             instrument = instrument[:-1]
 
@@ -394,4 +396,3 @@ class API(object):
             dict - contains a tuple for each block containing the value and the run-control settings
         """
         return self.blockserver.get_current_block_values()
-
