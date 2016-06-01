@@ -37,7 +37,8 @@ except:
     # This should only get called the first time genie is imported
     my_pv_prefix = None
     if 'MYPVPREFIX' in os.environ:
-        prefix = os.environ['MYPVPREFIX']
+        my_pv_prefix = os.environ['MYPVPREFIX']
+        __api = API(my_pv_prefix, globals())
     else:
         print "No instrument specified - loading local instrument"
         __api = API(None, globals())
@@ -355,8 +356,6 @@ def cshow(block=None):
         _handle_exception(e)
 
 
-@usercommand
-@helparglist('...')
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
@@ -421,6 +420,122 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
                                     frames, uamps)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('...')
+def waitfor_value(block, value, maxwait=None):
+    """Interrupts execution until block reaches specific value
+
+    Args:
+        block: the name of the block to wait for
+        value: the target block value
+        maxwait: wait no longer that the specified number of seconds
+
+    Examples:
+        >>> waitfor("myblock", 123)
+        >>> waitfor("myblock", True)
+        >>> waitfor("myblock", "OPEN", maxwait=15)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.start_waiting(block=block, value=value, maxwait=maxwait)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('...')
+def waitfor_limit(block, lowlimit=None, highlimit=None, maxwait=None):
+    """Interrupts execution until block value within between specified limit(s)
+
+    Args:
+        block: the name of the block to wait for
+        lowlimit: waits for the block to be >= this value
+        highlimit: waits for the block to be <= this value
+        maxwait: wait no longer that the specified number of seconds
+
+    Examples:
+        >>> waitfor("myblock", lowlimit=100, highlimit=110)
+        >>> waitfor("myblock", highlimit=1.0, maxwait=60)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if lowlimit is None and highlimit is None:
+            raise Exception("Cannot execute waitfor_limit - need to set at least one limit. Type help(waitfor_limit) to"
+                            " see guidelines")
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.start_waiting(block=block, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('...')
+def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
+    """Interrupts execution for a specified amount of time
+
+    Args:
+        seconds (float, optional) : wait for a specified number of seconds
+        minutes (float, optional) : wait for a specified number of minutes
+        hours (float, optional) : wait for a specified number of hours
+        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+
+    Examples:
+        >>> waitfor(seconds=10)
+        >>> waitfor(hours=1, minutes=30, seconds=15)
+        >>> waitfor(time="1:30:15")
+    """
+    try:
+        if seconds is None and minutes is None and hours is None and time is None:
+            raise Exception("Cannot execute waitfor_time - need to set at least one parameter. Type help(waitfor_time) "
+                            "to see guidelines")
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.start_waiting(seconds=seconds, minutes=minutes, hours=hours, time=time)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('...')
+def waitfor_frame(frame):
+    """Interrupts execution to wait for a specific frame
+
+    Args:
+        frame: the frame to wait for
+
+    Example:
+        >>> waitfor_frame(50000)
+    """
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.start_waiting(frames=frames)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('...')
+def waitfor_uamps(uamps):
+    """Interrupts execution to wait for a specific total charge
+
+    Args:
+        uamps: the charge to wait for
+
+    Example:
+        >>> waitfor_uamps(35000)
+    """
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        __api.waitfor.start_waiting(uamps=uamps)
     except Exception as e:
         _handle_exception(e)
 
@@ -1584,23 +1699,64 @@ def get_spectrum(spectrum, period=1, dist=False):
         _handle_exception(e)
 
 
+@usercommand
+@helparglist('spectrum[, period][, dist]')
 def plot_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE and plot it.
         
     Args:
         spectrum (int) : the spectrum number
-        period (int, optional) : the period
-        dist (bool, optional) : whether to get the spectrum as a distribution
+        period (int, optional) : the period. Default is 1
+        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
 
-    Returns:
-        GeniePlot : the plot object
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
+    __api.plots.remove_closed()
     try:
         graph = SpectraPlot(__api, spectrum, period, dist)
-        return graph
+        __api.plots.add_plot(graph)
     except Exception as e:
         _handle_exception(e)
+
+
+@usercommand
+@helparglist('spectrum[, period][, dist]')
+def add_spectrum(spectrum, period=1, dist=False, figure=None):
+    """Add a spectrum graph to an existing plot
+
+    Args:
+        spectrum (int) : the spectrum number
+        period (int, optional) : the period. Default is 1
+        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
+        figure (int, optional) : specifies which figure to plot the spectrum in. Default is last active plot
+
+    Examples:
+        Add Spectrum 2 to last active plot window
+        >>> add_spectrum(2)
+
+        Add Spectrum 1 to Figure 3
+        >>> add_spectrum(2, figure=3)
+
+        Add Spectrum 1 with period=2 to last active plot window as distribution
+        >>> add_spectrum(1, period=2, dist=True)
+
+        Add Spectrum 4 to Figure 1 as distribution
+        >>> add_spectrum(4, dist=True, figure=1)
+    """
+    __api.plots.remove_closed()
+    try:
+        if figure is None:
+            __api.plots.has_last_changed()
+            figure = __api.plots.get_last_plot()
+        else:
+            figure = __api.plots.get_plot(figure)
+            __api.plots.set_last_plot(figure)
+        figure.add_spectrum(spectrum, period, dist)
+    except Exception:
+        if figure is None:
+            print "Plotting failed: Create a plot first using plot_spectrum(<number>)"
+        else:
+            print "Plotting failed: Figure " + repr(figure) + " not found."
 
 
 @usercommand
