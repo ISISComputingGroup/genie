@@ -487,12 +487,12 @@ def waitfor_frame(frame):
         frame: the frame to wait for
 
     Example:
-        >>> waitfor_frame(50000)
+        >>> waitfor_frame(4000)
     """
     try:
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
-        __api.waitfor.start_waiting(frames=frames)
+        __api.waitfor.start_waiting(frames=frame)
     except Exception as e:
         _handle_exception(e)
 
@@ -506,7 +506,7 @@ def waitfor_uamps(uamps):
         uamps: the charge to wait for
 
     Example:
-        >>> waitfor_uamps(35000)
+        >>> waitfor_uamps(115.5)
     """
     try:
         if __api.waitfor is None:
