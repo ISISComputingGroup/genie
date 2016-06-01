@@ -996,20 +996,6 @@ def set_period(period):
     change_period(period)
 
 
-@usercommand
-@helparglist('period')
-def change_period(period):
-    """Changes the current period number.
-
-    Args:
-        period (int) : the period to switch to
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_period(period)
-    except Exception as e:
-        _handle_exception(e)
-
 
 @usercommand
 @helparglist('')
@@ -1073,7 +1059,7 @@ def set_title(title):
 @helparglist('title')
 def change_title(title):
     """Sets the current title.
-    
+
     Args:
         title : the new title
     """
@@ -1513,24 +1499,6 @@ def set_number_soft_periods(number, enable=None):
 
 
 @usercommand
-@helparglist('number[, enable]')
-def change_number_soft_periods(number, enable=None):
-    """Sets the number of software periods for the DAE.
-        
-    Args:
-        number (int) : the number of periods to create
-        enable (bool, optional) : switch to soft period mode
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        if enable:
-            __api.dae.set_period_mode('soft')
-        __api.dae.set_num_soft_periods(number)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
 @helparglist('mode[, ...]')
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
@@ -1665,7 +1633,7 @@ def change(**params):
             elif key == 'nperiods':
                 change_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
-                __api.dae.set_users(params[k])
+                change_users(params[k])
             # elif key == 'sample_name':
                 # api.set_sample_name(params[k])
             # elif key == 'thickness':
@@ -1676,6 +1644,69 @@ def change(**params):
                 # api.change_vars(aoi=params[k])
             # elif key == 'phi':
                 # api.change_vars(phi=params[k])
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('title')
+def change_title(title):
+    """Sets the current title.
+
+    Args:
+        title : the new title
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_title(title)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('period')
+def change_period(period):
+    """Changes the current period number.
+
+    Args:
+        period (int) : the period to switch to
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_period(period)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('number[, enable]')
+def change_number_soft_periods(number, enable=None):
+    """Sets the number of software periods for the DAE.
+
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if enable:
+            __api.dae.set_period_mode('soft')
+        __api.dae.set_num_soft_periods(number)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('number[, enable]')
+def change_users(users):
+    """Changes the users of the DAE
+
+    Args:
+        users: a string containing the user name(s)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_users(users)
     except Exception as e:
         _handle_exception(e)
 
