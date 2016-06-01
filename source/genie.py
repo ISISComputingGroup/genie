@@ -1056,21 +1056,6 @@ def set_title(title):
 
 
 @usercommand
-@helparglist('title')
-def change_title(title):
-    """Sets the current title.
-
-    Args:
-        title : the new title
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_title(title)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
 @helparglist('')
 def get_rb():
     """Returns the current RB number.
@@ -1583,23 +1568,7 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
         _handle_exception(e)
 
 
-@usercommand
-@helparglist('users')
-def change_users(users):
-    """Change the users for the current run.
 
-    Args:
-        users (string): the names of the users
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_users(users)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
-@helparglist('[...]')
 def change(**params):
     """Change experiment parameters.
 
@@ -1609,11 +1578,7 @@ def change(**params):
         title (string, optional) : change the current title
         period (int, optional) : change to a different period (must be in a non-running state)
         nperiods (int, optional) : change the number of software periods (must be in a non-running state)
-        user (string, optional) : change the user(s) (not implemented)
-        sample_name string, optional) : change the sample name (not implemented)
-        rbno (int, optional) : change the RB number (not implemented)
-        aoi (float, optional) : change the angle of incidence (reflectometers only) (not implemented)
-        phi (float, optional) : change the sample angle PHI (reflectometers only) (not implemented)
+        user (string, optional) : change the user(s)
 
     Examples:
         Change the title:
@@ -1634,16 +1599,6 @@ def change(**params):
                 change_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
                 change_users(params[k])
-            # elif key == 'sample_name':
-                # api.set_sample_name(params[k])
-            # elif key == 'thickness':
-                # api.set_sample_par('thickness', params[k])
-            # elif key == 'rb' or key == 'rbno':
-                # api.set_rb_number(params[k])
-            # elif key == 'aoi':
-                # api.change_vars(aoi=params[k])
-            # elif key == 'phi':
-                # api.change_vars(phi=params[k])
     except Exception as e:
         _handle_exception(e)
 
