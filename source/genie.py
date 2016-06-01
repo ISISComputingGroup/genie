@@ -426,51 +426,27 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 @usercommand
 @helparglist('...')
-def waitfor_value(block, value, maxwait=None):
+def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
     """Interrupts execution until block reaches specific value
 
     Args:
         block: the name of the block to wait for
         value: the target block value
-        maxwait: wait no longer that the specified number of seconds
-
-    Examples:
-        >>> waitfor("myblock", 123)
-        >>> waitfor("myblock", True)
-        >>> waitfor("myblock", "OPEN", maxwait=15)
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
-        __api.waitfor.start_waiting(block=block, value=value, maxwait=maxwait)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
-@helparglist('...')
-def waitfor_limit(block, lowlimit=None, highlimit=None, maxwait=None):
-    """Interrupts execution until block value within between specified limit(s)
-
-    Args:
-        block: the name of the block to wait for
         lowlimit: waits for the block to be >= this value
         highlimit: waits for the block to be <= this value
         maxwait: wait no longer that the specified number of seconds
 
     Examples:
+        >>> waitfor("myblock", value=123)
+        >>> waitfor("myblock", value=True, maxwait=15)
         >>> waitfor("myblock", lowlimit=100, highlimit=110)
         >>> waitfor("myblock", highlimit=1.0, maxwait=60)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        if lowlimit is None and highlimit is None:
-            raise Exception("Cannot execute waitfor_limit - need to set at least one limit. Type help(waitfor_limit) to"
-                            " see guidelines")
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
-        __api.waitfor.start_waiting(block=block, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
+        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
     except Exception as e:
         _handle_exception(e)
 
