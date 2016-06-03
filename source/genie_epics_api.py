@@ -33,7 +33,7 @@ class API(object):
         Parameters:
             pv_prefix - used for prefixing the PV and block names
         """
-        self.set_instrument(pv_prefix, globs)
+        pass
 
     def set_instrument(self, pv_prefix, globs):
         """Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed"""
