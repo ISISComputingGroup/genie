@@ -76,8 +76,13 @@ class API(object):
         print "THIS IS %s!" % instrument.upper()
         try:
             name = instrument.lower()
+
+            # Try to call init on init_default to add the path for the instrument specific python files
+            init_func = getattr(API.__mod , "init")
+            init_func(name)
+
             # Load it
-            API.__localmod = __import__('genie_python.init_' + name, globals(), locals(), ['init_' + name], -1)
+            API.__localmod = __import__('init_' + name, globals(), locals(), ['init_' + name], -1)
             if API.__localmod.__file__.endswith('.pyc'):
                 file_loc = API.__localmod.__file__[:-1]
             else:

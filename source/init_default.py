@@ -3,7 +3,10 @@ import os
 
 
 def init(inst):
-    pass
+    # Check instrument specific folder exists, if so add to sys path
+    path = "C:\\Instrument\\Settings\\config\\NDX%s\\Python" % inst
+    if os.path.isdir(path):
+        sys.path.append(path)
 
 
 def abort_precmd(**pars):
