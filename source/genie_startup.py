@@ -12,3 +12,6 @@ if os.name == "nt":
     # To disable quick edit need to disable the 7th bit and enable the 8th
     new_mode = mode.value & ~(0x0040) | (0x0080)
     win32.SetConsoleMode(hin, new_mode)
+
+# Call set_instrument with None to force it to try to guess the instrument
+set_instrument(None)
