@@ -389,6 +389,32 @@ class API(object):
                 print "Block %s does not exist, so ignoring it" % b
         return minor, major
 
+    def check_limit_violations(self, blocks):
+        """Checks whether the specified blocks have soft limit violations.
+
+        Args:
+            blocks (list) : the blocks to check
+
+        Returns:
+            list : the blocks which have soft limit violations
+            """
+        violations = list()
+        for b in blocks:
+            if self.block_exists(b):
+                name = self.correct_blockname(b, False)
+                full_name = self.correct_blockname(b)
+                # Limit violations are indicated by LVIO field (equals 1 if there are violations)
+                try:
+                    has_violations = self.get_pv_value(full_name + ".LVIO", attempts=1)
+                    if has_violations == 1:
+                        violations.append(name)
+                except:
+                    # Could not get value
+                    print "\nCould not get alarm state for block %s" % b
+            else:
+                print "Block %s does not exist, so ignoring it" % b
+        return violations
+
     def get_current_block_values(self):
         """Gets the current block values including the run-control settings.
 
