@@ -356,8 +356,6 @@ def cshow(block=None):
         _handle_exception(e)
 
 
-@usercommand
-@helparglist('...')
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
@@ -427,6 +425,98 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 
 @usercommand
+@helparglist('block[, value][, lowlimit][, highlimit][, maxwait]')
+def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
+    """Interrupts execution until block reaches specific value
+
+    Args:
+        block: the name of the block to wait for
+        value: the target block value
+        lowlimit: waits for the block to be >= this value
+        highlimit: waits for the block to be <= this value
+        maxwait: wait no longer that the specified number of seconds
+
+    Examples:
+        >>> waitfor_block("myblock", value=123)
+        >>> waitfor_block("myblock", value=True, maxwait=15)
+        >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
+        >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
+        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('[seconds][, minutes][, hours][, time]')
+def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
+    """Interrupts execution for a specified amount of time
+
+    Args:
+        seconds (float, optional) : wait for a specified number of seconds
+        minutes (float, optional) : wait for a specified number of minutes
+        hours (float, optional) : wait for a specified number of hours
+        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+
+    Examples:
+        >>> waitfor_time(seconds=10)
+        >>> waitfor_time(hours=1, minutes=30, seconds=15)
+        >>> waitfor_time(time="1:30:15")
+    """
+    try:
+        if seconds is None and minutes is None and hours is None and time is None:
+            raise Exception("Cannot execute waitfor_time - need to set at least one parameter. Type help(waitfor_time) "
+                            "to see guidelines")
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor_time - try calling set_instrument first")
+        __api.waitfor.start_waiting(seconds=seconds, minutes=minutes, hours=hours, time=time)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('frames')
+def waitfor_frames(frames):
+    """Interrupts execution to wait for number of total good frames to reach parameter value
+
+    Args:
+        frames: the number of frames to wait for
+
+    Example:
+        >>> waitfor_frames(4000)
+    """
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
+        __api.waitfor.start_waiting(frames=frames)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('uamps')
+def waitfor_uamps(uamps):
+    """Interrupts execution to wait for a specific total charge
+
+    Args:
+        uamps: the charge to wait for
+
+    Example:
+        >>> waitfor_uamps(115.5)
+    """
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
+        __api.waitfor.start_waiting(uamps=uamps)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
 @helparglist('state[, maxwaitsecs][, onexit]')
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
@@ -447,7 +537,7 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     try:
         # Check that wait_for object exists
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+            raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
         __api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit)
     except Exception as e:
         _handle_exception(e)
@@ -882,20 +972,6 @@ def set_period(period):
     change_period(period)
 
 
-@usercommand
-@helparglist('period')
-def change_period(period):
-    """Changes the current period number.
-
-    Args:
-        period (int) : the period to switch to
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_period(period)
-    except Exception as e:
-        _handle_exception(e)
-
 
 @usercommand
 @helparglist('')
@@ -953,21 +1029,6 @@ def set_title(title):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_title is deprecated - use change_title"
     change_title(title)
-
-
-@usercommand
-@helparglist('title')
-def change_title(title):
-    """Sets the current title.
-    
-    Args:
-        title : the new title
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_title(title)
-    except Exception as e:
-        _handle_exception(e)
 
 
 @usercommand
@@ -1399,24 +1460,6 @@ def set_number_soft_periods(number, enable=None):
 
 
 @usercommand
-@helparglist('number[, enable]')
-def change_number_soft_periods(number, enable=None):
-    """Sets the number of software periods for the DAE.
-        
-    Args:
-        number (int) : the number of periods to create
-        enable (bool, optional) : switch to soft period mode
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        if enable:
-            __api.dae.set_period_mode('soft')
-        __api.dae.set_num_soft_periods(number)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
 @helparglist('mode[, ...]')
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
@@ -1501,23 +1544,7 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
         _handle_exception(e)
 
 
-@usercommand
-@helparglist('users')
-def change_users(users):
-    """Change the users for the current run.
 
-    Args:
-        users (string): the names of the users
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.set_users(users)
-    except Exception as e:
-        _handle_exception(e)
-
-
-@usercommand
-@helparglist('[...]')
 def change(**params):
     """Change experiment parameters.
 
@@ -1527,11 +1554,7 @@ def change(**params):
         title (string, optional) : change the current title
         period (int, optional) : change to a different period (must be in a non-running state)
         nperiods (int, optional) : change the number of software periods (must be in a non-running state)
-        user (string, optional) : change the user(s) (not implemented)
-        sample_name string, optional) : change the sample name (not implemented)
-        rbno (int, optional) : change the RB number (not implemented)
-        aoi (float, optional) : change the angle of incidence (reflectometers only) (not implemented)
-        phi (float, optional) : change the sample angle PHI (reflectometers only) (not implemented)
+        user (string, optional) : change the user(s)
 
     Examples:
         Change the title:
@@ -1551,17 +1574,70 @@ def change(**params):
             elif key == 'nperiods':
                 change_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
-                __api.dae.set_users(params[k])
-            # elif key == 'sample_name':
-                # api.set_sample_name(params[k])
-            # elif key == 'thickness':
-                # api.set_sample_par('thickness', params[k])
-            # elif key == 'rb' or key == 'rbno':
-                # api.set_rb_number(params[k])
-            # elif key == 'aoi':
-                # api.change_vars(aoi=params[k])
-            # elif key == 'phi':
-                # api.change_vars(phi=params[k])
+                change_users(params[k])
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('title')
+def change_title(title):
+    """Sets the current title.
+
+    Args:
+        title : the new title
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_title(title)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('period')
+def change_period(period):
+    """Changes the current period number.
+
+    Args:
+        period (int) : the period to switch to
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_period(period)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('number[, enable]')
+def change_number_soft_periods(number, enable=None):
+    """Sets the number of software periods for the DAE.
+
+    Args:
+        number (int) : the number of periods to create
+        enable (bool, optional) : switch to soft period mode
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if enable:
+            __api.dae.set_period_mode('soft')
+        __api.dae.set_num_soft_periods(number)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('number[, enable]')
+def change_users(users):
+    """Changes the users of the DAE
+
+    Args:
+        users: a string containing the user name(s)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.set_users(users)
     except Exception as e:
         _handle_exception(e)
 
