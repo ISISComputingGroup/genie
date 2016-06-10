@@ -425,7 +425,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 
 @usercommand
-@helparglist('...')
+@helparglist('block [, value][, lowlimit][, highlimit][, maxwait]')
 def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
     """Interrupts execution until block reaches specific value
 
@@ -437,22 +437,22 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
         maxwait: wait no longer that the specified number of seconds
 
     Examples:
-        >>> waitfor("myblock", value=123)
-        >>> waitfor("myblock", value=True, maxwait=15)
-        >>> waitfor("myblock", lowlimit=100, highlimit=110)
-        >>> waitfor("myblock", highlimit=1.0, maxwait=60)
+        >>> waitfor_block("myblock", value=123)
+        >>> waitfor_block("myblock", value=True, maxwait=15)
+        >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
+        >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+            raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
         __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
-@helparglist('...')
+@helparglist('[seconds][, minutes][, hours][, time]')
 def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
     """Interrupts execution for a specified amount of time
 
@@ -463,42 +463,42 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
         time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
 
     Examples:
-        >>> waitfor(seconds=10)
-        >>> waitfor(hours=1, minutes=30, seconds=15)
-        >>> waitfor(time="1:30:15")
+        >>> waitfor_time(seconds=10)
+        >>> waitfor_time(hours=1, minutes=30, seconds=15)
+        >>> waitfor_time(time="1:30:15")
     """
     try:
         if seconds is None and minutes is None and hours is None and time is None:
             raise Exception("Cannot execute waitfor_time - need to set at least one parameter. Type help(waitfor_time) "
                             "to see guidelines")
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+            raise Exception("Cannot execute waitfor_time - try calling set_instrument first")
         __api.waitfor.start_waiting(seconds=seconds, minutes=minutes, hours=hours, time=time)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
-@helparglist('...')
-def waitfor_frame(frame):
-    """Interrupts execution to wait for a specific frame
+@helparglist('frames')
+def waitfor_frames(frames):
+    """Interrupts execution to wait for number of total good frames to reach parameter value
 
     Args:
-        frame: the frame to wait for
+        frames: the number of frames to wait for
 
     Example:
-        >>> waitfor_frame(4000)
+        >>> waitfor_frames(4000)
     """
     try:
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
-        __api.waitfor.start_waiting(frames=frame)
+            raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
+        __api.waitfor.start_waiting(frames=frames)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
-@helparglist('...')
+@helparglist('uamps')
 def waitfor_uamps(uamps):
     """Interrupts execution to wait for a specific total charge
 
@@ -510,7 +510,7 @@ def waitfor_uamps(uamps):
     """
     try:
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+            raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
         __api.waitfor.start_waiting(uamps=uamps)
     except Exception as e:
         _handle_exception(e)
@@ -537,7 +537,7 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     try:
         # Check that wait_for object exists
         if __api.waitfor is None:
-            raise Exception("Cannot execute waitfor - try calling set_instrument first")
+            raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
         __api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit)
     except Exception as e:
         _handle_exception(e)
