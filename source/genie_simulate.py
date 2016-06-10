@@ -986,8 +986,7 @@ class API(object):
         return minor, major
 
     def check_limit_violations(self, blocks):
-        violations = list()
-        return violations
+        return list()
 
     def get_current_block_values(self):
         return self.block_dict
