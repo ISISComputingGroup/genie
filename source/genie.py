@@ -425,7 +425,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
 
 @usercommand
-@helparglist('block [, value][, lowlimit][, highlimit][, maxwait]')
+@helparglist('block[, value][, lowlimit][, highlimit][, maxwait]')
 def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
     """Interrupts execution until block reaches specific value
 
