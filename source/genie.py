@@ -1900,4 +1900,26 @@ def check_alarms(*blocks):
         >>> check_alarms("block1", "block2")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    return __api.check_alarms(blocks)
+    try:
+        return __api.check_alarms(blocks)
+    except Exception as e:
+        _handle_exception(e)
+
+def check_limit_violations(*blocks):
+    """Checks whether the specified blocks have soft limit violations.
+
+    Args:
+        blocks (string, multiple) : the block(s) to check
+
+    Returns:
+        list: the blocks that have soft limit violations
+
+    Example:
+        Check soft limit violations for block1 and block2:
+        >>> check_limit_violations("block1", "block2")
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        return __api.check_limit_violations(blocks)
+    except Exception as e:
+        _handle_exception(e)

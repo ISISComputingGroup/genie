@@ -44,19 +44,7 @@ class WaitForMoveController(object):
             return self._check_specific_motion(blocks)
 
         self._do_wait(start_timeout, move_timeout, check_blocks)
-
-        # Check alarms
-        time.sleep(0.5)
-        minor, major = self._check_alarms(blocks)
-        for i in major:
-            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MAJOR ALARM" % i)
-            print "Block %s is in alarm: MAJOR" % i
-        for i in minor:
-            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MINOR ALARM" % i)
-            print "Block %s is in alarm state: MINOR" % i
-        for i in self._missing_blocks:
-            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
-            print "Block %s could not be found" % i
+        self._flag_error_conditions(blocks)
 
     def _do_wait(self, start_timeout, move_timeout, check_for_move):
         # Pause very briefly to avoid any "double move" that may occur when multiple motors are moved
@@ -123,12 +111,34 @@ class WaitForMoveController(object):
 
         return False
 
-    def _check_alarms(self, blocks):
-        # Removing any missing blocks
-        blks = list()
+    def _flag_error_conditions(self, blocks):
+        time.sleep(0.5)
+        filtered_blocks = self._filter_out_missing_blocks(blocks)
+
+        # Check alarms
+        minor, major = self._api.check_alarms(filtered_blocks)
+        for i in major:
+            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MAJOR ALARM" % i)
+            print "Block %s is in alarm: MAJOR" % i
+        for i in minor:
+            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MINOR ALARM" % i)
+            print "Block %s is in alarm state: MINOR" % i
+
+        # Check soft limit violations
+        violations = self._api.check_limit_violations(filtered_blocks)
+        for i in violations:
+            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s HAS SOFT LIMIT VIOLATIONS" % i)
+            print "Block %s has soft limit violations" % i
+
+        # Print missing blocks
+        for i in self._missing_blocks:
+            self._api.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
+            print "Block %s could not be found" % i
+
+    def _filter_out_missing_blocks(self, blocks):
+        filtered_blocks = list()
         for b in blocks:
             if b in self._missing_blocks:
-                # Skip any missing blocks
                 continue
-            blks.append(b)
-        return self._api.check_alarms(blks)
+            filtered_blocks.append(b)
+        return filtered_blocks
