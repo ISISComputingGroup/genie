@@ -119,7 +119,7 @@ class TestUtilitiesSequence(unittest.TestCase):
         # Act
 
         # Assert
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UnicodeEncodeError):
             waveform_to_string(test_waveform)
 
     def test_GIVEN_negative_integer_in_waveform_WHEN_waveform_converted_to_string_THEN_result_raises_value_error(self):
