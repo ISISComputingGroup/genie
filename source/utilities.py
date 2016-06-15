@@ -1,6 +1,5 @@
 import zlib
 
-
 def compress_and_hex(value):
     compr = zlib.compress(value)
     return compr.encode('hex')
