@@ -996,6 +996,9 @@ class API(object):
     def get_current_block_values(self):
         return self.block_dict
 
+    def send_sms(self, phone_num, message):
+        print "SMS sent to " + phone_num
+
 
 
 
