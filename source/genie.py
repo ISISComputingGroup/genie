@@ -1819,11 +1819,7 @@ def send_sms(phone_num, message):
         message (string) : the message to send
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        from smslib.sms import send_sms
-        send_sms(phone_num, message)
-    except Exception as e:
-        _handle_exception(e)
+    __api.send_sms(phone_num, message)
 
 
 @usercommand
