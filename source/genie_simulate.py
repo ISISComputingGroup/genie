@@ -1,6 +1,5 @@
 import os
 
-
 class Waitfor(object):
     def __init__(self):
         pass
@@ -950,6 +949,12 @@ class API(object):
         pass
 
     def log_entered_command(self):
+        pass
+        
+    def log_entered_command(self):
+        pass
+        
+    def log_command(self, arg1, arg2):
         pass
 
     def log_info_msg(self, *args, **kwargs):
