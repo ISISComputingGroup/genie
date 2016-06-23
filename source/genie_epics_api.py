@@ -415,3 +415,17 @@ class API(object):
             dict - contains a tuple for each block containing the value and the run-control settings
         """
         return self.blockserver.get_current_block_values()
+
+    def send_sms(self, phone_num, message):
+        """Sends an SMS message to a phone number.
+
+        Args:
+            phone_num (string): the phone number to send the SMS to
+            message (string): the message to send in the SMS
+        """
+        try:
+            from smslib.sms import send_sms
+            send_sms(phone_num, message)
+        except Exception as e:
+            raise Exception("Could not send SMS" + e.msg)
+
