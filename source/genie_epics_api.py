@@ -427,5 +427,5 @@ class API(object):
             from smslib.sms import send_sms
             send_sms(phone_num, message)
         except Exception as e:
-            raise Exception("Could not send SMS" + e.msg)
+            raise Exception("Could not send SMS" + str(e))
 
