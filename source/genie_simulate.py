@@ -997,7 +997,7 @@ class API(object):
         return self.block_dict
 
     def send_sms(self, phone_num, message):
-        print "SMS sent to " + phone_num
+        print "\"" + message + "\"" + "\nSent to " + phone_num
 
 
 
