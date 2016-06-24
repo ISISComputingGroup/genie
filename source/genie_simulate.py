@@ -929,8 +929,21 @@ class API(object):
         return True
 
     def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
-        # Final value in list is the EPICS record type
-        self.block_dict[name] = [value, runcontrol, lowlimit, highlimit, ""]
+        if not name in self.block_dict:
+            self.block_dict[name] = [value, runcontrol, lowlimit, highlimit, ""]
+        else:
+            temp = self.block_dict[name]
+            if value is not None:
+                temp[0] = value
+            if runcontrol is not None:
+                temp[1] = runcontrol
+            if lowlimit is not None:
+                temp[2] = lowlimit
+            if highlimit is not None:
+                temp[3] = highlimit
+            if wait:
+                temp[4] = wait
+            self.block_dict[name] = temp
 
     def get_block_value(self, name, to_string=False, attempts=3):
         if to_string:
