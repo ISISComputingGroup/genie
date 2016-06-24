@@ -941,30 +941,29 @@ class API(object):
             wait (boolean): whether a readback value from the block is waited for (??)
 
         """
-        if not name in self.block_dict:
-            self.block_dict[name] = [value, runcontrol, lowlimit, highlimit, ""]
+        if name not in self.block_dict:
+            self.block_dict[name] = {'value' : value,
+                                     'runcontrol' : runcontrol,
+                                     'lowlimit' : lowlimit,
+                                     'highlimit' : highlimit,
+                                     'wait' : wait}
         else:
-            if value is not None:
-                self.block_dict[name][0] = value
-            if runcontrol is not None:
-                self.block_dict[name][1] = runcontrol
-            if lowlimit is not None:
-                self.block_dict[name][2] = lowlimit
-            if highlimit is not None:
-                self.block_dict[name][3] = highlimit
-            if wait:
-                self.block_dict[name][4] = wait
+            # locals() adds all argument names and values to a dictionary (including 'self')
+            argument_dict = locals()
+            for key, value in argument_dict.items():
+                if key != 'self' and value is not None:
+                    self.block_dict[name][key] = value
 
     def get_block_value(self, name, to_string=False, attempts=3):
         if to_string:
-            return str(self.block_dict[name][0])
-        return self.block_dict[name][0]
+            return str(self.block_dict[name]['value'])
+        return self.block_dict[name]['value']
 
     def set_multiple_blocks(self, names, values):
         temp = zip(names, values)
         for name, value in temp:
             if name in self.block_dict:
-                self.block_dict[name][0] = value
+                self.block_dict[name]['value'] = value
             else:
                 self.block_dict[name] = [value, False, None, None, None]
 
@@ -1003,9 +1002,9 @@ class API(object):
 
     def get_runcontrol_settings(self, name):
         rc = dict()
-        rc["ENABLE"] = self.block_dict[name][1]
-        rc["LOW"] = self.block_dict[name][2]
-        rc["HIGH"] = self.block_dict[name][3]
+        rc["ENABLE"] = self.block_dict[name]['runcontrol']
+        rc["LOW"] = self.block_dict[name]['lowlimit']
+        rc["HIGH"] = self.block_dict[name]['highlimit']
         return rc
 
     def check_alarms(self, blocks):
