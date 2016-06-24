@@ -1812,18 +1812,14 @@ def change_beamline_par(name, value):
 @usercommand
 @helparglist('phone_num, message')
 def send_sms(phone_num, message):
-    """Send a text message to a mobile phone
+    """Sends an SMS message to a phone number.
 
     Args:
-        phone_num (string) : the mobile number to send to
-        message (string) : the message to send
+        phone_num (string): the phone number to send the SMS to
+        message (string): the message to send in the SMS
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        from smslib.sms import send_sms
-        send_sms(phone_num, message)
-    except Exception as e:
-        _handle_exception(e)
+    __api.send_sms(phone_num, message)
 
 
 @usercommand

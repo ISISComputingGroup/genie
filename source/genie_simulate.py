@@ -1,6 +1,5 @@
 import os
 
-
 class Waitfor(object):
     def __init__(self):
         pass
@@ -951,6 +950,12 @@ class API(object):
 
     def log_entered_command(self):
         pass
+        
+    def log_entered_command(self):
+        pass
+        
+    def log_command(self, arg1, arg2):
+        pass
 
     def log_info_msg(self, *args, **kwargs):
         pass
@@ -990,6 +995,9 @@ class API(object):
 
     def get_current_block_values(self):
         return self.block_dict
+
+    def send_sms(self, phone_num, message):
+        print "\"" + message + "\"" + "\nSent to " + phone_num
 
 
 
