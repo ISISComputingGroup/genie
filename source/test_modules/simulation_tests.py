@@ -28,7 +28,7 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_original_cset_values_are_remembered_when_changing_other_values(self):
+    def test_original_block_values_are_remembered_when_changing_other_values(self):
         # Arrange
         cset(HCENTRE=2, runcontrol=True, lowlimit=2.5, highlimit=3)
 
