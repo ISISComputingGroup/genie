@@ -935,22 +935,22 @@ class API(object):
         Args:
             name (string): the name of the block
             value (int): the value of the block
-            runcontrol (boolean): whether runcontrol is enabled or disabled
-            lowlimit (int): the lower limit
-            highlimit (int): the higher limit
-            wait (boolean): whether a readback value from the block is waited for (??)
+            runcontrol (boolean): whether to set runcontrol for this block
+            lowlimit (float): the lower limit for runcontrol or waiting
+            highlimit (float): the upper limit for runcontrol or waiting
+            wait (boolean): pause execution until setpoint is reached (one block only)
 
         """
         if name not in self.block_dict:
-            self.block_dict[name] = {'value' : value,
-                                     'runcontrol' : runcontrol,
-                                     'lowlimit' : lowlimit,
-                                     'highlimit' : highlimit,
-                                     'wait' : wait}
+            self.block_dict[name] = {'value': value,
+                                     'runcontrol': runcontrol,
+                                     'lowlimit': lowlimit,
+                                     'highlimit': highlimit,
+                                     'wait': wait}
         else:
             # locals() adds all argument names and values to a dictionary (including 'self')
-            argument_dict = locals()
-            for key, value in argument_dict.items():
+            arguments = locals()
+            for key, value in arguments.items():
                 if key != 'self' and value is not None:
                     self.block_dict[name][key] = value
 
@@ -965,7 +965,11 @@ class API(object):
             if name in self.block_dict:
                 self.block_dict[name]['value'] = value
             else:
-                self.block_dict[name] = [value, False, None, None, None]
+                self.block_dict[name] = {'value': value,
+                                         'runcontrol': None,
+                                         'lowlimit': None,
+                                         'highlimit': None,
+                                         'wait': False}
 
     def run_pre_post_cmd(self, command, **pars):
         pass
