@@ -30,34 +30,52 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_multiple_blocks_can_be_created_simultaneously(self):
         # Arrange
-        genie.cset(block_a=100, block_b=200, block_c=300)
+        genie.cset(a=100, b=200, c=300)
 
         # Act
-        a = genie.cget("block_a")
-        b = genie.cget("block_b")
-        c = genie.cget("block_c")
+        a = genie.cget("a")
+        b = genie.cget("b")
+        c = genie.cget("c")
 
-        #Assert
+        # Assert
         self.assertEquals(100, a["value"])
         self.assertEquals(200, b["value"])
         self.assertEquals(300, c["value"])
 
     def test_runcontrol_and_wait_cannot_be_set_true_simultaneously(self):
-        pass
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
+            genie.cset(a=1, runcontrol=True, wait=True)
 
     def test_runcontrol_cannot_be_set_for_more_than_one_block_simultaneously(self):
-        pass
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Runcontrol settings can only be changed for one block at a time'):
+            genie.cset(a=1, b=2, runcontrol=True)
 
-    def test_begin_can_only_be_used_when_running_or_paused(self):
-        pass
+    def test_wait_cannot_be_set_for_more_than_one_block_at_a_time(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Cannot wait for more than one block'):
+            genie.cset(a=1, b=2, wait=True)
 
-    def test_pause_can_only_be_used_when_running(self):
-        pass
+    def test_GIVEN_running_state_WHEN_begin_run_THEN_exception(self):
+        # Arrange
+        genie.begin()
 
-    def test_end_can_only_be_used_when_running_or_paused(self):
-        #with self.assertRaisesRegexp(Exception, '.*only.*'):
-            genie.end()
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Can only begin run from SETUP'):
+            genie.begin()
 
-    def test_abort_can_only_be_used_when_running_or_paused(self):
-        pass
+    def test_GIVEN_ended_state_WHEN_pause_run_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Can only pause when RUNNING'):
+            genie.pause()
 
+    def test_GIVEN_ended_state_WHEN_end_run_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Can only end when RUNNING or PAUSED'):
+             genie.end()
+
+    def test_GIVEN_ended_state_WHEN_abort_run_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Can only abort when RUNNING or PAUSED'):
+            genie.abort()
