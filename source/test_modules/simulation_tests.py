@@ -30,12 +30,12 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_multiple_blocks_can_be_created_simultaneously(self):
         # Arrange
-        cset(block_a=100, block_b=200, block_c=300)
+        genie.cset(block_a=100, block_b=200, block_c=300)
 
         # Act
-        a = cget("block_a")
-        b = cget("block_b")
-        c = cget("block_c")
+        a = genie.cget("block_a")
+        b = genie.cget("block_b")
+        c = genie.cget("block_c")
 
         #Assert
         self.assertEquals(100, a["value"])
