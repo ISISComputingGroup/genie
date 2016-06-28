@@ -79,3 +79,16 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only abort when RUNNING or PAUSED'):
             genie.abort()
+
+    def test_GIVEN_ended_state_WHEN_update_store_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Can only be called when RUNNING or PAUSED'):
+            genie.updatestore()
+
+    def test_GIVEN_period_WHEN_change_period_to_higher_value_THEN_exception(self):
+        # Arrange
+        period = genie.get_period()
+
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Cannot set period as it is higher than the number of periods'):
+            genie.change_period(period + 1)
