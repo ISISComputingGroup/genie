@@ -24,6 +24,10 @@ import genie
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
         genie._exceptions_raised = True
+        try:
+            genie.abort()
+        except:
+            pass
 
     def tearDown(self):
         pass
@@ -57,6 +61,19 @@ class TestSimulationSequence(unittest.TestCase):
         with self.assertRaisesRegexp(Exception, 'Cannot wait for more than one block'):
             genie.cset(a=1, b=2, wait=True)
 
+    ###################
+    def test_GIVEN_runcontrol_values_WHEN_change_setpoint_values_THEN_retain_runcontrol_limits(self):
+        # Arrange
+        genie.cset(a=98, runcontrol=True, lowlimit=97, highlimit=99)
+
+        # Act
+        genie.cset(a=2, wait=True, lowlimit=1, highlimit=3)
+        a = genie.cget("a")
+
+        # Assert
+        self.assertEquals(1, a["lowlimit"])
+        self.assertEquals(3, a["highlimit"])
+
     def test_GIVEN_running_state_WHEN_begin_run_THEN_exception(self):
         # Arrange
         genie.begin()
@@ -73,7 +90,7 @@ class TestSimulationSequence(unittest.TestCase):
     def test_GIVEN_ended_state_WHEN_end_run_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only end when RUNNING or PAUSED'):
-             genie.end()
+            genie.end()
 
     def test_GIVEN_ended_state_WHEN_abort_run_THEN_exception(self):
         # Assert
