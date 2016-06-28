@@ -32,7 +32,8 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_multiple_blocks_can_be_created_simultaneously(self):
+    # NEEDS RENAMING
+    def test_GIVEN_cset_for_multiple_blocks_WHEN_set_values_for_each_THEN_cget_return_correct_values_set(self):
         # Arrange
         genie.cset(a=100, b=200, c=300)
 
@@ -46,22 +47,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(200, b["value"])
         self.assertEquals(300, c["value"])
 
-    def test_runcontrol_and_wait_cannot_be_set_true_simultaneously(self):
-        # Assert
-        with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
-            genie.cset(a=1, runcontrol=True, wait=True)
-
-    def test_runcontrol_cannot_be_set_for_more_than_one_block_simultaneously(self):
-        # Assert
-        with self.assertRaisesRegexp(Exception, 'Runcontrol settings can only be changed for one block at a time'):
-            genie.cset(a=1, b=2, runcontrol=True)
-
-    def test_wait_cannot_be_set_for_more_than_one_block_at_a_time(self):
-        # Assert
-        with self.assertRaisesRegexp(Exception, 'Cannot wait for more than one block'):
-            genie.cset(a=1, b=2, wait=True)
-
-    ###################
+    # SHOULD FAIL BUT DOESN'T
     def test_GIVEN_runcontrol_values_WHEN_change_setpoint_values_THEN_retain_runcontrol_limits(self):
         # Arrange
         genie.cset(a=98, runcontrol=True, lowlimit=97, highlimit=99)
@@ -73,6 +59,21 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals(1, a["lowlimit"])
         self.assertEquals(3, a["highlimit"])
+
+    def test_GIVEN_cset_for_block_WHEN_set_runcontrol_true_and_wait_true_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
+            genie.cset(a=1, runcontrol=True, wait=True)
+
+    def test_GIVEN_one_or_more_blocks_with_cset_WHEN_set_runcontrol_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Runcontrol settings can only be changed for one block at a time'):
+            genie.cset(a=1, b=2, runcontrol=True)
+
+    def test_GIVEN_one_or_more_blocks_with_cset_WHEN_set_wait_THEN_exception(self):
+        # Assert
+        with self.assertRaisesRegexp(Exception, 'Cannot wait for more than one block'):
+            genie.cset(a=1, b=2, wait=True)
 
     def test_GIVEN_running_state_WHEN_begin_run_THEN_exception(self):
         # Arrange
