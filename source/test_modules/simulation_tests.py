@@ -32,8 +32,7 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
-    # NEEDS RENAMING
-    def test_GIVEN_cset_for_one_block_WHEN_set_value_THEN_cget_return_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_cget_return_correct_value(self):
         # Arrange
         genie.cset(a=125)
 
@@ -44,7 +43,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(125, a['value'])
 
     # NEEDS RENAMING
-    def test_GIVEN_cset_for_one_block_in_alternate_way_WHEN_set_value_THEN_cget_return_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_in_alternate_way_THEN_cget_return_correct_value(self):
         # Arrange
         genie.cset('a', 60)
 
@@ -55,7 +54,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(60, a['value'])
 
     # NEEDS RENAMING
-    def test_GIVEN_cset_for_multiple_blocks_WHEN_set_values_for_each_THEN_cget_return_correct_set_values(self):
+    def test_GIVEN_three_blocks_WHEN_cset_values_for_each_block_THEN_cget_return_correct_set_values(self):
         # Arrange
         genie.cset(a=100, b=200, c=300)
 
@@ -69,7 +68,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(200, b['value'])
         self.assertEquals(300, c['value'])
 
-    def test_GIVEN_cset_for_one_block_WHEN_set_runcontrol_values_THEN_update_runcontrol_values(self):
+    def test_GIVEN_one_block_WHEN_set_cset_runcontrol_limits_THEN_update_runcontrol_limits(self):
         # Arrange
         genie.cset(a=45, runcontrol=True, lowlimit=40, highlimit=50)
 
@@ -80,7 +79,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(40, a['lowlimit'])
         self.assertEquals(50, a['highlimit'])
 
-    def test_GIVEN_runcontrol_values_WHEN_change_setpoint_values_THEN_retain_runcontrol_limits(self):
+    def test_GIVEN_one_block_WHEN_cset_change_wait_limits_THEN_retain_runcontrol_limits(self):
         # Arrange
         genie.cset(a=90, runcontrol=True, lowlimit=95, highlimit=99)
 
@@ -92,7 +91,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(97, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
-    def test_GIVEN_cset_for_block_WHEN_set_runcontrol_true_and_wait_true_THEN_exception(self):
+    def test_GIVEN_one_block_WHEN_set_runcontrol_true_and_wait_true_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
             genie.cset(a=1, runcontrol=True, wait=True)
