@@ -33,32 +33,64 @@ class TestSimulationSequence(unittest.TestCase):
         pass
 
     # NEEDS RENAMING
-    def test_GIVEN_cset_for_multiple_blocks_WHEN_set_values_for_each_THEN_cget_return_correct_values_set(self):
+    def test_GIVEN_cset_for_one_block_WHEN_set_value_THEN_cget_return_correct_value(self):
+        # Arrange
+        genie.cset(a=125)
+
+        # Act
+        a = genie.cget('a')
+
+        # Assert
+        self.assertEquals(125, a['value'])
+
+    # NEEDS RENAMING
+    def test_GIVEN_cset_for_one_block_in_alternate_way_WHEN_set_value_THEN_cget_return_correct_value(self):
+        # Arrange
+        genie.cset('a', 60)
+
+        # Act
+        a = genie.cget('a')
+
+        # Assert
+        self.assertEquals(60, a['value'])
+
+    # NEEDS RENAMING
+    def test_GIVEN_cset_for_multiple_blocks_WHEN_set_values_for_each_THEN_cget_return_correct_set_values(self):
         # Arrange
         genie.cset(a=100, b=200, c=300)
 
         # Act
-        a = genie.cget("a")
-        b = genie.cget("b")
-        c = genie.cget("c")
+        a = genie.cget('a')
+        b = genie.cget('b')
+        c = genie.cget('c')
 
         # Assert
-        self.assertEquals(100, a["value"])
-        self.assertEquals(200, b["value"])
-        self.assertEquals(300, c["value"])
+        self.assertEquals(100, a['value'])
+        self.assertEquals(200, b['value'])
+        self.assertEquals(300, c['value'])
 
-    # SHOULD FAIL BUT DOESN'T
-    def test_GIVEN_runcontrol_values_WHEN_change_setpoint_values_THEN_retain_runcontrol_limits(self):
+    def test_GIVEN_cset_for_one_block_WHEN_set_runcontrol_values_THEN_update_runcontrol_values(self):
         # Arrange
-        genie.cset(a=98, runcontrol=True, lowlimit=97, highlimit=99)
+        genie.cset(a=45, runcontrol=True, lowlimit=40, highlimit=50)
 
         # Act
-        genie.cset(a=2, wait=True, lowlimit=1, highlimit=3)
-        a = genie.cget("a")
+        a = genie.cget('a')
 
         # Assert
-        self.assertEquals(1, a["lowlimit"])
-        self.assertEquals(3, a["highlimit"])
+        self.assertEquals(40, a['lowlimit'])
+        self.assertEquals(50, a['highlimit'])
+
+    def test_GIVEN_runcontrol_values_WHEN_change_setpoint_values_THEN_retain_runcontrol_limits(self):
+        # Arrange
+        genie.cset(a=90, runcontrol=True, lowlimit=95, highlimit=99)
+
+        # Act
+        genie.cset(a=1, wait=True, lowlimit=4, highlimit=6)
+        a = genie.cget('a')
+
+        # Assert
+        self.assertEquals(97, a['lowlimit'])
+        self.assertEquals(99, a['highlimit'])
 
     def test_GIVEN_cset_for_block_WHEN_set_runcontrol_true_and_wait_true_THEN_exception(self):
         # Assert
