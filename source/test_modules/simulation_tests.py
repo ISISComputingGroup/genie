@@ -91,13 +91,28 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(97, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
+    # NEEDS WORK
     def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
         # Arrange
-        
+        p = genie.get_period()
 
         # Act
+        p2 = genie.set_period(p)
 
         # Assert
+        self.assertEquals(77, p2)
+
+    def test_GIVEN_aborted_state_WHEN_begin_run_THEN_begin_run(self):
+        # Arrange
+        genie.begin()
+
+        # Act
+        rs = genie.get_runstate()
+
+        # Assert
+        self.assertEquals('RUNNING', rs)
+
+    ### ADD MORE HERE
 
     def test_GIVEN_one_block_WHEN_cset_runcontrol_true_and_wait_true_THEN_exception(self):
         # Assert
@@ -122,22 +137,22 @@ class TestSimulationSequence(unittest.TestCase):
         with self.assertRaisesRegexp(Exception, 'Can only begin run from SETUP'):
             genie.begin()
 
-    def test_GIVEN_ended_state_WHEN_pause_run_THEN_exception(self):
+    def test_GIVEN_aborted_state_WHEN_pause_run_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only pause when RUNNING'):
             genie.pause()
 
-    def test_GIVEN_ended_state_WHEN_end_run_THEN_exception(self):
+    def test_GIVEN_aborted_state_WHEN_end_run_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only end when RUNNING or PAUSED'):
             genie.end()
 
-    def test_GIVEN_ended_state_WHEN_abort_run_THEN_exception(self):
+    def test_GIVEN_aborted_state_WHEN_abort_run_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only abort when RUNNING or PAUSED'):
             genie.abort()
 
-    def test_GIVEN_ended_state_WHEN_update_store_THEN_exception(self):
+    def test_GIVEN_aborted_state_WHEN_update_store_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Can only be called when RUNNING or PAUSED'):
             genie.updatestore()
