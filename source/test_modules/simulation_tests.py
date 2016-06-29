@@ -91,17 +91,25 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(97, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
-    def test_GIVEN_one_block_WHEN_set_runcontrol_true_and_wait_true_THEN_exception(self):
+    def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
+        # Arrange
+        
+
+        # Act
+
+        # Assert
+
+    def test_GIVEN_one_block_WHEN_cset_runcontrol_true_and_wait_true_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
             genie.cset(a=1, runcontrol=True, wait=True)
 
-    def test_GIVEN_one_or_more_blocks_with_cset_WHEN_set_runcontrol_THEN_exception(self):
+    def test_GIVEN_multiple_blocks_WHEN_cset_runcontrol_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Runcontrol settings can only be changed for one block at a time'):
             genie.cset(a=1, b=2, runcontrol=True)
 
-    def test_GIVEN_one_or_more_blocks_with_cset_WHEN_set_wait_THEN_exception(self):
+    def test_GIVEN_multiple_blocks_WHEN_cset_wait_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot wait for more than one block'):
             genie.cset(a=1, b=2, wait=True)
