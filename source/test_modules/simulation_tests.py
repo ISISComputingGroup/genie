@@ -32,7 +32,7 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_cget_return_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_cget_returns_correct_value(self):
         # Arrange
         genie.cset(a=125)
 
@@ -42,8 +42,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals(125, a['value'])
 
-    # NEEDS RENAMING
-    def test_GIVEN_one_block_WHEN_cset_value_for_block_in_alternate_way_THEN_cget_return_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_in_alternate_way_THEN_cget_returns_correct_value(self):
         # Arrange
         genie.cset('a', 60)
 
@@ -53,8 +52,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals(60, a['value'])
 
-    # NEEDS RENAMING
-    def test_GIVEN_three_blocks_WHEN_cset_values_for_each_block_THEN_cget_return_correct_set_values(self):
+    def test_GIVEN_three_blocks_WHEN_cset_values_for_each_block_THEN_cget_returns_correct_values(self):
         # Arrange
         genie.cset(a=100, b=200, c=300)
 
@@ -68,7 +66,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(200, b['value'])
         self.assertEquals(300, c['value'])
 
-    def test_GIVEN_one_block_WHEN_set_cset_runcontrol_limits_THEN_update_runcontrol_limits(self):
+    def test_GIVEN_one_block_WHEN_set_cset_runcontrol_limits_THEN_cget_return_correct_runcontrol_limits(self):
         # Arrange
         genie.cset(a=45, runcontrol=True, lowlimit=40, highlimit=50)
 
@@ -92,7 +90,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(99, a['highlimit'])
 
     # NEEDS WORK
-    def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
+    def test_GIVEN_one_block_WHEN_cset_set_period_THEN_update_period(self):
         # Arrange
         p = genie.get_period()
 
@@ -112,7 +110,38 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals('RUNNING', rs)
 
-    ### ADD MORE HERE
+    def test_GIVEN_running_state_WHEN_abort_run_THEN_abort_run(self):
+        # Arrange
+        genie.begin()
+
+        # Act
+        genie.abort()
+        rs = genie.get_runstate()
+
+        # Assert
+        self.assertEquals('SETUP', rs)
+
+    def test_GIVEN_running_state_WHEN_end_run_THEN_end_run(self):
+        # Arrange
+        genie.begin()
+
+        # Act
+        genie.end()
+        rs = genie.get_runstate()
+
+        # Assert
+        self.assertEquals('SETUP', rs)
+
+    def test_GIVEN_running_state_WHEN_pause_THEN_pause(self):
+        # Arrange
+        genie.begin()
+
+        # Act
+        genie.pause()
+        rs = genie.get_runstate()
+
+        # Assert
+        self.assertEquals('PAUSED', rs)
 
     def test_GIVEN_one_block_WHEN_cset_runcontrol_true_and_wait_true_THEN_exception(self):
         # Assert
