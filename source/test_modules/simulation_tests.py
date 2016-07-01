@@ -90,9 +90,16 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(97, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
-    def test_GIVEN_one_block_WHEN_cset_set_period_THEN_update_period(self):
+    def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
+        # Act
+        s = genie.change_number_soft_periods(42)
+
+        # Assert
+        self.assertEquals(42, genie.get_number_periods())
+
+    def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
         # Arrange
-        s = genie.set_number_soft_periods(15)
+        s = genie.change_number_soft_periods(15)
 
         # Act
         p = genie.change_period(5)
@@ -132,7 +139,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals('SETUP', rs)
 
-    def test_GIVEN_running_state_WHEN_pause_THEN_pause(self):
+    def test_GIVEN_running_state_WHEN_pause_run_THEN_pause_run(self):
         # Arrange
         genie.begin()
 
@@ -143,7 +150,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals('PAUSED', rs)
 
-    def test_GIVEN_one_block_WHEN_cset_runcontrol_true_and_wait_true_THEN_exception(self):
+    def test_GIVEN_one_block_WHEN_cset_runcontrol_and_wait__true_THEN_exception(self):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot enable or disable runcontrol at the same time as setting a wait'):
             genie.cset(a=1, runcontrol=True, wait=True)
