@@ -24,15 +24,16 @@ import genie
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
         genie._exceptions_raised = True
-        try:
-            genie.abort()
-        except:
-            pass
+
+        # This a hack to reset the variable in the genie api.
+        # Firstly we get the genie api (you must use getattr because it will replace the __), then init to reset
+        # the variables.
+        getattr(genie, "__api").__init__()
 
     def tearDown(self):
         pass
 
-    def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_cget_returns_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         # Arrange
         genie.cset(a=125)
 
@@ -42,7 +43,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals(125, a['value'])
 
-    def test_GIVEN_one_block_WHEN_cset_value_for_block_in_alternate_way_THEN_cget_returns_correct_value(self):
+    def test_GIVEN_one_block_WHEN_cset_value_for_block_in_alternate_way_THEN_set_correct_value(self):
         # Arrange
         genie.cset('a', 60)
 
@@ -52,7 +53,7 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         self.assertEquals(60, a['value'])
 
-    def test_GIVEN_three_blocks_WHEN_cset_values_for_each_block_THEN_cget_returns_correct_values(self):
+    def test_GIVEN_three_blocks_WHEN_cset_values_for_each_block_THEN_set_correct_values(self):
         # Arrange
         genie.cset(a=100, b=200, c=300)
 
@@ -66,7 +67,7 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(200, b['value'])
         self.assertEquals(300, c['value'])
 
-    def test_GIVEN_one_block_WHEN_set_cset_runcontrol_limits_THEN_cget_return_correct_runcontrol_limits(self):
+    def test_GIVEN_one_block_WHEN_cset_runcontrol_limits_THEN_set_runcontrol_limits(self):
         # Arrange
         genie.cset(a=45, runcontrol=True, lowlimit=40, highlimit=50)
 
@@ -89,16 +90,15 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(97, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
-    # NEEDS WORK
     def test_GIVEN_one_block_WHEN_cset_set_period_THEN_update_period(self):
         # Arrange
-        p = genie.get_period()
+        s = genie.set_number_soft_periods(15)
 
         # Act
-        p2 = genie.set_period(p)
+        p = genie.change_period(5)
 
         # Assert
-        self.assertEquals(77, p2)
+        self.assertEquals(5, genie.get_period())
 
     def test_GIVEN_aborted_state_WHEN_begin_run_THEN_begin_run(self):
         # Arrange
@@ -186,9 +186,9 @@ class TestSimulationSequence(unittest.TestCase):
         with self.assertRaisesRegexp(Exception, 'Can only be called when RUNNING or PAUSED'):
             genie.updatestore()
 
-    def test_GIVEN_period_WHEN_change_period_to_higher_value_THEN_exception(self):
+    def test_GIVEN_period_WHEN_set_period_to_higher_value_THEN_exception(self):
         # Arrange
-        period = genie.get_period()
+        period = genie.get_number_periods()
 
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot set period as it is higher than the number of periods'):
