@@ -78,18 +78,6 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(40, a['lowlimit'])
         self.assertEquals(50, a['highlimit'])
 
-    def test_GIVEN_one_block_WHEN_cset_change_wait_limits_THEN_retain_runcontrol_limits(self):
-        # Arrange
-        genie.cset(a=90, runcontrol=True, lowlimit=95, highlimit=99)
-
-        # Act
-        genie.cset(a=1, wait=True, lowlimit=4, highlimit=6)
-        a = genie.cget('a')
-
-        # Assert
-        self.assertEquals(95, a['lowlimit'])
-        self.assertEquals(99, a['highlimit'])
-
     def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
         # Act
         s = genie.change_number_soft_periods(42)
