@@ -200,3 +200,17 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot set period as it is higher than the number of periods'):
             genie.change_period(period + 1)
+
+    def test_GIVEN_preexisting_block_WHEN_updating_values_with_cset_THEN_update_values_and_remember_non_specified_values(self):
+        # Arrange
+        genie.cset(HCENTRE=2, runcontrol=True, lowlimit=2.5, highlimit=3)
+
+        # Act
+        genie.cset(HCENTRE=2.6, wait=True)
+
+        # Assert
+        a = genie.cget("HCENTRE")
+        self.assertEquals(2.5, a["lowlimit"])
+        self.assertEquals(3, a["highlimit"])
+        self.assertEquals(True, a["runcontrol"])
+
