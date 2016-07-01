@@ -87,7 +87,7 @@ class TestSimulationSequence(unittest.TestCase):
         a = genie.cget('a')
 
         # Assert
-        self.assertEquals(97, a['lowlimit'])
+        self.assertEquals(95, a['lowlimit'])
         self.assertEquals(99, a['highlimit'])
 
     def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
