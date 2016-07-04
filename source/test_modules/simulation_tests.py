@@ -28,7 +28,7 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_GIVEN_preexisting_block_WHEN_updating_values_with_cset_THEN_update_values_and_remember_non_specified_values(self):
+    def test_GIVEN_preexisting_block_WHEN_updating_values_THEN_update_values_and_retain_non_specified_values(self):
         # Arrange
         self.api.set_block_value('HCENTRE', 2, True, 2.5, 3)
 
@@ -40,3 +40,28 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(2.5, rc['LOW'])
         self.assertEquals(3, rc["HIGH"])
         self.assertEquals(True, rc["ENABLE"])
+
+    def test_GIVEN_preexisting_block_WHEN_set_no_values_THEN_retain_original_values(self):
+        # Arrange
+        self.api.set_block_value('a', 3, False, 1.5, 6)
+
+        # Act
+        self.api.set_block_value('a')
+        a = self.api.get_runcontrol_settings('a')
+
+        # Assert
+        self.assertEquals(1.5, a['LOW'])
+        self.assertEquals(6, a["HIGH"])
+        self.assertEquals(False, a["ENABLE"])
+
+    def test_GIVEN_no_preexisting_blocks_WHEN_set_values_for_a_block_THEN_set_values(self):
+        # Arrange
+        self.api.set_block_value('a', 1, False, 0.5)
+
+        # Act
+        a = self.api.get_runcontrol_settings('a')
+
+        # Assert
+        self.assertEquals(0.5, a['LOW'])
+        self.assertEquals(None, a["HIGH"])
+        self.assertEquals(False, a["ENABLE"])

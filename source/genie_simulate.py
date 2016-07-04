@@ -930,7 +930,7 @@ class API(object):
 
     def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
         """Sets a block's values.
-        If the block already exists, update the block. Only update values that are not None.
+        If the block already exists, update the block. Only update values specified in the arguments.
 
         Args:
             name (string): the name of the block
