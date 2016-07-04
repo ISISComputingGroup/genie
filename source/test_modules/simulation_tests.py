@@ -21,6 +21,7 @@ os.environ['GENIE_SIMULATE'] = '1'
 
 import genie
 
+
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
         self.api = API()
