@@ -30,11 +30,11 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_preexisting_block_WHEN_updating_values_THEN_update_values_and_retain_non_specified_values(self):
         # Arrange
-        self.api.set_block_value('HCENTRE', 2, True, 2.5, 3)
+        self.api.set_block_value('block', 2, True, 2.5, 3)
 
         # Act
-        self.api.set_block_value('HCENTRE', 2.6, None, None, None, True)
-        rc = self.api.get_runcontrol_settings('HCENTRE')
+        self.api.set_block_value('block', 2.6, None, None, None, True)
+        rc = self.api.get_runcontrol_settings('block')
 
         # Assert
         self.assertEquals(2.5, rc['LOW'])
@@ -43,25 +43,25 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_preexisting_block_WHEN_set_no_values_THEN_retain_original_values(self):
         # Arrange
-        self.api.set_block_value('a', 3, False, 1.5, 6)
+        self.api.set_block_value('block', 3, False, 1.5, 6)
 
         # Act
-        self.api.set_block_value('a')
-        a = self.api.get_runcontrol_settings('a')
+        self.api.set_block_value('block')
+        rc = self.api.get_runcontrol_settings('block')
 
         # Assert
-        self.assertEquals(1.5, a['LOW'])
-        self.assertEquals(6, a["HIGH"])
-        self.assertEquals(False, a["ENABLE"])
+        self.assertEquals(1.5, rc['LOW'])
+        self.assertEquals(6, rc["HIGH"])
+        self.assertEquals(False, rc["ENABLE"])
 
     def test_GIVEN_no_preexisting_blocks_WHEN_set_values_for_a_block_THEN_set_values(self):
         # Arrange
-        self.api.set_block_value('a', 1, False, 0.5)
+        self.api.set_block_value('block', 1, False, 0.5)
 
         # Act
-        a = self.api.get_runcontrol_settings('a')
+        rc = self.api.get_runcontrol_settings('block')
 
         # Assert
-        self.assertEquals(0.5, a['LOW'])
-        self.assertEquals(None, a["HIGH"])
-        self.assertEquals(False, a["ENABLE"])
+        self.assertEquals(0.5, rc['LOW'])
+        self.assertEquals(None, rc["HIGH"])
+        self.assertEquals(False, rc["ENABLE"])
