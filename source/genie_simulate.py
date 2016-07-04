@@ -891,7 +891,7 @@ class ChangeCache(object):
 
 
 class API(object):
-    def __init__(self, pv_prefix, globs):
+    def __init__(self, pv_prefix = None, globs = None):
         self.block_dict = dict()
         self.num_periods = 1
         self.run_number = 123456
@@ -951,9 +951,6 @@ class API(object):
     def log_entered_command(self):
         pass
         
-    def log_entered_command(self):
-        pass
-        
     def log_command(self, arg1, arg2):
         pass
 
@@ -998,8 +995,3 @@ class API(object):
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
-
-
-
-
-
