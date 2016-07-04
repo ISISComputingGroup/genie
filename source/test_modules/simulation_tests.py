@@ -15,14 +15,14 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 import os
 import unittest
+from genie_simulate import API
 
 os.environ['GENIE_SIMULATE'] = '1'
-
-from genie import *
 
 
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
+        self.api = API()
         pass
 
     def tearDown(self):
@@ -30,13 +30,13 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_preexisting_block_WHEN_updating_values_with_cset_THEN_update_values_and_remember_non_specified_values(self):
         # Arrange
-        cset(HCENTRE=2, runcontrol=True, lowlimit=2.5, highlimit=3)
+        self.api.set_block_value('HCENTRE', 2, True, 2.5, 3)
 
         # Act
-        cset(HCENTRE=2.6, wait=True)
+        self.api.set_block_value('HCENTRE', 2.6, None, None, None, True)
+        rc = self.api.get_runcontrol_settings('HCENTRE')
 
         # Assert
-        a = cget("HCENTRE")
-        self.assertEquals(2.5, a["lowlimit"])
-        self.assertEquals(3, a["highlimit"])
-        self.assertEquals(True, a["runcontrol"])
+        self.assertEquals(2.5, rc['LOW'])
+        self.assertEquals(3, rc["HIGH"])
+        self.assertEquals(True, rc["ENABLE"])

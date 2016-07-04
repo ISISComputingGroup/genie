@@ -304,7 +304,7 @@ def cget(block):
         if rc is not None:
             ans['runcontrol'] = rc["ENABLE"]
             ans['lowlimit'] = rc["LOW"]
-            ans['highlimit'] = rc["HIGH"]       
+            ans['highlimit'] = rc["HIGH"]
 
         return ans
     except Exception as e:
