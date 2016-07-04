@@ -16,10 +16,10 @@
 import os
 import unittest
 from genie_simulate import API
-import genie
 
 os.environ['GENIE_SIMULATE'] = '1'
 
+import genie
 
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
@@ -119,17 +119,17 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
         # Act
-        s = genie.change_number_soft_periods(42)
+        genie.change_number_soft_periods(42)
 
         # Assert
         self.assertEquals(42, genie.get_number_periods())
 
     def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
         # Arrange
-        s = genie.change_number_soft_periods(15)
+        genie.change_number_soft_periods(15)
 
         # Act
-        p = genie.change_period(5)
+        genie.change_period(5)
 
         # Assert
         self.assertEquals(5, genie.get_period())
