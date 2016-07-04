@@ -977,9 +977,6 @@ class API(object):
     def log_entered_command(self):
         pass
         
-    def log_entered_command(self):
-        pass
-        
     def log_command(self, arg1, arg2):
         pass
 
@@ -1024,8 +1021,3 @@ class API(object):
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
-
-
-
-
-
