@@ -43,6 +43,7 @@ if __name__ == '__main__':
 
     ret_values = list()
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(utilities_suite).wasSuccessful())
+    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(simulation_suite).wasSuccessful())
 
     print "------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n"
     # Return failure exit code if a test failed
