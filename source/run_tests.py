@@ -23,6 +23,7 @@ import xmlrunner
 import argparse
 
 from test_modules.utilities_tests import TestUtilitiesSequence
+from test_modules.simulation_tests import TestSimulationSequence
 
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
 
@@ -36,6 +37,7 @@ if __name__ == '__main__':
 
     # Load tests from test suites
     utilities_suite = unittest.TestLoader().loadTestsFromTestCase(TestUtilitiesSequence)
+    simulation_suite = unittest.TestLoader().loadTestsFromTestCase(TestSimulationSequence)
 
     print "\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------"
 
