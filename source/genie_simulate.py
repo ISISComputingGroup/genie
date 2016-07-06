@@ -929,21 +929,47 @@ class API(object):
         return True
 
     def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
-        # Final value in list is the EPICS record type
-        self.block_dict[name] = [value, runcontrol, lowlimit, highlimit, ""]
+        """Sets a block's values.
+        If the block already exists, update the block. Only update values specified in the arguments.
+
+        Args:
+            name (string): the name of the block
+            value (int): the value of the block
+            runcontrol (boolean): whether to set runcontrol for this block
+            lowlimit (float): the lower limit for runcontrol or waiting
+            highlimit (float): the upper limit for runcontrol or waiting
+            wait (boolean): pause execution until setpoint is reached (one block only)
+
+        """
+        if name not in self.block_dict:
+            self.block_dict[name] = {'value': value,
+                                     'runcontrol': runcontrol,
+                                     'lowlimit': lowlimit,
+                                     'highlimit': highlimit,
+                                     'wait': wait}
+        else:
+            # locals() adds all argument names and values to a dictionary (including 'self')
+            arguments = locals()
+            for key, value in arguments.items():
+                if key != 'self' and value is not None:
+                    self.block_dict[name][key] = value
 
     def get_block_value(self, name, to_string=False, attempts=3):
         if to_string:
-            return str(self.block_dict[name][0])
-        return self.block_dict[name][0]
+            return str(self.block_dict[name]['value'])
+        return self.block_dict[name]['value']
 
     def set_multiple_blocks(self, names, values):
         temp = zip(names, values)
         for name, value in temp:
             if name in self.block_dict:
-                self.block_dict[name][0] = value
+                self.block_dict[name]['value'] = value
             else:
-                self.block_dict[name] = [value, False, None, None, None]
+                self.block_dict[name] = {'value': value,
+                                         'runcontrol': None,
+                                         'lowlimit': None,
+                                         'highlimit': None,
+                                         'wait': False}
 
     def run_pre_post_cmd(self, command, **pars):
         pass
@@ -977,9 +1003,9 @@ class API(object):
 
     def get_runcontrol_settings(self, name):
         rc = dict()
-        rc["ENABLE"] = self.block_dict[name][1]
-        rc["LOW"] = self.block_dict[name][2]
-        rc["HIGH"] = self.block_dict[name][3]
+        rc["ENABLE"] = self.block_dict[name]['runcontrol']
+        rc["LOW"] = self.block_dict[name]['lowlimit']
+        rc["HIGH"] = self.block_dict[name]['highlimit']
         return rc
 
     def check_alarms(self, blocks):

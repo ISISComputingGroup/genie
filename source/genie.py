@@ -173,7 +173,7 @@ def cset(*args, **kwargs):
     
     Args:
         runcontrol (bool, optional) : whether to set runcontrol for this block
-        wait (string, optional) : pause execution until setpoint isreached (one block only)
+        wait (string, optional) : pause execution until setpoint is reached (one block only)
         lowlimit (float, optional) : the lower limit for runcontrol or waiting
         highlimit (float, optional): the upper limit for runcontrol or waiting
 
@@ -304,7 +304,7 @@ def cget(block):
         if rc is not None:
             ans['runcontrol'] = rc["ENABLE"]
             ans['lowlimit'] = rc["LOW"]
-            ans['highlimit'] = rc["HIGH"]       
+            ans['highlimit'] = rc["HIGH"]
 
         return ans
     except Exception as e:

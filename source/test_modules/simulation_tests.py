@@ -15,6 +15,7 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 import os
 import unittest
+from genie_simulate import API
 
 os.environ['GENIE_SIMULATE'] = '1'
 
@@ -23,6 +24,7 @@ import genie
 
 class TestSimulationSequence(unittest.TestCase):
     def setUp(self):
+        self.api = API()
         genie._exceptions_raised = True
 
         # This a hack to reset the variable in the genie api.
@@ -32,6 +34,52 @@ class TestSimulationSequence(unittest.TestCase):
 
     def tearDown(self):
         pass
+
+    # **************************
+    # ******* UNIT TESTS *******
+    # **************************
+
+    def test_GIVEN_preexisting_block_WHEN_updating_values_THEN_update_values_and_retain_non_specified_values(self):
+        # Arrange
+        self.api.set_block_value('block', 2, True, 2.5, 3)
+
+        # Act
+        self.api.set_block_value('block', 2.6, None, None, None, True)
+        rc = self.api.get_runcontrol_settings('block')
+
+        # Assert
+        self.assertEquals(2.5, rc['LOW'])
+        self.assertEquals(3, rc["HIGH"])
+        self.assertEquals(True, rc["ENABLE"])
+
+    def test_GIVEN_preexisting_block_WHEN_set_no_values_THEN_retain_original_values(self):
+        # Arrange
+        self.api.set_block_value('block', 3, False, 1.5, 6)
+
+        # Act
+        self.api.set_block_value('block')
+        rc = self.api.get_runcontrol_settings('block')
+
+        # Assert
+        self.assertEquals(1.5, rc['LOW'])
+        self.assertEquals(6, rc["HIGH"])
+        self.assertEquals(False, rc["ENABLE"])
+
+    def test_GIVEN_no_preexisting_blocks_WHEN_set_values_for_a_block_THEN_set_values(self):
+        # Arrange
+        self.api.set_block_value('block', 1, False, 0.5)
+
+        # Act
+        rc = self.api.get_runcontrol_settings('block')
+
+        # Assert
+        self.assertEquals(0.5, rc['LOW'])
+        self.assertEquals(None, rc["HIGH"])
+        self.assertEquals(False, rc["ENABLE"])
+
+    # ***************************
+    # **** INTEGRATION TESTS ****
+    # ***************************
 
     def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         # Arrange
@@ -80,17 +128,17 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
         # Act
-        s = genie.change_number_soft_periods(42)
+        genie.change_number_soft_periods(42)
 
         # Assert
         self.assertEquals(42, genie.get_number_periods())
 
     def test_GIVEN_one_block_WHEN_cset_period_THEN_update_period(self):
         # Arrange
-        s = genie.change_number_soft_periods(15)
+        genie.change_number_soft_periods(15)
 
         # Act
-        p = genie.change_period(5)
+        genie.change_period(5)
 
         # Assert
         self.assertEquals(5, genie.get_period())
