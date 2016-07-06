@@ -35,6 +35,10 @@ class TestSimulationSequence(unittest.TestCase):
     def tearDown(self):
         pass
 
+    # **************************
+    # ******* UNIT TESTS *******
+    # **************************
+
     def test_GIVEN_preexisting_block_WHEN_updating_values_THEN_update_values_and_retain_non_specified_values(self):
         # Arrange
         self.api.set_block_value('block', 2, True, 2.5, 3)
@@ -72,6 +76,10 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(0.5, rc['LOW'])
         self.assertEquals(None, rc["HIGH"])
         self.assertEquals(False, rc["ENABLE"])
+
+    # **************************
+    # **** SIMULATION TESTS ****
+    # **************************
 
     def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         # Arrange
