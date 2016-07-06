@@ -77,9 +77,9 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(None, rc["HIGH"])
         self.assertEquals(False, rc["ENABLE"])
 
-    # **************************
-    # **** SIMULATION TESTS ****
-    # **************************
+    # ***************************
+    # **** INTEGRATION TESTS ****
+    # ***************************
 
     def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         # Arrange
