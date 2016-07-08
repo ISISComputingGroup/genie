@@ -126,6 +126,18 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(40, a['lowlimit'])
         self.assertEquals(50, a['highlimit'])
 
+    def test_GIVEN_one_block_WHEN_cset_change_wait_limits_THEN_retain_runcontrol_limits(self):
+        # Arrange
+        genie.cset(a=90, runcontrol=True, lowlimit=95, highlimit=99)
+
+        # Act
+        genie.cset(a=1, wait=True, lowlimit=4, highlimit=6)
+        a = genie.cget('a')
+
+        # Assert
+        self.assertEquals(95, a['lowlimit'])
+        self.assertEquals(99, a['highlimit'])
+
     def test_GIVEN_one_period_WHEN_change_number_of_soft_periods_THEN_set_number_of_periods(self):
         # Act
         genie.change_number_soft_periods(42)
@@ -236,3 +248,16 @@ class TestSimulationSequence(unittest.TestCase):
         # Assert
         with self.assertRaisesRegexp(Exception, 'Cannot set period as it is higher than the number of periods'):
             genie.change_period(period + 1)
+
+    def test_GIVEN_preexisting_block_WHEN_updating_values_with_cset_THEN_update_values_and_remember_non_specified_values(self):
+        # Arrange
+        genie.cset(HCENTRE=2, runcontrol=True, lowlimit=2.5, highlimit=3)
+
+        # Act
+        genie.cset(HCENTRE=2.6, wait=True)
+
+        # Assert
+        a = genie.cget("HCENTRE")
+        self.assertEquals(2.5, a["lowlimit"])
+        self.assertEquals(3, a["highlimit"])
+        self.assertEquals(True, a["runcontrol"])

@@ -950,9 +950,12 @@ class API(object):
         else:
             # locals() adds all argument names and values to a dictionary (including 'self')
             arguments = locals()
-            for key, value in arguments.items():
-                if key != 'self' and value is not None:
-                    self.block_dict[name][key] = value
+            if wait:
+                self.block_dict[name]['wait'] == True
+            else:
+                for key, value in arguments.items():
+                    if key != 'self' and value is not None:
+                        self.block_dict[name][key] = value
 
     def get_block_value(self, name, to_string=False, attempts=3):
         if to_string:
