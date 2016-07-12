@@ -291,7 +291,7 @@ class API(object):
             f.close()
         except:
             pass
-        
+
     def get_sample_pars(self):
         """Get the current sample parameter values as a dictionary"""
         names = self.blockserver.get_sample_par_names()
@@ -300,7 +300,8 @@ class API(object):
             for n in names:
                 val = self.get_pv_value(self.prefix_pv_name(n))
                 m = re.match(".+:SAMPLE:(.+)", n)
-                ans[m.groups()[0]] = val
+                if m is not None:
+                    ans[m.groups()[0]] = val
         return ans
         
     def set_sample_par(self, name, value):
@@ -319,7 +320,7 @@ class API(object):
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
         raise Exception("Sample parameter %s does not exist" % name)
-        
+
     def get_beamline_pars(self):
         """Get the current beamline parameter values as a dictionary"""
         names = self.blockserver.get_beamline_par_names()
@@ -328,7 +329,8 @@ class API(object):
             for n in names:
                 val = self.get_pv_value(self.prefix_pv_name(n))
                 m = re.match(".+:BL:(.+)", n)
-                ans[m.groups()[0]] = val
+                if m is not None:
+                    ans[m.groups()[0]] = val
         return ans
         
     def set_beamline_par(self, name, value):
