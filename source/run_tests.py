@@ -24,6 +24,7 @@ import argparse
 
 from test_modules.utilities_tests import TestUtilitiesSequence
 from test_modules.simulation_tests import TestSimulationSequence
+from test_modules.genie_epics_api_tests import TestEpicsApiSequence
 
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
 
@@ -38,12 +39,14 @@ if __name__ == '__main__':
     # Load tests from test suites
     utilities_suite = unittest.TestLoader().loadTestsFromTestCase(TestUtilitiesSequence)
     simulation_suite = unittest.TestLoader().loadTestsFromTestCase(TestSimulationSequence)
+    epics_api_suite = unittest.TestLoader().loadTestsFromTestCase(TestEpicsApiSequence)
 
     print "\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------"
 
     ret_values = list()
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(utilities_suite).wasSuccessful())
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(simulation_suite).wasSuccessful())
+    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(epics_api_suite).wasSuccessful())
 
     print "------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n"
     # Return failure exit code if a test failed
