@@ -1168,13 +1168,13 @@ def load_script(name, dummy=None):
         mod = __load_module(filename[0:-3], directory)
         # If we get this far then the script is syntactically correct as far as Python is concerned
         # Now check the script details manually
-        sc = ScriptChecker(__file__)
-        errs = sc.check_script(name)
-        if len(errs) > 0:
-            combined = "script not loaded as errors found in script: "
-            for e in errs:
-                combined += "\n\t" + e
-            raise Exception(combined)
+        # sc = ScriptChecker(__file__)
+        # errs = sc.check_script(name)
+        # if len(errs) > 0:
+        #     combined = "script not loaded as errors found in script: "
+        #     for e in errs:
+        #         combined += "\n\t" + e
+        #     raise Exception(combined)
 
         # Safe to load
         # Read the file to get the name of the functions
