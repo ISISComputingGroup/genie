@@ -302,6 +302,8 @@ class API(object):
                 m = re.match(".+:"+pv_prefix_identifier+":(.+)", n)
                 if m is not None:
                     ans[m.groups()[0]] = val
+                else:
+                    self.log_error_msg("Unexpected PV found whilst retrieving parameters: {0}".format(n))
         return ans
 
     def get_sample_pars(self):
