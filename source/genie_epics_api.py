@@ -291,17 +291,24 @@ class API(object):
             f.close()
         except:
             pass
-        
-    def get_sample_pars(self):
-        """Get the current sample parameter values as a dictionary"""
-        names = self.blockserver.get_sample_par_names()
+
+    def _get_pars(self,pv_prefix_identifier,get_names_from_blockserver):
+        """Get the current parameter values for a given pv subset as a dictionary"""
+        names = get_names_from_blockserver()
         ans = {}
         if names is not None:
             for n in names:
                 val = self.get_pv_value(self.prefix_pv_name(n))
-                m = re.match(".+:SAMPLE:(.+)", n)
-                ans[m.groups()[0]] = val
+                m = re.match(".+:"+pv_prefix_identifier+":(.+)", n)
+                if m is not None:
+                    ans[m.groups()[0]] = val
+                else:
+                    self.log_error_msg("Unexpected PV found whilst retrieving parameters: {0}".format(n))
         return ans
+
+    def get_sample_pars(self):
+        """Get the current sample parameter values as a dictionary"""
+        return self._get_pars("SAMPLE",self.blockserver.get_sample_par_names)
         
     def set_sample_par(self, name, value):
         """Set a new value for a sample parameter
@@ -319,17 +326,10 @@ class API(object):
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
         raise Exception("Sample parameter %s does not exist" % name)
-        
+
     def get_beamline_pars(self):
         """Get the current beamline parameter values as a dictionary"""
-        names = self.blockserver.get_beamline_par_names()
-        ans = {}
-        if names is not None:
-            for n in names:
-                val = self.get_pv_value(self.prefix_pv_name(n))
-                m = re.match(".+:BL:(.+)", n)
-                ans[m.groups()[0]] = val
-        return ans
+        return self._get_pars("BL",self.blockserver.get_beamline_par_names)
         
     def set_beamline_par(self, name, value):
         """Set a new value for a beamline parameter
