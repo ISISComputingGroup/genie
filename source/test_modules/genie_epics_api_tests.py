@@ -38,7 +38,7 @@ class TestEpicsApiSequence(unittest.TestCase):
     def _increase_counter(self):
         self.counter += 1
 
-    def test_blah(self):
+    def test_WHEN_reloading_current_config_THEN_command_is_delegated_to_blockserver(self):
 
         # Arrange
         API.blockserver.reload_current_config = MagicMock(side_effect = self._increase_counter)
