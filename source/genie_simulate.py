@@ -916,6 +916,9 @@ class API(object):
     def pv_exists(self, name):
         return True
 
+    def reload_current_config(self):
+        pass
+
     def correct_blockname(self, name, add_prefix=True):
         return name
 

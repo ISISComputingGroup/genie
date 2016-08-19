@@ -137,7 +137,11 @@ class API(object):
     def pv_exists(self, name):
         """See if the PV exists"""
         return Wrapper.pv_exists(name)
-        
+
+    def reload_current_config(self):
+        """Reload the current configuration."""
+        API.blockserver.reload_current_config()
+
     def correct_blockname(self, name, add_prefix=True):
         """Corrects the casing of the block."""
         blocks = self.get_blocks()
@@ -308,7 +312,7 @@ class API(object):
 
     def get_sample_pars(self):
         """Get the current sample parameter values as a dictionary"""
-        return self._get_pars("SAMPLE",self.blockserver.get_sample_par_names)
+        return self._get_pars("SAMPLE", self.blockserver.get_sample_par_names)
         
     def set_sample_par(self, name, value):
         """Set a new value for a sample parameter

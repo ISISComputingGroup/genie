@@ -25,13 +25,29 @@ import genie
 
 class TestEpicsApiSequence(unittest.TestCase):
     def setUp(self):
+        self.counter = 0
         self.mock_pv_value = "Mock PV value"
         self.api = API("",None)
         self.api.get_pv_value = MagicMock(return_value=self.mock_pv_value)
         self.api.blockserver = BlockServer(self.api)
+        API.blockserver = BlockServer(self.api)
 
     def tearDown(self):
         pass
+
+    def _increase_counter(self):
+        self.counter += 1
+
+    def test_blah(self):
+
+        # Arrange
+        API.blockserver.reload_current_config = MagicMock(side_effect = self._increase_counter)
+
+        # Act
+        self.api.reload_current_config()
+
+        # Assert
+        self.assertEquals(self.counter, 1)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_sample_WHEN_get_sample_pars_is_called_THEN_returns_a_one_element_dictionary_containing_the_PV_suffix_and_mock_value(self):
 
