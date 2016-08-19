@@ -15,7 +15,7 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from mock import MagicMock, patch, Mock
+from mock import MagicMock, Mock
 from genie_blockserver import BlockServer
 from utilities import compress_and_hex
 
