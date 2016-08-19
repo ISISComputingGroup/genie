@@ -308,7 +308,7 @@ class API(object):
 
     def get_sample_pars(self):
         """Get the current sample parameter values as a dictionary"""
-        return self._get_pars("SAMPLE",self.blockserver.get_sample_par_names)
+        return self._get_pars("SAMPLE", API.blockserver.get_sample_par_names)
         
     def set_sample_par(self, name, value):
         """Set a new value for a sample parameter
@@ -317,7 +317,7 @@ class API(object):
             name - the name of the parameter to change
             value - the new value
         """
-        names = self.blockserver.get_sample_par_names()
+        names = API.blockserver.get_sample_par_names()
         if names is not None:
             for n in names:
                 m = re.match(".+:SAMPLE:%s" % name.upper(), n)
@@ -329,7 +329,7 @@ class API(object):
 
     def get_beamline_pars(self):
         """Get the current beamline parameter values as a dictionary"""
-        return self._get_pars("BL",self.blockserver.get_beamline_par_names)
+        return self._get_pars("BL", API.blockserver.get_beamline_par_names)
         
     def set_beamline_par(self, name, value):
         """Set a new value for a beamline parameter
@@ -338,7 +338,7 @@ class API(object):
             name - the name of the parameter to change
             value - the new value
         """
-        names = self.blockserver.get_beamline_par_names()
+        names = API.blockserver.get_beamline_par_names()
         if names is not None:
             for n in names:
                 m = re.match(".+:BL:%s" % name.upper(), n)
@@ -359,7 +359,7 @@ class API(object):
         """
         name = self.correct_blockname(name)
         name = name[name.rfind(':') + 1:]
-        ans = self.blockserver.get_runcontrol_settings()
+        ans = API.blockserver.get_runcontrol_settings()
         if name in ans:
             return ans[name]
 
@@ -414,7 +414,7 @@ class API(object):
         Returns:
             dict - contains a tuple for each block containing the value and the run-control settings
         """
-        return self.blockserver.get_current_block_values()
+        return API.blockserver.get_current_block_values()
 
     def send_sms(self, phone_num, message):
         """Sends an SMS message to a phone number.
