@@ -15,36 +15,35 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from mock import MagicMock
+from mock import MagicMock, patch, Mock
 from genie_blockserver import BlockServer
-from genie_epics_api import API
 from utilities import compress_and_hex
 
 class TestGenieBlockserver(unittest.TestCase):
 
     def setUp(self):
-        self.api = API("", None)
-        self.api.prefix_pv_name = MagicMock(side_effect = self._add_prefix)
-        self.api.set_pv_value = MagicMock()
-        self.blockserver = BlockServer(self.api)
+        self.mock_api = MagicMock()
+        self.mock_api.return_value.prefix_pv_name = Mock(side_effect = self._add_prefix)
 
-    def _add_prefix(self, name):
-        return "TEST123" + name
-
-    def _add_blockserver_prefix(self, name):
-        return "CS:BLOCKSERVER:" + name
+        self.blockserver = BlockServer(self.mock_api.return_value)
 
     def test_WHEN_reloading_current_config_THEN_correct_pv_is_set(self):
         # Arrange
         expected_pv_name = self._add_prefix(self._add_blockserver_prefix("RELOAD_CURRENT_CONFIG"))
         expected_pv_value = compress_and_hex("1")
         expected_wait = True
-        self.api.set_pv_value.assert_not_called()
+
+        self.mock_api.return_value.set_pv_value.assert_not_called()
 
         # Act
         self.blockserver.reload_current_config()
 
         # Assert
-        self.api.set_pv_value.assert_called_once_with(expected_pv_name, expected_pv_value, expected_wait)
+        self.mock_api.return_value.set_pv_value.assert_called_once_with(expected_pv_name, expected_pv_value, expected_wait)
 
+    def _add_prefix(self, name):
+        return "TEST123" + name
+
+    def _add_blockserver_prefix(self, name):
+        return "CS:BLOCKSERVER:" + name
 
