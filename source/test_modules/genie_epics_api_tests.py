@@ -16,11 +16,8 @@
 
 import unittest
 from mock import MagicMock
-from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
 from genie_blockserver import BlockServer
 from genie_epics_api import API
-
-import genie
 
 
 class TestEpicsApiSequence(unittest.TestCase):
