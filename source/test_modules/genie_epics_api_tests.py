@@ -15,18 +15,24 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from mock import MagicMock
-from genie_blockserver import BlockServer
+from mock import MagicMock, patch
 from genie_epics_api import API
 
 
 class TestEpicsApiSequence(unittest.TestCase):
     def setUp(self):
+        # Patch the Wrapper used by the api
+        wrapper_patch = patch("genie_epics_api.Wrapper")
+        # Make sure the patch is destroyed on teardown
+        self.addCleanup(wrapper_patch.stop)
+        # Create a mock from the patch
+        self.mock_wrapper = wrapper_patch.start()
+
         self.counter = 0
         self.mock_pv_value = "Mock PV value"
         self.api = API("",None)
-        self.api.get_pv_value = MagicMock(return_value=self.mock_pv_value)
-        API.blockserver = BlockServer(self.api)
+        self.mock_wrapper.get_pv_value = MagicMock(return_value = self.mock_pv_value)
+        API.blockserver = MagicMock()
 
 
     def tearDown(self):
@@ -52,15 +58,15 @@ class TestEpicsApiSequence(unittest.TestCase):
         pv_prefix = u'PARS:SAMPLE:'
         pv_suffix = u'AOI'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_sample_par_names = MagicMock(return_value=[pv_name])
+        self.api.blockserver.get_sample_par_names = MagicMock(return_value = [pv_name])
 
         # Act
         val = self.api.get_sample_pars()
 
         # Assert
-        self.assertEquals(len(val),1)
-        self.assertEquals(val.keys()[0],pv_suffix)
-        self.assertEquals(val[pv_suffix],self.mock_pv_value)
+        self.assertEquals(len(val), 1)
+        self.assertEquals(val.keys()[0], pv_suffix)
+        self.assertEquals(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_sample_WHEN_get_sample_pars_is_called_THEN_returns_an_empty_dictionary(self):
 
@@ -68,7 +74,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         pv_prefix = u'PARS:BL:'
         pv_suffix = u'BEAMSTOP:POS'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_sample_par_names = MagicMock(return_value=[pv_name])
+        self.api.blockserver.get_sample_par_names = MagicMock(return_value = [pv_name])
 
         # Act
         val = self.api.get_sample_pars()
@@ -82,15 +88,15 @@ class TestEpicsApiSequence(unittest.TestCase):
         pv_prefix = u'PARS:BL:'
         pv_suffix = u'JOURNAL:BLOCKS'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_beamline_par_names = MagicMock(return_value=[pv_name])
+        self.api.blockserver.get_beamline_par_names = MagicMock(return_value = [pv_name])
 
         # Act
         val = self.api.get_beamline_pars()
 
         # Assert
-        self.assertEquals(len(val),1)
-        self.assertEquals(val.keys()[0],pv_suffix)
-        self.assertEquals(val[pv_suffix],self.mock_pv_value)
+        self.assertEquals(len(val), 1)
+        self.assertEquals(val.keys()[0], pv_suffix)
+        self.assertEquals(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(self):
 
