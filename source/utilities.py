@@ -86,7 +86,6 @@ def get_correct_filepath_existing(path):
          string : the corrected file path
     """
     path = get_correct_path(path)
-
     return _correct_path_casing_existing(path)
 
 
