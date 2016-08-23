@@ -1168,7 +1168,7 @@ def load_script(name, dummy=None):
             print msg[0:-2]
             print "From: %s%s" % (directory, filename)
         else:
-            raise Exception("No script found")
+            raise Exception("No runnable scripts found in %s%s - is the file empty?" % (directory, filename))
     except Exception as e:
         _handle_exception(e)
 
