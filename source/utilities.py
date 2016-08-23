@@ -101,8 +101,7 @@ def get_correct_directory_path_existing(path):
         Returns:
              string : the corrected directory path
         """
-    name = _convert_to_rawstring(path)
-    name = _correct_path_casing_existing(name)
+    name = get_correct_path(path)
+    return  _correct_path_casing_existing(name)
 
-    return name
 
