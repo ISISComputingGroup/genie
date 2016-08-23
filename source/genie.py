@@ -1123,14 +1123,14 @@ def load_script(name, dummy=None):
 
         try:
             try:
-                name = get_correct_filepath_existing(name)
+                full_name = get_correct_filepath_existing(name)
             except:
                 # Try with default script directory prepended
-                name = get_correct_filepath_existing(os.path.join(SCRIPT_DIR, name))
+                full_name = get_correct_filepath_existing(os.path.join(SCRIPT_DIR, name))
         except:
-            raise Exception("Script file was not found")
+            raise Exception("Script file was not found (%s)" % get_correct_path(name))
 
-        directory, filename = os.path.split(os.path.abspath(name))
+        directory, filename = os.path.split(os.path.abspath(full_name))
         directory += '\\'
 
         mod = __load_module(filename[0:-3], directory)
