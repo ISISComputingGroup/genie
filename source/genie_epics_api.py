@@ -137,7 +137,11 @@ class API(object):
     def pv_exists(self, name):
         """See if the PV exists"""
         return Wrapper.pv_exists(name)
-        
+
+    def reload_current_config(self):
+        """Reload the current configuration."""
+        API.blockserver.reload_current_config()
+
     def correct_blockname(self, name, add_prefix=True):
         """Corrects the casing of the block."""
         blocks = self.get_blocks()

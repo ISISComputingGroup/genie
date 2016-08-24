@@ -25,6 +25,7 @@ import argparse
 from test_modules.utilities_tests import TestUtilitiesSequence
 from test_modules.simulation_tests import TestSimulationSequence
 from test_modules.genie_epics_api_tests import TestEpicsApiSequence
+from test_modules.genie_blockserver_tests import TestGenieBlockserver
 
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
 
@@ -40,6 +41,7 @@ if __name__ == '__main__':
     utilities_suite = unittest.TestLoader().loadTestsFromTestCase(TestUtilitiesSequence)
     simulation_suite = unittest.TestLoader().loadTestsFromTestCase(TestSimulationSequence)
     epics_api_suite = unittest.TestLoader().loadTestsFromTestCase(TestEpicsApiSequence)
+    genie_blockserver_suite = unittest.TestLoader().loadTestsFromTestCase(TestGenieBlockserver)
 
     print "\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------"
 
@@ -47,6 +49,7 @@ if __name__ == '__main__':
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(utilities_suite).wasSuccessful())
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(simulation_suite).wasSuccessful())
     ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(epics_api_suite).wasSuccessful())
+    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(genie_blockserver_suite).wasSuccessful())
 
     print "------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n"
     # Return failure exit code if a test failed

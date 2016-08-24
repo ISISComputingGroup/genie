@@ -52,3 +52,8 @@ class BlockServer(object):
             if isinstance(bv[0], list) and bv[4] == "CHAR":
                 bv[0] = waveform_to_string(bv[0])
         return blks
+
+    def reload_current_config(self):
+        """Reload the current configuration."""
+        raw = compress_and_hex("1")
+        self._set_pv_value(self.__blockserver_prefix + "RELOAD_CURRENT_CONFIG", raw, True)

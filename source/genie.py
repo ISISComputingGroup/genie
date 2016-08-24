@@ -150,6 +150,14 @@ def set_instrument(pv_prefix):
     except Exception as e:
         _handle_exception(e)
 
+def reload_current_config():
+    """Reload the current configuration."""
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.reload_current_config()
+    except Exception as e:
+        _handle_exception(e)
+
 
 @usercommand
 @helparglist('')
