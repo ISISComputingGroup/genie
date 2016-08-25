@@ -8,7 +8,8 @@ import ctypes
 from functools import wraps
 from collections import OrderedDict
 from genie_script_checker import ScriptChecker
-from utilities import waveform_to_string
+from utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
+    get_correct_directory_path_existing
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
@@ -26,7 +27,6 @@ if 'SCISOFT_RPC_PORT' in os.environ:
     from genie_scisoft_plot import GeniePlot, SpectraPlot
 else:
     from genie_plot import GeniePlot, SpectraPlot
-  
 
 # INITIALISATION CODE - DO NOT DELETE
 try:
@@ -43,7 +43,11 @@ except:
         print "No instrument specified - loading local instrument"
         __api = API(None, globals())
 
-SCRIPT_DIR = "C:/scripts/"
+try:
+    SCRIPT_DIR = get_correct_directory_path_existing("C:/scripts/")
+except:
+    SCRIPT_DIR = ""
+
 _exceptions_raised = False
 # END INITIALISATION CODE
 
@@ -52,15 +56,17 @@ _exceptions_raised = False
 try:
     import readline
 
+
     def complete(text, state):
         if text.startswith('load_script("') or text.startswith("load_script('"):
             temp = text[13:]
-            ans = (glob.glob(temp+'*')+[None])[state]
+            ans = (glob.glob(temp + '*') + [None])[state]
             if ans is not None:
                 # return / to avoid a quoting issue with \ in paths
                 return (text[:13] + ans).replace('\\', '/')
         else:
             return __ipy_complete(text, state)
+
 
     __ipy_complete = readline.get_completer()
     readline.set_completer_delims(' \t\n;')
@@ -68,6 +74,8 @@ try:
     readline.set_completer(complete)
 except:
     pass
+
+
 # END TAB COMPLETE
 
 
@@ -82,9 +90,11 @@ def helparglist(args):
     """Decorator that supplies a custom argument list to be displayed by
     a help (e.g. for NICOS).
     """
+
     def deco(func):
         func.help_arglist = args
         return func
+
     return deco
 
 
@@ -178,7 +188,7 @@ def get_blocks():
 @helparglist('...')
 def cset(*args, **kwargs):
     """Sets the setpoint and runcontrol settings for blocks.
-    
+
     Args:
         runcontrol (bool, optional) : whether to set runcontrol for this block
         wait (string, optional) : pause execution until setpoint is reached (one block only)
@@ -302,13 +312,13 @@ def cget(block):
     try:
         if not __api.block_exists(block):
             raise Exception('No block with the name "%s" exists' % block)
-            
+
         ans = OrderedDict()
         ans['name'] = __api.correct_blockname(block)
         ans['value'] = __api.get_block_value(block)
-        
+
         rc = __api.get_runcontrol_settings(block)
-        
+
         if rc is not None:
             ans['runcontrol'] = rc["ENABLE"]
             ans['lowlimit'] = rc["LOW"]
@@ -354,7 +364,7 @@ def cshow(block=None):
             # Show only one block
             if __api.block_exists(block):
                 rc = __api.get_runcontrol_settings(block)
-                _print_cshow(block, __api.get_block_value(block, attempts=1), rc["ENABLE"], rc["LOW"],rc["HIGH"])
+                _print_cshow(block, __api.get_block_value(block, attempts=1), rc["ENABLE"], rc["LOW"], rc["HIGH"])
             else:
                 raise Exception('No block with the name "%s" exists' % block)
         else:
@@ -368,7 +378,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
     """Interrupts execution until certain conditions are met.
-    
+
     Args:
         block (string, optional) : the name of the block to wait for
         value (float, optional) : the block value to wait for
@@ -382,7 +392,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
         frames (int, optional) : wait for a total number of good frames to be collected
         uamps (float, optional) : wait for a total number of uamps to be received
-        
+
     Examples:
         Wait for a block to reach a specific value:
         >>> waitfor(myblock=123)
@@ -528,12 +538,12 @@ def waitfor_uamps(uamps):
 @helparglist('state[, maxwaitsecs][, onexit]')
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """Wait for a particular instrument run state.
-        
+
     Args:
         state (string) : the state to wait for (e.g. "paused")
         maxwaitsecs (int, optional) : the maximum time to wait for the state before carrying on
         onexit (bool, optional) : wait for runstate to change from the specified state
-            
+
     Examples:
         Wait for a run to enter the paused state:
         >>> waitfor_runstate("pause")
@@ -613,7 +623,7 @@ def waitfor_move(*blocks, **kwargs):
 @helparglist('name[, to_string]')
 def get_pv(name, to_string=False):
     """Get the value for the specified PV.
-    
+
     Args:
         name (string) : the name of the PV to get the value for
         to_string (bool, optional) : whether to get the value as a string
@@ -634,7 +644,7 @@ def get_pv(name, to_string=False):
 @helparglist('name, value[, wait]')
 def set_pv(name, value, wait=False):
     """Set the value for the specified PV.
-        
+
     Args:
         name (string) : the PV name
         value : the new value to set
@@ -651,12 +661,12 @@ def set_pv(name, value, wait=False):
 @helparglist('verbose')
 def set_messages_verbosity(verbose):
     """Set the global verbosity of messages.
-    
+
     Args:
         verbose (bool): set the verbosity
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    __api.dae.set_verbose(verbose)    
+    __api.dae.set_verbose(verbose)
 
 
 @usercommand
@@ -664,7 +674,7 @@ def set_messages_verbosity(verbose):
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
     """Starts a data collection run.
-        
+
     Args:
         period (int, optional) : the period to begin data collection in
         meas_id (string, optional) : the measurement id
@@ -691,7 +701,7 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
 @helparglist('[verbose]')
 def abort(verbose=False):
     """Abort the current run.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -710,7 +720,7 @@ def abort(verbose=False):
 @helparglist('[verbose]')
 def end(verbose=False):
     """End the current run.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -729,7 +739,7 @@ def end(verbose=False):
 @helparglist('[verbose]')
 def pause(verbose=False):
     """Pause the current run.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -748,7 +758,7 @@ def pause(verbose=False):
 @helparglist('[verbose]')
 def resume(verbose=False):
     """Resume the current run after it has been paused.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -768,9 +778,9 @@ def resume(verbose=False):
 def recover(verbose=False):
     """Recovers the run if it has been aborted.
     The command should be run before the next run is started.
-    
+
     Note: the run will be recovered in the paused state.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -788,7 +798,7 @@ def recover(verbose=False):
 def updatestore(verbose=False):
     """Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -805,7 +815,7 @@ def updatestore(verbose=False):
 @helparglist('[pause_run], [verbose]')
 def update(pause_run=True, verbose=False):
     """Data is loaded from the DAE into the computer memory, but is not written to disk.
-        
+
     Args:
         pause_run (bool, optional) : whether to pause data collection first [optional]
         verbose (bool, optional) : show the messages from the DAE
@@ -832,7 +842,7 @@ def update(pause_run=True, verbose=False):
 @helparglist('[verbose]')
 def store(verbose=False):
     """Data loaded into memory by a previous update command is now written to disk.
-    
+
     Args:
         verbose (bool, optional) : show the messages from the DAE
     """
@@ -861,7 +871,7 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        name = _correct_filepath(filename)
+        name = get_correct_path(filename)
         __api.dae.snapshot_crpt(name)
         waitfor_runstate("STORING", onexit=True)
         __api.dae.post_snapshot_check(verbose)
@@ -873,7 +883,7 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
 @helparglist('[period]')
 def get_uamps(period=False):
     """Get the current number of micro-amp hours.
-        
+
     Args:
         period (bool, optional) : whether to return the value for the current period only
 
@@ -891,7 +901,7 @@ def get_uamps(period=False):
 @helparglist('[period]')
 def get_frames(period=False):
     """Gets the current number of good frames.
-        
+
     Args:
         period (bool, optional) : whether to return the value for the current period only
 
@@ -909,7 +919,7 @@ def get_frames(period=False):
 @helparglist('')
 def get_runstate():
     """Get the current status of the instrument as a string.
-    
+
     Note: this value can take a few seconds to update after a change of state.
 
     Returns:
@@ -978,7 +988,6 @@ def set_period(period):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_period is deprecated - use change_period"
     change_period(period)
-
 
 
 @usercommand
@@ -1090,45 +1099,6 @@ def get_dashboard():
         _handle_exception(e)
 
 
-def _correct_filepath(filepath):
-    """Corrects the slashes"""
-    return filepath.__repr__().replace("\\", "/").replace("'", "").replace("//", "/")
-
-
-def _correct_filepath_existing(filepath):
-    """If the file exists it get the correct path with the correct casing"""
-    filepath = _correct_filepath(filepath)
-    if os.name == 'nt':
-        try:
-            # Correct path case for windows as Python needs correct casing
-            return win32api.GetLongPathName(win32api.GetShortPathName(filepath))
-        except Exception as err:
-            raise Exception("Invalid file path entered: %s" % err)
-    else:
-        # Nothing to do for unix
-        return filepath
-
-
-def _convert_to_rawstring(data):
-    escape_dict = {'\a': r'\a',
-                   '\b': r'\b',
-                   '\c': r'\c',
-                   '\f': r'\f',
-                   '\n': r'\n',
-                   '\r': r'\r',
-                   '\t': r'\t',
-                   '\v': r'\v',
-                   '\'': r'\'',
-                   '\"': r'\"'}
-    raw_string = ''
-    for char in data:
-        try: 
-            raw_string += escape_dict[char]
-        except KeyError: 
-            raw_string += char
-    return raw_string
-
-
 def _get_correct_globals():
     """This is a hack to find the frame in which to add the script function(s).
 
@@ -1159,19 +1129,17 @@ def load_script(name, dummy=None):
     try:
         globs = _get_correct_globals()
 
-        name = _convert_to_rawstring(name)
-
         try:
-            if "/" in name:
-                # Probably a fullpath name
-                name = _correct_filepath_existing(name)
-            else:
-                # May be a file in the SCRIPT_DIR
-                name = _correct_filepath_existing(SCRIPT_DIR + name)
-            directory, filename = os.path.split(os.path.abspath(name))
-            directory += '\\'
+            try:
+                full_name = get_correct_filepath_existing(name)
+            except:
+                # Try with default script directory prepended
+                full_name = get_correct_filepath_existing(os.path.join(SCRIPT_DIR, name))
         except:
-            raise Exception("Script file was not found")
+            raise Exception("Script file was not found (%s)" % get_correct_path(name))
+
+        directory, filename = os.path.split(os.path.abspath(full_name))
+        directory += '\\'
 
         mod = __load_module(filename[0:-3], directory)
         # If we get this far then the script is syntactically correct as far as Python is concerned
@@ -1208,7 +1176,7 @@ def load_script(name, dummy=None):
             print msg[0:-2]
             print "From: %s%s" % (directory, filename)
         else:
-            raise Exception("No script found")
+            raise Exception("No runnable scripts found in %s%s - is the file empty?" % (directory, filename))
     except Exception as e:
         _handle_exception(e)
 
@@ -1243,7 +1211,7 @@ def set_script_dir(directory):
     Deprecated - use change_script_dir.
 
     Args:
-        string : the directory to load scripts from
+        directory (string) : the directory to load scripts from
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_script_dir is deprecated - use change_script_dir"
@@ -1252,22 +1220,15 @@ def set_script_dir(directory):
 
 def change_script_dir(directory):
     """Set the directory for loading scripts from.
-    
+
     Args:
-        string : the directory to load scripts from
+        directory (string) : the directory to load scripts from
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        directory = _convert_to_rawstring(directory)
-        directory = _correct_filepath_existing(directory)
-        if os.path.exists(directory):
-            global SCRIPT_DIR
-            if directory[-1] == "/":
-                SCRIPT_DIR = directory
-            else:
-                SCRIPT_DIR = directory + "/"
-        else:
-            raise Exception("Directory does not exist")
+        global SCRIPT_DIR
+        directory = get_correct_directory_path_existing(directory)
+        SCRIPT_DIR = directory
     except Exception as e:
         _handle_exception(e)
 
@@ -1277,13 +1238,13 @@ def change_script_dir(directory):
 def change_start():
     """Start a change operation.
     The operation is finished when change_finish is called.
-    
-    Between these two calls a sequence of other change commands can be called. 
+
+    Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        
+
         __api.dae.change_start()
     except Exception as e:
         _handle_exception(e)
@@ -1294,8 +1255,8 @@ def change_start():
 def change_finish():
     """End a change operation.
     The operation is begun when change_start is called.
-    
-    Between these two calls a sequence of other change commands can be called. 
+
+    Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1309,7 +1270,7 @@ def change_finish():
 @helparglist('spec, low, high')
 def change_monitor(spec, low, high):
     """Change the monitor to a specified spectrum and range.
-        
+
     Args:
         spectrum (int) : the spectrum number
         low (float) : the low end of the integral
@@ -1326,7 +1287,7 @@ def change_monitor(spec, low, high):
 @helparglist('[wiring], [detector], [spectra]')
 def change_tables(wiring=None, detector=None, spectra=None):
     """Load the wiring, detector and/or spectra tables.
-        
+
     Args:
         wiring (string, optional) : the filename of the wiring table file
         detector (string, optional) : the filename of the detector table file
@@ -1343,7 +1304,7 @@ def change_tables(wiring=None, detector=None, spectra=None):
 @helparglist('source')
 def change_sync(source):
     """Change the source the DAE using for synchronisation.
-        
+
     Args:
         source (string) : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
     """
@@ -1358,7 +1319,7 @@ def change_sync(source):
 @helparglist('[tcbfile], [default]')
 def change_tcb_file(tcbfile=None, default=False):
     """Change the time channel boundaries.
-        
+
     Args:
         tcbfile (string, optional) : the file to load
         default (bool, optional): load the default file
@@ -1374,7 +1335,7 @@ def change_tcb_file(tcbfile=None, default=False):
 @helparglist('low, high, step, trange[, log][, regime]')
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """Change the time channel boundaries.
-        
+
     Args
         low (float) : the lower limit
         high (float) : the upper limit
@@ -1394,7 +1355,7 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 @helparglist('[...]')
 def change_vetos(**params):
     """Change the DAE veto settings.
-        
+
     Args:
         clearall (bool, optional) : remove all vetos
         smp (bool, optional) : set SMP veto
@@ -1407,7 +1368,7 @@ def change_vetos(**params):
 
     Note: If clearall is specified then all vetos are turned off,
     but it is possible to turn other vetoes back on at the same time:
-    
+
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
         >>> change_vetos(clearall=True, smp=True)
@@ -1423,7 +1384,7 @@ def change_vetos(**params):
 @helparglist('[enable], [delay], [width]')
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
     """Configure the fermi chopper veto.
-        
+
     Args:
         enable (bool, optional) : enable the fermi veto
         delay (float, optional) : the veto delay
@@ -1440,7 +1401,7 @@ def change_fermi_veto(enable=None, delay=1.0, width=1.0):
 @helparglist('[nperiods]')
 def enable_soft_periods(nperiods=None):
     """Switch the DAE to software periods mode.
-        
+
     Args:
         nperiods (int, optional) : the number of software periods
     """
@@ -1472,7 +1433,7 @@ def set_number_soft_periods(number, enable=None):
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
     """Sets the DAE to use hardware periods.
-        
+
     Args:
         mode (string) : set the mode to internal ('int') or external ('ext')
         period_file (string, optional) : the file containing the internal period settings (ignores any other settings)
@@ -1533,7 +1494,7 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 @helparglist('[...]')
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
     """Define the internal hardware periods.
-        
+
     Args:
         period (int, optional) : the number of the period to set the following parameters for
         daq (bool, optional) :  the specified period is a acquisition period
@@ -1550,7 +1511,6 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
         configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
     except Exception as e:
         _handle_exception(e)
-
 
 
 def change(**params):
@@ -1654,7 +1614,7 @@ def change_users(users):
 @helparglist('spectrum[, period][, dist]')
 def get_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE.
-        
+
     Args:
         spectrum (int) : the spectrum number
         period (int, optional) : the period
@@ -1671,7 +1631,7 @@ def get_spectrum(spectrum, period=1, dist=False):
 
 def plot_spectrum(spectrum, period=1, dist=False):
     """Get the specified spectrum from the DAE and plot it.
-        
+
     Args:
         spectrum (int) : the spectrum number
         period (int, optional) : the period. Default is 1
@@ -1843,7 +1803,7 @@ def get_wiring_tables():
         return __api.dae.get_wiring_tables()
     except Exception as e:
         _handle_exception(e)
-        
+
 
 @usercommand
 @helparglist('')
@@ -1908,6 +1868,7 @@ def check_alarms(*blocks):
         return __api.check_alarms(blocks)
     except Exception as e:
         _handle_exception(e)
+
 
 def check_limit_violations(*blocks):
     """Checks whether the specified blocks have soft limit violations.
