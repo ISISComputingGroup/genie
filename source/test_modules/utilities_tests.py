@@ -15,7 +15,7 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
+from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path
 
 
 class TestUtilitiesSequence(unittest.TestCase):
@@ -64,13 +64,9 @@ class TestUtilitiesSequence(unittest.TestCase):
             self.assertEquals(strings_to_test[i], manipulated_strings[i])
 
     def check_waveform(self, input_value, expected_value):
-        #print "Input: " + str(input_value)
-        #print "Output: " + str(waveform_to_string(input_value))
-        #print "Expected: " + expected_value
         self.assertTrue(expected_value in waveform_to_string(input_value))
 
     def test_GIVEN_short_list_of_numbers_WHEN_waveform_converted_to_string_THEN_result_contains_string_of_unicode_chars_for_numbers(self):
-
         # Arrange
         test_waveform = [
             1,2,3,4
@@ -84,7 +80,6 @@ class TestUtilitiesSequence(unittest.TestCase):
         self.check_waveform(test_waveform, expected_value)
 
     def test_GIVEN_list_of_numbers_containing_0_WHEN_waveform_converted_to_string_THEN_result_terminates_at_character_before_0(self):
-
         # Arrange
         test_waveform = [
             1,2,3,4,0,5,6,7,8,9
@@ -98,7 +93,6 @@ class TestUtilitiesSequence(unittest.TestCase):
         self.check_waveform(test_waveform, expected_value)
 
     def test_GIVEN_long_list_of_numbers_WHEN_waveform_converted_to_string_THEN_result_contains_string_of_unicode_chars_for_numbers(self):
-
         # Arrange
         max_unichr = 128
         length = 1000
@@ -112,7 +106,6 @@ class TestUtilitiesSequence(unittest.TestCase):
         self.check_waveform(test_waveform, expected_value)
 
     def test_GIVEN_large_integer_in_waveform_WHEN_waveform_converted_to_string_THEN_result_raises_value_error(self):
-
         # Arrange
         test_waveform = [128]
 
@@ -123,7 +116,6 @@ class TestUtilitiesSequence(unittest.TestCase):
             waveform_to_string(test_waveform)
 
     def test_GIVEN_negative_integer_in_waveform_WHEN_waveform_converted_to_string_THEN_result_raises_value_error(self):
-
         # Arrange
         test_waveform = [-1]
 
@@ -132,3 +124,44 @@ class TestUtilitiesSequence(unittest.TestCase):
         # Assert
         with self.assertRaises(ValueError):
             waveform_to_string(test_waveform)
+
+    def test_GIVEN_windows_style_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
+        # Arrange
+        filepath = "C:\\TestDir\TestSubDir\file.py"
+
+        # Act
+        ans = get_correct_path(filepath)
+
+        # Assert
+        self.assertEquals("C:/TestDir/TestSubDir/file.py", ans)
+
+    def test_GIVEN_windows_style_filepath_with_unescaped_chars_WHEN_corrected_THEN_result_is_unix_style(self):
+        # Arrange
+        # \a and \t are unescaped
+        filepath = "C:\\TestDir\aSubDir\test.py"
+
+        # Act
+        ans = get_correct_path(filepath)
+
+        # Assert
+        self.assertEquals("C:/TestDir/aSubDir/test.py", ans)
+
+    def test_GIVEN_mixed_style_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
+        # Arrange
+        filepath = "C:/TestDir\TestSubDir/file.py"
+
+        # Act
+        ans = get_correct_path(filepath)
+
+        # Assert
+        self.assertEquals("C:/TestDir/TestSubDir/file.py", ans)
+
+    def test_GIVEN_overly_backslashed_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
+        # Arrange
+        filepath = "C:\\\\TestDir//////TestSubDir\\\\\file.py"
+
+        # Act
+        ans = get_correct_path(filepath)
+
+        # Assert
+        self.assertEquals("C:/TestDir/TestSubDir/file.py", ans)
