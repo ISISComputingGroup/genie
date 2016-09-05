@@ -16,16 +16,19 @@
 import os
 import unittest
 
-import imp
-
-##import genie
 from genie_script_checker import ScriptChecker
+
+try:
+    import genie
+    GENIE_FILENAME = genie.__file__
+except ImportError:
+    # if matplotlib is not installed just use a straight path
+    GENIE_FILENAME = os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, "genie.py")
 
 
 class TestScriptChecker(unittest.TestCase):
     def setUp(self):
-        self.checker = ScriptChecker(os.path.join(os.path.abspath(os.path.dirname(__file__)), os.pardir, "genie.py"))
-        ##TODO uncomment self.checker = ScriptChecker(genie.__file__)
+        self.checker = ScriptChecker(GENIE_FILENAME)
 
     def tearDown(self):
         pass
@@ -39,7 +42,6 @@ class TestScriptChecker(unittest.TestCase):
         result = self.checker.check_script_lines(script_lines)
 
         self.assertEquals(result, ["Line 3: 'end' command without brackets"])
-
 
     def test_GIVEN_script_containing_end_not_as_a_function_WHEN_check_THEN_no_error_message(self):
 
@@ -67,20 +69,3 @@ class TestScriptChecker(unittest.TestCase):
 
         self.assertEquals(result, ["Line 1: 'end' command without brackets"])
 
-
-
-
-
-#TODO delete
-        # fpath = None
-        # try:
-        #     name = "example"
-        #     directory = "C:\\temp"
-        #     fpath, pathname, description = imp.find_module(name, [directory])
-        #     imp.load_module(name, fpath, pathname, description)
-        # except Exception as e:
-        #     raise Exception(e)
-        # finally:
-        #     # Since we may exit via an exception, close fpath explicitly.
-        #     if fpath is not None:
-        #         fpath.close()
