@@ -1114,12 +1114,13 @@ def _get_correct_globals():
     return globs
 
 
-def load_script(name, dummy=None):
+def load_script(name, dummy=None, check_script=True):
     """Loads a user script.
     Args:
         name (string) : the name of the file to load
         dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
         remove this
+        check_script : Run the script checker on the script
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     # This check can be removed once the GUI is updated to no longer use the second parameter
@@ -1144,13 +1145,14 @@ def load_script(name, dummy=None):
         mod = __load_module(filename[0:-3], directory)
         # If we get this far then the script is syntactically correct as far as Python is concerned
         # Now check the script details manually
-        # sc = ScriptChecker(__file__)
-        # errs = sc.check_script(name)
-        # if len(errs) > 0:
-        #     combined = "script not loaded as errors found in script: "
-        #     for e in errs:
-        #         combined += "\n\t" + e
-        #     raise Exception(combined)
+        if check_script:
+            sc = ScriptChecker(__file__)
+            errs = sc.check_script(name)
+            if len(errs) > 0:
+                combined = "script not loaded as errors found in script: "
+                for e in errs:
+                    combined += "\n\t" + e
+                raise Exception(combined)
 
         # Safe to load
         # Read the file to get the name of the functions
@@ -1163,10 +1165,12 @@ def load_script(name, dummy=None):
         f.close()
         scripts = []
         for att in dir(mod):
+            print att
             if isinstance(mod.__dict__.get(att), types.FunctionType):
                 # Check function comes from script file not an import
                 if att in funcs:
                     scripts.append(att)
+
         if len(scripts) > 0:
             # This is where the script file is actually loaded
             execfile(directory + filename, globs)

@@ -82,7 +82,9 @@ class ScriptChecker(object):
 
         Returns: error messages;  None for no error
         """
-
+        line = re.sub(r"'[^']*'", "", line)
+        line = re.sub(r'"[^"]*"', "", line)
+        line = re.sub(r"#.*", "", line)
         matches = self._find_gennie_fn_pattern.findall(line)
         for function_name, possible_bracket in matches:
             if possible_bracket != "(":

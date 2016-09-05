@@ -33,7 +33,7 @@ class TestScriptChecker(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_GIVEN_script_containing_end_function_without_brakets_WHEN_check_THEN_error_message(self):
+    def test_GIVEN_end_without_brakets_WHEN_check_THEN_error_message(self):
         script_lines = [
             "def test():",
             "  begin()",
@@ -43,7 +43,7 @@ class TestScriptChecker(unittest.TestCase):
 
         self.assertEquals(result, ["Line 3: 'end' command without brackets"])
 
-    def test_GIVEN_script_containing_end_not_as_a_function_WHEN_check_THEN_no_error_message(self):
+    def test_GIVEN_end_as_start_of_another_word_WHEN_check_THEN_no_error_message(self):
 
         script_lines = [
             "def test():",
@@ -53,7 +53,17 @@ class TestScriptChecker(unittest.TestCase):
 
         self.assertEquals(result, [])
 
-    def test_GIVEN_script_containing_end_without_brakets_at_start_of_line_WHEN_check_THEN_error_message(self):
+    def test_GIVEN_end_as_end_of_another_word_WHEN_check_THEN_no_error_message(self):
+
+        script_lines = [
+            "def test():",
+            "    angle_end = 1"]
+
+        result = self.checker.check_script_lines(script_lines)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_end_without_brakets_at_start_of_line_WHEN_check_THEN_error_message(self):
         script_lines = [
             "end "]
 
@@ -61,7 +71,7 @@ class TestScriptChecker(unittest.TestCase):
 
         self.assertEquals(result, ["Line 1: 'end' command without brackets"])
 
-    def test_GIVEN_script_containing_end_without_brakets_on_line_with_good_command_WHEN_check_THEN_error_message(self):
+    def test_GIVEN_end_without_brackets_on_line_with_fn_with_brackets_WHEN_check_THEN_error_message(self):
         script_lines = [
             "begin(); end "]
 
@@ -69,3 +79,27 @@ class TestScriptChecker(unittest.TestCase):
 
         self.assertEquals(result, ["Line 1: 'end' command without brackets"])
 
+    def test_GIVEN_end_in_string_without_brakets_at_start_of_line_WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "\" a string containing end \""]
+
+        result = self.checker.check_script_lines(script_lines)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_end_between_strings_without_brakets_at_start_of_line_WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "\" a string containing end \" end \" string in end\""]
+
+        result = self.checker.check_script_lines(script_lines)
+
+        self.assertEquals(result, ["Line 1: 'end' command without brackets"])
+
+
+    def test_GIVEN_end_in_comment_without_brakets_at_start_of_line_WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "stuff # end \""]
+
+        result = self.checker.check_script_lines(script_lines)
+
+        self.assertEquals(result, [])
