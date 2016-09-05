@@ -22,12 +22,21 @@ import unittest
 import xmlrunner
 import argparse
 
-from test_modules.utilities_tests import TestUtilitiesSequence
-from test_modules.simulation_tests import TestSimulationSequence
-from test_modules.genie_epics_api_tests import TestEpicsApiSequence
-from test_modules.genie_blockserver_tests import TestGenieBlockserver
+from test_modules.test_utilities import TestUtilitiesSequence
+from test_modules.test_simulation import TestSimulationSequence
+from test_modules.test_genie_epics_api import TestEpicsApiSequence
+from test_modules.test_genie_blockserver_tests import TestGenieBlockserver
+from test_modules.test_script_checker import TestScriptChecker
 
+TEST_CLASSES = [
+    TestUtilitiesSequence,
+    TestSimulationSequence,
+    TestEpicsApiSequence,
+    TestGenieBlockserver,
+    TestScriptChecker
+]
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
+
 
 if __name__ == '__main__':
     # get output directory from command line arguments
@@ -37,19 +46,15 @@ if __name__ == '__main__':
     args = parser.parse_args()
     xml_dir = args.output_dir[0]
 
-    # Load tests from test suites
-    utilities_suite = unittest.TestLoader().loadTestsFromTestCase(TestUtilitiesSequence)
-    simulation_suite = unittest.TestLoader().loadTestsFromTestCase(TestSimulationSequence)
-    epics_api_suite = unittest.TestLoader().loadTestsFromTestCase(TestEpicsApiSequence)
-    genie_blockserver_suite = unittest.TestLoader().loadTestsFromTestCase(TestGenieBlockserver)
+    loaded_tests = []
+    for test_class in TEST_CLASSES:
+        loaded_tests.append(unittest.TestLoader().loadTestsFromTestCase(test_class))
 
     print "\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------"
 
     ret_values = list()
-    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(utilities_suite).wasSuccessful())
-    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(simulation_suite).wasSuccessful())
-    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(epics_api_suite).wasSuccessful())
-    ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(genie_blockserver_suite).wasSuccessful())
+    for loaded_test in loaded_tests:
+        ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(loaded_test).wasSuccessful())
 
     print "------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n"
     # Return failure exit code if a test failed
