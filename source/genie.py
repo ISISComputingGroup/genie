@@ -1114,13 +1114,14 @@ def _get_correct_globals():
     return globs
 
 
-def load_script(name, dummy=None, check_script=True):
+def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
     """Loads a user script.
     Args:
         name (string) : the name of the file to load
         dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
         remove this
-        check_script : Run the script checker on the script
+        check_script : When True run the script checker on the script; False otherwise (default True)
+        warnings_as_error: When true throw an exception ona warning; False otherwise (default False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     # This check can be removed once the GUI is updated to no longer use the second parameter
@@ -1147,7 +1148,7 @@ def load_script(name, dummy=None, check_script=True):
         # Now check the script details manually
         if check_script:
             sc = ScriptChecker(__file__)
-            errs = sc.check_script(name)
+            errs = sc.check_script(name, warnings_as_error=warnings_as_error)
             if len(errs) > 0:
                 combined = "script not loaded as errors found in script: "
                 for e in errs:

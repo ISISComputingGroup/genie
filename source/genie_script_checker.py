@@ -15,8 +15,8 @@ class ScriptChecker(object):
         Returns:
         """
         self.genie_functions = self._get_genie_functions(genie_path)
-        # regular experssion to find one of the genie commands ({0} bit) within a word boundary (\b before and after)
-        # also capture any cahracter after this e.g. opening bracket
+        # regular expression to find one of the genie commands ({0} bit) within a word boundary (\b before and after)
+        # also capture any character after this e.g. opening bracket
         self._find_gennie_fn_pattern = re.compile(r"\b({0})\b(.?)".format("|".join(self.genie_functions)))
 
     def _get_genie_functions(self, genie_path):
@@ -42,18 +42,18 @@ class ScriptChecker(object):
         except:
             raise
 
-    def check_script(self, name, warning_as_error=False):
+    def check_script(self, name, warnings_as_error=False):
         """
         Check a script for common errors
         Args:
             name: filename of the script
-            warning_as_error: True treat warnings as errors; False otherwise
+            warnings_as_error: True treat warnings as errors; False otherwise
 
         Returns: error messages list; empty list if there are no errors
         """
 
         f = open(name, 'r')
-        return self.check_script_lines(f, warning_as_error)
+        return self.check_script_lines(f, warnings_as_error)
 
     def check_script_lines(self, lines, warning_as_error=False):
         """
@@ -66,22 +66,35 @@ class ScriptChecker(object):
 
         """
         errors = []
-        warnings = []
         line_no = 0
         commands_count = {}
         for line in lines:
             line_no += 1
             # Look for genie commands missing brackets, e.g. begin, end, cshow etc.
-            error, warning = self._check_genie_commands_has_brackets(line, line_no)
+            error, warnings = self._check_genie_commands_has_brackets(line, line_no)
             errors.extend(error)
-            errors.extend(warning)
+            errors.extend(self._process_warnings(warning_as_error, warnings))
 
             self._add_command_counts(commands_count, line)
 
-        error, warning = self._check_command_counts(commands_count)
-        errors.extend(error)
-        errors.extend(warning)
+        if len(errors) == 0:
+            error, warnings = self._check_command_counts(commands_count)
+            errors.extend(error)
+            errors.extend(self._process_warnings(warning_as_error, warnings))
         return errors
+
+    def _process_warnings(self, warning_as_error, warnings):
+        """
+        Process the warnings
+        :param warning_as_error: True if warning should be errors; False if they should be printed
+        :param warnings: list of warnings
+        :return: errors list
+        """
+        if warning_as_error:
+            return warnings
+        for warning in warnings:
+            print "Warning: " + warning
+        return []
 
     def _check_genie_commands_has_brackets(self, line, line_no):
         """
@@ -99,6 +112,11 @@ class ScriptChecker(object):
         return [], []
 
     def _get_possible_commands(self, line):
+        """
+        Get a list of possible command on the current line. Ignores comments and strings.
+        :param line: line to get commands from
+        :return: list of function names and following character
+        """
         line = re.sub(r"'[^']*'", "", line)
         line = re.sub(r'"[^"]*"', "", line)
         line = re.sub(r"#.*", "", line)
@@ -106,15 +124,27 @@ class ScriptChecker(object):
         return matches
 
     def _add_command_counts(self, commands_count, line):
+        """
+        for commands add to command count
+        :param commands_count: dictionary of counted commands
+        :param line: line to add commands for
+        :return: nothing
+        """
         for function_name, possible_bracket in self._get_possible_commands(line):
             if possible_bracket == "(":
                 commands_count[function_name] = commands_count.get(function_name, 0) + 1
 
     def _check_command_counts(self, commands_count):
+        """
+        Check the command count to make sure it has the same number of starts and ends
+        :param commands_count: command counts
+        :return: errors, warnings
+        """
         end_count = commands_count.get("end", 0)
         begin_count = commands_count.get("begin", 0)
         if end_count == begin_count:
             return [], []
         elif end_count > begin_count:
-            return [], ["'end' command without 'begin' in script is begin missing?"]
-
+            return [], ["'end' command without 'begin' in script is 'begin' missing?"]
+        else:
+            return [], ["'begin' command without 'end' in script is 'end' missing?"]

@@ -54,3 +54,17 @@ class TestGenie(unittest.TestCase):
 
         # Act
         genie.load_script(script, check_script=False)
+
+    def test_GIVEN_script_checker_warning_WHEN_load_script_without_errors_as_warnings_THEN_ok(self):
+        # Arrange
+        script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "script_with_warning_for_script_checker.py")
+
+        # Act
+        genie.load_script(script, warnings_as_error=False)
+
+    def test_GIVEN_script_checker_warning_WHEN_load_script_with_errors_as_warnings_THEN_ok(self):
+        # Arrange
+        script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "script_with_warning_for_script_checker.py")
+
+        # Act
+        self.assertRaises(Exception, genie.load_script, script, warnings_as_error=True)
