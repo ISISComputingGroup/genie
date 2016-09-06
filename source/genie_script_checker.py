@@ -42,52 +42,79 @@ class ScriptChecker(object):
         except:
             raise
 
-    def check_script(self, name):
+    def check_script(self, name, warning_as_error=False):
         """
         Check a script for common errors
         Args:
             name: filename of the script
+            warning_as_error: True treat warnings as errors; False otherwise
 
         Returns: error messages list; empty list if there are no errors
         """
 
         f = open(name, 'r')
-        return self.check_script_lines(f)
+        return self.check_script_lines(f, warning_as_error)
 
-    def check_script_lines(self, lines):
+    def check_script_lines(self, lines, warning_as_error=False):
         """
         Check the lines of the script for possible errors
         Args:
             lines: iterable of lines to check
+            warning_as_error: True treat warnings as errors; False otherwise
 
         Returns: error in the script; empty list if none
 
         """
-        errors = list()
+        errors = []
+        warnings = []
         line_no = 0
+        commands_count = {}
         for line in lines:
             line_no += 1
             # Look for genie commands missing brackets, e.g. begin, end, cshow etc.
-            error = self.check_genie_commands_has_brackets(line, line_no)
-            if error is not None:
-                errors.append(error)
+            error, warning = self._check_genie_commands_has_brackets(line, line_no)
+            errors.extend(error)
+            errors.extend(warning)
+
+            self._add_command_counts(commands_count, line)
+
+        error, warning = self._check_command_counts(commands_count)
+        errors.extend(error)
+        errors.extend(warning)
         return errors
 
-    def check_genie_commands_has_brackets(self, line, line_no):
+    def _check_genie_commands_has_brackets(self, line, line_no):
         """
         Check the line for a gennie command with no opening brackets
         Args:
             line: the line to check
             line_no: the line number
 
-        Returns: error messages;  None for no error
+        Returns: list of error and a list or warnings;  Empty lists for no error or warnings
         """
+        for function_name, possible_bracket in self._get_possible_commands(line):
+            if possible_bracket != "(":
+                return ["Line %s: '%s' command without brackets" % (line_no, function_name)], []
+
+        return [], []
+
+    def _get_possible_commands(self, line):
         line = re.sub(r"'[^']*'", "", line)
         line = re.sub(r'"[^"]*"', "", line)
         line = re.sub(r"#.*", "", line)
         matches = self._find_gennie_fn_pattern.findall(line)
-        for function_name, possible_bracket in matches:
-            if possible_bracket != "(":
-                return "Line %s: '%s' command without brackets" % (line_no, function_name)
+        return matches
 
-        return None
+    def _add_command_counts(self, commands_count, line):
+        for function_name, possible_bracket in self._get_possible_commands(line):
+            if possible_bracket == "(":
+                commands_count[function_name] = commands_count.get(function_name, 0) + 1
+
+    def _check_command_counts(self, commands_count):
+        end_count = commands_count.get("end", 0)
+        begin_count = commands_count.get("begin", 0)
+        if end_count == begin_count:
+            return [], []
+        elif end_count > begin_count:
+            return [], ["'end' command without 'begin' in script is begin missing?"]
+

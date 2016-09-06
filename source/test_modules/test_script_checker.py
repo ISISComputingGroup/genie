@@ -103,3 +103,12 @@ class TestScriptChecker(unittest.TestCase):
         result = self.checker.check_script_lines(script_lines)
 
         self.assertEquals(result, [])
+
+    def test_GIVEN_end_without_begin_WHEN_check_THEN_error_message(self):
+        script_lines = [
+            "def test():",
+            "  end()"]
+
+        result = self.checker.check_script_lines(script_lines, warning_as_error=True)
+
+        self.assertEquals(result, ["'end' command without 'begin' in script is begin missing?"])
