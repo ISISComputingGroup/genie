@@ -332,17 +332,23 @@ def cget(block):
 def _cshow_all():
     blks = __api.get_current_block_values()
     for bn, bv in blks.iteritems():
-        if bv[0] == "*** disconnected" or bv[0] is None:
-            _print_cshow(bn, connected=False)
-        else:
-            _print_cshow(bn, bv[0], bv[1], bv[2], bv[3])
+        _print_cshow(bn, bv)
 
 
-def _print_cshow(name, value=None, rc_enabled=None, rc_low=None, rc_high=None, connected=True):
-    if connected:
-        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value, rc_enabled, rc_low, rc_high)
+def _cshow_one(block):
+    blk = __api.correct_blockname(block, False)
+    blks = __api.get_current_block_values()
+    if blk in blks:
+        _print_cshow(blk, blks[blk])
     else:
+        raise Exception('No block with the name "%s" exists' % block)
+
+
+def _print_cshow(name, value):
+    if value[0] == "*** disconnected" or value[0] is None:
         print "%s = *** disconnected ***" % name
+    else:
+        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value[0], value[1], value[2], value[3])
 
 
 def cshow(block=None):
@@ -363,8 +369,7 @@ def cshow(block=None):
         if block:
             # Show only one block
             if __api.block_exists(block):
-                rc = __api.get_runcontrol_settings(block)
-                _print_cshow(block, __api.get_block_value(block, attempts=1), rc["ENABLE"], rc["LOW"], rc["HIGH"])
+                _cshow_one(block)
             else:
                 raise Exception('No block with the name "%s" exists' % block)
         else:
