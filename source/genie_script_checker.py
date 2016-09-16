@@ -67,7 +67,7 @@ class ScriptChecker(object):
         """
         errors = []
         line_no = 0
-        commands_count = {}
+        state_changes = {}
         for line in lines:
             line_no += 1
             # Look for genie commands missing brackets, e.g. begin, end, cshow etc.
@@ -75,12 +75,6 @@ class ScriptChecker(object):
             errors.extend(error)
             errors.extend(self._process_warnings(warning_as_error, warnings))
 
-            self._add_command_counts(commands_count, line)
-
-        if len(errors) == 0:
-            error, warnings = self._check_command_counts(commands_count)
-            errors.extend(error)
-            errors.extend(self._process_warnings(warning_as_error, warnings))
         return errors
 
     def _process_warnings(self, warning_as_error, warnings):
@@ -123,28 +117,3 @@ class ScriptChecker(object):
         matches = self._find_gennie_fn_pattern.findall(line)
         return matches
 
-    def _add_command_counts(self, commands_count, line):
-        """
-        for commands add to command count
-        :param commands_count: dictionary of counted commands
-        :param line: line to add commands for
-        :return: nothing
-        """
-        for function_name, possible_bracket in self._get_possible_commands(line):
-            if possible_bracket == "(":
-                commands_count[function_name] = commands_count.get(function_name, 0) + 1
-
-    def _check_command_counts(self, commands_count):
-        """
-        Check the command count to make sure it has the same number of starts and ends
-        :param commands_count: command counts
-        :return: errors, warnings
-        """
-        end_count = commands_count.get("end", 0)
-        begin_count = commands_count.get("begin", 0)
-        if end_count == begin_count:
-            return [], []
-        elif end_count > begin_count:
-            return [], ["'end' command without 'begin' in script is 'begin' missing?"]
-        else:
-            return [], ["'begin' command without 'end' in script is 'end' missing?"]
