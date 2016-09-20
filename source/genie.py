@@ -313,29 +313,38 @@ def cget(block):
         if not __api.block_exists(block):
             raise Exception('No block with the name "%s" exists' % block)
 
-        ans = OrderedDict()
-        ans['name'] = __api.correct_blockname(block)
-        ans['value'] = __api.get_block_value(block)
+        blk = __api.correct_blockname(block, False)
+        blks = __api.get_current_block_values()
 
-        rc = __api.get_runcontrol_settings(block)
+        if blk in blks:
+            ans = OrderedDict()
+            ans['name'] = blk
+            ans['value'] = _check_block_connected(blks[blk][0])
+            ans['runcontrol'] = blks[blk][1]
+            ans['lowlimit'] = blks[blk][2]
+            ans['highlimit'] = blks[blk][3]
 
-        if rc is not None:
-            ans['runcontrol'] = rc["ENABLE"]
-            ans['lowlimit'] = rc["LOW"]
-            ans['highlimit'] = rc["HIGH"]
-
-        return ans
+            return ans
+        else:
+            raise Exception('No block with the name "%s" exists' % block)
     except Exception as e:
         _handle_exception(e)
 
 
 def _cshow_all():
+    """Handles the cshow command for all the blocks.
+    """
     blks = __api.get_current_block_values()
     for bn, bv in blks.iteritems():
         _print_cshow(bn, bv)
 
 
 def _cshow_one(block):
+    """Handles the cshow command for one block only.
+
+    Args:
+        block (list): the block values
+    """
     blk = __api.correct_blockname(block, False)
     blks = __api.get_current_block_values()
     if blk in blks:
@@ -344,11 +353,30 @@ def _cshow_one(block):
         raise Exception('No block with the name "%s" exists' % block)
 
 
-def _print_cshow(name, value):
-    if value[0] == "*** disconnected" or value[0] is None:
-        print "%s = *** disconnected ***" % name
+def _check_block_connected(value):
+    """Checks whether a block is connected and if it isn't sets the value appropriately.
+
+    Args:
+        value (object): the block value
+
+    Returns:
+        The value if it is connected, otherwise the disconnected string
+    """
+    if value == "*** disconnected" or value is None:
+        return "*** disconnected ***"
     else:
-        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (name, value[0], value[1], value[2], value[3])
+        return value
+
+
+def _print_cshow(name, value):
+    """Prints the cshow string for one block.
+
+    Args:
+        name (string): the block name
+        value (list): the block values
+    """
+    print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
+        name, _check_block_connected(value[0]), value[1], value[2], value[3])
 
 
 def cshow(block=None):
