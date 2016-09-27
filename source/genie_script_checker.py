@@ -20,8 +20,12 @@ class ScriptChecker(object):
         self._find_gennie_fn_pattern = re.compile(r"\b({0})\b(.?)".format("|".join(self.genie_functions)))
 
     def _get_genie_functions(self, genie_path):
-        # Get genie methods
-        # __file__ gives the location of the .pyc if it exists otherwise it gives the .py
+        """"
+            Get genie methods
+            Args:
+                genie_path: path to a file containing python for gennie commands, uses .py rather than .pyc
+        # __file__ gives the location of the
+        """
         if genie_path.endswith(".pyc"):
             genie_path = genie_path[:-1]
         try:
@@ -67,7 +71,6 @@ class ScriptChecker(object):
         """
         errors = []
         line_no = 0
-        state_changes = {}
         for line in lines:
             line_no += 1
             # Look for genie commands missing brackets, e.g. begin, end, cshow etc.
@@ -116,4 +119,3 @@ class ScriptChecker(object):
         line = re.sub(r"#.*", "", line)
         matches = self._find_gennie_fn_pattern.findall(line)
         return matches
-
