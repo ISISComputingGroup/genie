@@ -17,13 +17,13 @@ class ScriptChecker(object):
         self.genie_functions = self._get_genie_functions(genie_path)
         # regular expression to find one of the genie commands ({0} bit) within a word boundary (\b before and after)
         # also capture any character after this e.g. opening bracket
-        self._find_gennie_fn_pattern = re.compile(r"\b({0})\b(.?)".format("|".join(self.genie_functions)))
+        self._find_genie_fn_pattern = re.compile(r"\b({0})\b(.?)".format("|".join(self.genie_functions)))
 
     def _get_genie_functions(self, genie_path):
         """"
             Get genie methods
             Args:
-                genie_path: path to a file containing python for gennie commands, uses .py rather than .pyc
+                genie_path: path to a file containing python for genie commands, uses .py rather than .pyc
         # __file__ gives the location of the
         """
         if genie_path.endswith(".pyc"):
@@ -95,7 +95,7 @@ class ScriptChecker(object):
 
     def _check_genie_commands_has_brackets(self, line, line_no):
         """
-        Check the line for a gennie command with no opening brackets
+        Check the line for a genie command with no opening brackets
         Args:
             line: the line to check
             line_no: the line number
@@ -117,5 +117,5 @@ class ScriptChecker(object):
         line = re.sub(r"'[^']*'", "", line)
         line = re.sub(r'"[^"]*"', "", line)
         line = re.sub(r"#.*", "", line)
-        matches = self._find_gennie_fn_pattern.findall(line)
+        matches = self._find_genie_fn_pattern.findall(line)
         return matches
