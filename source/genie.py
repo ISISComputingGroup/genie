@@ -1121,7 +1121,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
         remove this
         check_script : When True run the script checker on the script; False otherwise (default True)
-        warnings_as_error: When true throw an exception ona warning; False otherwise (default False)
+        warnings_as_error: When true throw an exception on a warning; False otherwise (default False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     # This check can be removed once the GUI is updated to no longer use the second parameter
@@ -1166,7 +1166,6 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         f.close()
         scripts = []
         for att in dir(mod):
-            print att
             if isinstance(mod.__dict__.get(att), types.FunctionType):
                 # Check function comes from script file not an import
                 if att in funcs:

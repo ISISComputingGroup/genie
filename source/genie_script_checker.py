@@ -11,7 +11,7 @@ class ScriptChecker(object):
         """
         Constructor
         Args:
-            genie_path: path to a file containing python for gennie commands
+            genie_path: path to a file containing python for genie commands
         Returns:
         """
         self.genie_functions = self._get_genie_functions(genie_path)
@@ -56,8 +56,8 @@ class ScriptChecker(object):
         Returns: error messages list; empty list if there are no errors
         """
 
-        f = open(name, 'r')
-        return self.check_script_lines(f, warnings_as_error)
+        with file(name, mode="r") as f:
+            return self.check_script_lines(f, warnings_as_error)
 
     def check_script_lines(self, lines, warning_as_error=False):
         """
@@ -100,7 +100,7 @@ class ScriptChecker(object):
             line: the line to check
             line_no: the line number
 
-        Returns: list of error and a list or warnings;  Empty lists for no error or warnings
+        Returns: list of error and a list of warnings;  Empty lists for no error or warnings
         """
         for function_name, possible_bracket in self._get_possible_commands(line):
             if possible_bracket != "(":
