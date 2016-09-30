@@ -1023,7 +1023,20 @@ class API(object):
         return list()
 
     def get_current_block_values(self):
-        return self.block_dict
+        """
+        Values are returned for each IBEX block.
+        Returns:
+            dictionary of blocks each with a list of values in
+
+        """
+        order_of_keys = ['value', 'runcontrol', 'lowlimit', 'highlimit']
+        block_values = {}
+        for key, values in self.block_dict.iteritems():
+            return_values = []
+            for order_key in order_of_keys:
+                return_values.append(values.get(order_key, None))
+            block_values[key] = return_values
+        return block_values
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
