@@ -302,6 +302,8 @@ def cset(*args, **kwargs):
 def cget(block):
     """Gets the useful values associated with a block.
 
+    The value will be None if the block is not "connected".
+
     Args:
         block (string) : the name of the block
 
@@ -319,7 +321,12 @@ def cget(block):
         if blk in blks:
             ans = OrderedDict()
             ans['name'] = blk
-            ans['value'] = _check_block_connected(blks[blk][0])
+            if _check_block_connected(blks[blk][0]):
+                ans['value'] = blks[blk][0]
+                ans['connected'] = True
+            else:
+                ans['value'] = None
+                ans['connected'] = False
             ans['runcontrol'] = blks[blk][1]
             ans['lowlimit'] = blks[blk][2]
             ans['highlimit'] = blks[blk][3]
@@ -360,12 +367,12 @@ def _check_block_connected(value):
         value (object): the block value
 
     Returns:
-        The value if it is connected, otherwise the disconnected string
+        True if connected otherwise False
     """
     if value == "*** disconnected" or value is None:
-        return "*** disconnected ***"
+        return False
     else:
-        return value
+        return True
 
 
 def _print_cshow(name, value):
@@ -375,8 +382,12 @@ def _print_cshow(name, value):
         name (string): the block name
         value (list): the block values
     """
-    print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
-        name, _check_block_connected(value[0]), value[1], value[2], value[3])
+    if _check_block_connected(value[0]):
+        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
+            name, value[0], value[1], value[2], value[3])
+    else:
+        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
+            name, "*** disconnected ***", value[1], value[2], value[3])
 
 
 def cshow(block=None):
