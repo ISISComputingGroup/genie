@@ -100,7 +100,7 @@ class API(object):
         if instrument.startswith(("NDX", "NDE", "IN:")):
             # Actual instruments
             instrument = instrument[3:]
-            self.init_instrument(instrument, globs)
+            self.init_instrument(instrument.rstrip(":"), globs)
             pv_prefix = self._create_pv_prefix(instrument, True)
 
         elif instrument.startswith(("NDW", "NDLT", "TE:")):
