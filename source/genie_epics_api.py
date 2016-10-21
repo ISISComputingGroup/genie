@@ -1,5 +1,3 @@
-import getpass
-import socket
 from time import strftime, localtime
 import os
 import re
@@ -9,6 +7,37 @@ from genie_waitfor import WaitForController
 from genie_wait_for_move import WaitForMoveController
 from genie_blockserver import BlockServer
 from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
+from utilities import crc8
+
+
+class ComputerDetails(object):
+    """
+    Details of the computer environment the code is running in.
+    """
+
+    def __init__(self, host_name=None):
+        """
+        Consturctor
+        Args:
+            host_name: computer host name to use; None to get it from the system
+        Returns:
+
+        """
+        import socket
+
+        if host_name is None:
+            self._host_name = socket.gethostname()
+        else:
+            self._host_name = host_name
+
+    def host_name(self):
+        """
+
+        Returns: the host name of the computer
+
+        """
+
+        return self._host_name
 
 
 class API(object):
@@ -24,48 +53,97 @@ class API(object):
     __blockserver_prefix = "CS:BLOCKSERVER:"
     __block_prefix = "CS:SB:"
     __motion_suffix = "CS:MOT:MOVING"
-    valid_instruments = ["DEMO", "LARMOR", "IMAT"]
+    # List of instruments dictionary similar to CS:INSTLIST
+    valid_instruments = [
+        {"name": "LARMOR"},
+        {"name": "ALF"},
+        {"name": "DEMO"},
+        {"name": "IMAT"},
+        {"name": "MUONFE"},
+        {"name": "ZOOM"},
+        {"name": "IRIS"}]
     plots = PlotController()
 
-    def __init__(self, pv_prefix, globs):
+    def __init__(self, pv_prefix, globs, computer_details=ComputerDetails()):
         """Constructor for the EPICS enabled API.
         
         Parameters:
             pv_prefix - used for prefixing the PV and block names
+            globs - globals
+            computer_details - details of the computer environment
         """
-        pass
+        self._computer_details = computer_details
 
     def set_instrument(self, pv_prefix, globs):
-        """Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed"""
+        """
+        Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed
+        Will do some checking to allow you to pass instrument names in so
+        Args:
+            pv_prefix: should be the pv prefix but also accepts instrument name; if none defaults to computer hostname
+            globs: globals
+
+        Returns:
+
+        """
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
 
         if pv_prefix is None:
-            pv_prefix = socket.gethostname()
+            pv_prefix = self._computer_details.host_name()
+
         instrument = pv_prefix.upper()
-        if instrument.endswith(":"):
-            instrument = instrument[:-1]
 
-        if instrument.startswith("NDX") or instrument.startswith("IN:") or instrument in self.valid_instruments:
-            if instrument.startswith("NDX") or instrument.startswith("IN:"):
-                instrument = instrument[3:]
+        if instrument in [inst["name"] for inst in self.valid_instruments]:
+            # Actual instruments
             self.init_instrument(instrument, globs)
-            pv_prefix = "IN:" + instrument + ":"
+            pv_prefix = self._create_pv_prefix(instrument, True)
 
-        elif instrument.startswith("NDW") or instrument.startswith("NDLT"):
-            print "THIS IS %s!" % instrument.upper()
+        if instrument.startswith(("NDX", "NDE", "IN:")):
+            # Actual instruments
+            instrument = instrument[3:]
+            self.init_instrument(instrument, globs)
+            pv_prefix = self._create_pv_prefix(instrument, True)
+
+        elif instrument.startswith(("NDW", "NDLT", "TE:")):
+            # Dev machine
+            if instrument.startswith("TE:"):
+                instrument = instrument[3:]
+            print "THIS IS %s! (test machine)" % instrument.upper()
             print instrument.lower() + " will use init_default "
-            if not pv_prefix.startswith(socket.gethostname() + ":" + getpass.getuser().upper()):
-                pv_prefix = pv_prefix + ":" + getpass.getuser().upper()
+            pv_prefix = self._create_pv_prefix(instrument, False)
 
-        if not pv_prefix.endswith(":"):
-            pv_prefix += ":"
+        else:
+            print "THIS IS an UNKNOWN Instrument!"
+            print "Will use init_default "
+            instrument = pv_prefix
+
         print "PV prefix is " + pv_prefix
         API.__inst_prefix = pv_prefix
         API.dae = Dae(self, pv_prefix)
         API.wait_for_move = WaitForMoveController(self, pv_prefix + API.__motion_suffix)
         API.waitfor = WaitForController(self)
         API.blockserver = BlockServer(self)
-        
+
+    def _create_pv_prefix(self, instrument, is_instrument):
+        """
+        Create the pv prefix based on instrument name and whether it is an instrument or a dev machine
+        Args:
+            instrument: instrument name
+            is_instrument: True is an instrument; False not an instrument
+
+        Returns:
+
+        """
+        clean_instrument = instrument
+        if clean_instrument.endswith(":"):
+            clean_instrument = clean_instrument[:-1]
+        if len(clean_instrument) > 8:
+            clean_instrument = clean_instrument[0:6] + crc8(clean_instrument)
+        if is_instrument:
+            pv_prefix_prefix = "IN"
+        else:
+            pv_prefix_prefix = "TE"
+        return "{prefix}:{instrument}:".format(prefix=pv_prefix_prefix, instrument=clean_instrument)
+
     def prefix_pv_name(self, name):
         """Adds the instrument prefix to the specified PV"""
         if API.__inst_prefix is not None:
@@ -78,7 +156,7 @@ class API(object):
             name = instrument.lower()
 
             # Try to call init on init_default to add the path for the instrument specific python files
-            init_func = getattr(API.__mod , "init")
+            init_func = getattr(API.__mod, "init")
             init_func(name)
 
             # Load it

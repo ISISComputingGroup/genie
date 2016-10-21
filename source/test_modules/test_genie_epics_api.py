@@ -16,7 +16,7 @@
 
 import unittest
 from mock import MagicMock, patch
-from genie_epics_api import API
+from genie_epics_api import API, ComputerDetails
 
 
 class TestEpicsApiSequence(unittest.TestCase):
@@ -111,3 +111,83 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         # Assert
         self.assertEquals(len(val),0)
+
+
+class TestEpicsApiSetInstrumentName(unittest.TestCase):
+
+    def prefix_set_and_check(self, pv_prefix_to_set, expected_pv_prefix, host_name="host"):
+
+        computer_details = ComputerDetails(host_name)
+        api = API(None, None, computer_details=computer_details)
+        api.set_instrument(pv_prefix_to_set, None)
+        result = api.prefix_pv_name("")
+        self.assertEqual(result,
+                         expected_pv_prefix,
+                         'Expected "{expected}" was "{actual}"'.format(expected=expected_pv_prefix, actual=result))
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_WHEN_standard_instrument_WHEN_inst_set_THEN_name_recognised(self):
+        pv_prefix_to_set = "LARMOR"
+        expected_pv_prefix = "IN:{0}:".format(pv_prefix_to_set)
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_in_WHEN_inst_set_THEN_instrument_set_as_expected(self):
+        pv_prefix_to_set = "IN:LARMOR:"
+        expected_pv_prefix = "IN:LARMOR:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_in_lower_case_WHEN_inst_set_THEN_instrument_prefix_is_capitalised(self):
+        pv_prefix_to_set = "in:larmor:"
+        expected_pv_prefix = "IN:LARMOR:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_doesnt_end_in_colon_WHEN_inst_set_THEN_extra_colon_added_to_prefix(self):
+        pv_prefix_to_set = "In:Larmor"
+        expected_pv_prefix = "IN:LARMOR:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_ndx_WHEN_inst_set_THEN_instrument_set_as_expected(self):
+        pv_prefix_to_set = "NDXLARMOR:"
+        expected_pv_prefix = "IN:LARMOR:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_is_not_recognised_WHEN_inst_set_THEN_prefix_is_unaltered(self):
+        pv_prefix_to_set = "unrecognised:pvprefix:"
+        expected_pv_prefix = pv_prefix_to_set
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_ndw_with_short_name_WHEN_inst_set_THEN_instrument_set_as_NDW_in_TE(self):
+
+        pv_prefix_to_set = "NDWBLAH"
+        expected_pv_prefix = "TE:{0}:".format(pv_prefix_to_set)
+
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_ndw_with_long_name_WHEN_inst_set_THEN_instrument_set_as_NDW_with_CRC_in_TE(self):
+
+        pv_prefix_to_set = "NDWBLAH_REALLY_LONG"
+        expected_pv_prefix = "TE:NDWBLA3C:"
+
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_ndx_with_long_name_WHEN_inst_set_THEN_instrument_set_as_NDW_with_CRC_in_IN(self):
+
+        pv_prefix_to_set = "NDXBLAH_REALLY_LONG"
+        expected_pv_prefix = "IN:BLAH_R32:"
+
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_nde_WHEN_inst_set_THEN_instrument_set_as_expected(self):
+        pv_prefix_to_set = "NDELARMOR"
+        expected_pv_prefix = "IN:LARMOR:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+
+    def test_WHEN_prefix_starts_with_te_WHEN_inst_set_THEN_instrument_set_as_expected(self):
+        pv_prefix_to_set = "TE:TESTNAME:"
+        expected_pv_prefix = "TE:TESTNAME:"
+        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)

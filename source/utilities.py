@@ -101,6 +101,38 @@ def get_correct_directory_path_existing(path):
              string : the corrected directory path
         """
     name = get_correct_path(path)
-    return  _correct_path_casing_existing(name)
+    return _correct_path_casing_existing(name)
 
 
+def crc8(value):
+    """
+    Generate a CRC 8 from the value (See EPICS\utils_win32\master\src\crc8.c)
+    Args:
+        value: the value to generate a CRC from
+
+    Returns: a string representation of the CRC8 of the value; two characters
+
+    """
+    if value == "":
+        return ""
+
+    crc_size = 8
+    maximum_crc_value = 255
+    generator = 0x07
+
+    bytes = bytearray()
+    bytes.extend(value)
+
+    crc = 0  # start with 0 so first byte can be 'xored' in
+
+    for byte in bytes:
+        crc ^= byte  # XOR-in the next input byte
+
+        for i in range(8):
+            # unlike the c code we have to artifically restrict the maximum value wherever it is caluclated
+            if (crc >> (crc_size - 1)) & maximum_crc_value != 0:
+                crc = ((crc << 1 & maximum_crc_value) ^ generator) & maximum_crc_value
+            else:
+                crc <<= 1
+
+    return "{0:02X}".format(crc)

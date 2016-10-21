@@ -15,7 +15,7 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path
+from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path, crc8
 
 
 class TestUtilitiesSequence(unittest.TestCase):
@@ -165,3 +165,33 @@ class TestUtilitiesSequence(unittest.TestCase):
 
         # Assert
         self.assertEquals("C:/TestDir/TestSubDir/file.py", ans)
+
+
+class TestCRC8Util(unittest.TestCase):
+    def calc_and_test(self, expected, inst):
+        result = crc8(inst)
+        self.assertEquals(result, expected, 'CRC value was "{0}" expected "{1}"'.format(result, expected))
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_GIVEN_empty_string_WHEN_crc8_THEN_result_is_blank(self):
+        self.calc_and_test("", "")
+
+    def test_GIVEN_a_WHEN_crc8_THEN_result_is_20(self):
+        self.calc_and_test("20", "a")
+
+    def test_GIVEN_b_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("29", "b")
+
+    def test_GIVEN_string_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("A8", "hello world")
+
+    def test_GIVEN_string_which_gives_hex_letters_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("EB", "NDW1407")
+
+    def test_GIVEN_string_which_gives_hex_less_than_10_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("03", "l")
