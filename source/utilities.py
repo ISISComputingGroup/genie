@@ -1,6 +1,19 @@
+import json
 import zlib
 import os
 import re
+
+
+class PVReadException(Exception):
+    """
+    Exception to throw when there is a problem reading a pv
+    """
+    def __init__(self, message):
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
 
 def compress_and_hex(value):
     compr = zlib.compress(value)
@@ -136,3 +149,89 @@ def crc8(value):
                 crc <<= 1
 
     return "{0:02X}".format(crc)
+
+
+def get_json_pv_value(pv_name, api, attempts=3):
+    """
+    Get the pv value decompress and convert from json
+    Args:
+        pv_name: name of the pv to read
+        api: the api to use to read it
+        attempts: number of attempts to try to read PV
+
+    Returns: pv value as python objects
+    Raises PVReadException: if value can not be read
+
+    """
+    try:
+        raw = api.get_pv_value(pv_name, to_string=True, attempts=attempts)
+    except Exception:
+        raise PVReadException("Can not read '{0}'".format(pv_name))
+
+    try:
+        raw = dehex_and_decompress(raw)
+    except Exception:
+        raise PVReadException("Can not decompress '{0}'".format(pv_name))
+
+    try:
+        result = json.loads(raw)
+    except Exception:
+        raise PVReadException("Can not unmarshal '{0}'".format(pv_name))
+
+    return result
+
+
+class EnvironmentDetails(object):
+    """
+    Details of the computer environment the code is running in.
+    """
+
+    # PV which holds the live instrument list
+    INSTRUMENT_LIST_PV = "CS:INSTLISTa"
+
+    # List of instruments dictionary similar to CS:INSTLIST
+    DEFAULT_INST_LIST = [
+        {"name": "LARMOR"},
+        {"name": "ALF"},
+        {"name": "DEMO"},
+        {"name": "IMAT"},
+        {"name": "MUONFE"},
+        {"name": "ZOOM"},
+        {"name": "IRIS"}]
+
+    def __init__(self, host_name=None):
+        """
+        Consturctor
+        Args:
+            host_name: computer host name to use; None to get it from the system
+        Returns:
+
+        """
+        import socket
+
+        if host_name is None:
+            self._host_name = socket.gethostname()
+        else:
+            self._host_name = host_name
+
+    def host_name(self):
+        """
+
+        Returns: the host name of the computer
+
+        """
+
+        return self._host_name
+
+    def get_instrument_list(self, api):
+        """
+        Get the instrument list
+        Args:
+            api: api to use to get a pv value
+        Returns: the current instrument list
+        """
+        try:
+            return get_json_pv_value(self.INSTRUMENT_LIST_PV, api, attempts=1)
+        except PVReadException as ex:
+            print "Error: {0}. Using internal instrument list.".format(ex.message)
+            return self.DEFAULT_INST_LIST

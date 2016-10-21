@@ -16,7 +16,8 @@
 
 import unittest
 from mock import MagicMock, patch
-from genie_epics_api import API, ComputerDetails
+from genie_epics_api import API
+from utilities import EnvironmentDetails
 
 
 class TestEpicsApiSequence(unittest.TestCase):
@@ -117,7 +118,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
 
     def prefix_set_and_check(self, pv_prefix_to_set, expected_pv_prefix, host_name="host"):
 
-        computer_details = ComputerDetails(host_name)
+        computer_details = EnvironmentDetails(host_name)
         api = API(None, None, computer_details=computer_details)
         api.set_instrument(pv_prefix_to_set, None)
         result = api.prefix_pv_name("")

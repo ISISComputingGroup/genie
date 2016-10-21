@@ -1,43 +1,14 @@
-from time import strftime, localtime
 import os
 import re
-from genie_dae import Dae
-from genie_plot import PlotController
-from genie_waitfor import WaitForController
-from genie_wait_for_move import WaitForMoveController
+from time import strftime, localtime
+
 from genie_blockserver import BlockServer
 from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
-from utilities import crc8
-
-
-class ComputerDetails(object):
-    """
-    Details of the computer environment the code is running in.
-    """
-
-    def __init__(self, host_name=None):
-        """
-        Consturctor
-        Args:
-            host_name: computer host name to use; None to get it from the system
-        Returns:
-
-        """
-        import socket
-
-        if host_name is None:
-            self._host_name = socket.gethostname()
-        else:
-            self._host_name = host_name
-
-    def host_name(self):
-        """
-
-        Returns: the host name of the computer
-
-        """
-
-        return self._host_name
+from genie_dae import Dae
+from genie_plot import PlotController
+from genie_wait_for_move import WaitForMoveController
+from genie_waitfor import WaitForController
+from utilities import crc8, EnvironmentDetails
 
 
 class API(object):
@@ -53,18 +24,9 @@ class API(object):
     __blockserver_prefix = "CS:BLOCKSERVER:"
     __block_prefix = "CS:SB:"
     __motion_suffix = "CS:MOT:MOVING"
-    # List of instruments dictionary similar to CS:INSTLIST
-    valid_instruments = [
-        {"name": "LARMOR"},
-        {"name": "ALF"},
-        {"name": "DEMO"},
-        {"name": "IMAT"},
-        {"name": "MUONFE"},
-        {"name": "ZOOM"},
-        {"name": "IRIS"}]
     plots = PlotController()
 
-    def __init__(self, pv_prefix, globs, computer_details=ComputerDetails()):
+    def __init__(self, pv_prefix, globs, computer_details=None):
         """Constructor for the EPICS enabled API.
         
         Parameters:
@@ -72,7 +34,10 @@ class API(object):
             globs - globals
             computer_details - details of the computer environment
         """
-        self._computer_details = computer_details
+        if computer_details is None:
+            EnvironmentDetails(self)
+        else:
+            self._computer_details = computer_details
 
     def set_instrument(self, pv_prefix, globs):
         """
@@ -92,7 +57,7 @@ class API(object):
 
         instrument = pv_prefix.upper()
 
-        if instrument in [inst["name"] for inst in self.valid_instruments]:
+        if instrument in [inst["name"] for inst in self._computer_details.get_instrument_list(self)]:
             # Actual instruments
             self.init_instrument(instrument, globs)
             pv_prefix = self._create_pv_prefix(instrument, True)
