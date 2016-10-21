@@ -119,7 +119,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def prefix_set_and_check(self, pv_prefix_to_set, expected_pv_prefix, host_name="host"):
 
         computer_details = EnvironmentDetails(host_name)
-        api = API(None, None, computer_details=computer_details)
+        api = API(None, None, environment_details=computer_details)
         api.set_instrument(pv_prefix_to_set, None)
         result = api.prefix_pv_name("")
         self.assertEqual(result,

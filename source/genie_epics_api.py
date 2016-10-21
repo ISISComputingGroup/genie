@@ -26,7 +26,7 @@ class API(object):
     __motion_suffix = "CS:MOT:MOVING"
     plots = PlotController()
 
-    def __init__(self, pv_prefix, globs, computer_details=None):
+    def __init__(self, pv_prefix, globs, environment_details=None):
         """Constructor for the EPICS enabled API.
         
         Parameters:
@@ -34,10 +34,10 @@ class API(object):
             globs - globals
             computer_details - details of the computer environment
         """
-        if computer_details is None:
-            EnvironmentDetails(self)
+        if environment_details is None:
+            self._environment_details = EnvironmentDetails()
         else:
-            self._computer_details = computer_details
+            self._environment_details = environment_details
 
     def set_instrument(self, pv_prefix, globs):
         """
@@ -53,28 +53,28 @@ class API(object):
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
 
         if pv_prefix is None:
-            pv_prefix = self._computer_details.host_name()
+            pv_prefix = self._environment_details.get_host_name()
 
         instrument = pv_prefix.upper()
 
-        if instrument in [inst["name"] for inst in self._computer_details.get_instrument_list(self)]:
+        if instrument in [inst["name"] for inst in self._environment_details.get_instrument_list(self)]:
             # Actual instruments
-            self.init_instrument(instrument, globs)
             pv_prefix = self._create_pv_prefix(instrument, True)
+            self.init_instrument(instrument, globs)
 
-        if instrument.startswith(("NDX", "NDE", "IN:")):
+        elif instrument.startswith(("NDX", "NDE", "IN:")):
             # Actual instruments
             instrument = instrument[3:]
-            self.init_instrument(instrument.rstrip(":"), globs)
             pv_prefix = self._create_pv_prefix(instrument, True)
+            self.init_instrument(instrument.rstrip(":"), globs)
 
         elif instrument.startswith(("NDW", "NDLT", "TE:")):
             # Dev machine
             if instrument.startswith("TE:"):
                 instrument = instrument[3:]
-            print "THIS IS %s! (test machine)" % instrument.upper()
-            print instrument.lower() + " will use init_default "
+
             pv_prefix = self._create_pv_prefix(instrument, False)
+            print instrument.lower() + " will use init_default "
 
         else:
             print "THIS IS an UNKNOWN Instrument!"
@@ -103,10 +103,13 @@ class API(object):
             clean_instrument = clean_instrument[:-1]
         if len(clean_instrument) > 8:
             clean_instrument = clean_instrument[0:6] + crc8(clean_instrument)
+
         if is_instrument:
             pv_prefix_prefix = "IN"
+            print "THIS IS %s!" % clean_instrument.upper()
         else:
             pv_prefix_prefix = "TE"
+            print "THIS IS %s! (test machine)" % clean_instrument.upper()
         return "{prefix}:{instrument}:".format(prefix=pv_prefix_prefix, instrument=clean_instrument)
 
     def prefix_pv_name(self, name):
@@ -116,7 +119,6 @@ class API(object):
         return name
 
     def init_instrument(self, instrument, globs):
-        print "THIS IS %s!" % instrument.upper()
         try:
             name = instrument.lower()
 

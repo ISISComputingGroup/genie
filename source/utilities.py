@@ -187,7 +187,7 @@ class EnvironmentDetails(object):
     """
 
     # PV which holds the live instrument list
-    INSTRUMENT_LIST_PV = "CS:INSTLISTa"
+    INSTRUMENT_LIST_PV = "CS:INSTLIST"
 
     # List of instruments dictionary similar to CS:INSTLIST
     DEFAULT_INST_LIST = [
@@ -214,13 +214,13 @@ class EnvironmentDetails(object):
         else:
             self._host_name = host_name
 
-    def host_name(self):
+    def get_host_name(self):
         """
 
         Returns: the host name of the computer
 
         """
-
+        print "pv prefix {0}".format(self._host_name)
         return self._host_name
 
     def get_instrument_list(self, api):
