@@ -79,7 +79,6 @@ class API(object):
         else:
             print "THIS IS an UNKNOWN Instrument!"
             print "Will use init_default "
-            instrument = pv_prefix
 
         print "PV prefix is " + pv_prefix
         API.__inst_prefix = pv_prefix
