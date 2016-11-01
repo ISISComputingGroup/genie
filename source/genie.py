@@ -1755,8 +1755,8 @@ def set_sample_par(name, value):
     Deprecated - use change_sample_par
 
     Args:
-        name (string, optional) : the name of the parameter to change
-        value (optional) : the new value
+        name (string) : the name of the parameter to change
+        value : the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_sample_par is deprecated - use change_sample_par"
@@ -1769,8 +1769,8 @@ def change_sample_par(name, value):
     """Set a new value for a sample parameter
 
     Args:
-        name (string, optional) : the name of the parameter to change
-        value (optional) : the new value
+        name (string) : the name of the parameter to change
+        value : the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1801,8 +1801,8 @@ def set_beamline_par(name, value):
     Deprecated - use change_beamline_par
 
     Args:
-        name (string, optional) : the name of the parameter to change
-        value (optional) : the new value
+        name (string) : the name of the parameter to change
+        value : the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_beamline_par is deprecated - use change_beamline_par"
@@ -1815,8 +1815,8 @@ def change_beamline_par(name, value):
     """Set a new value for a beamline parameter
 
     Args:
-        name (string, optional) : the name of the parameter to change
-        value (optional) : the new value
+        name (string) : the name of the parameter to change
+        value : the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
