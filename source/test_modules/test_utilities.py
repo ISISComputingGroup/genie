@@ -13,9 +13,11 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-
+import json
 import unittest
-from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path
+from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path, crc8, \
+    EnvironmentDetails, get_json_pv_value, PVReadException
+from mock import Mock
 
 
 class TestUtilitiesSequence(unittest.TestCase):
@@ -165,3 +167,92 @@ class TestUtilitiesSequence(unittest.TestCase):
 
         # Assert
         self.assertEquals("C:/TestDir/TestSubDir/file.py", ans)
+
+
+class TestCRC8Util(unittest.TestCase):
+    def calc_and_test(self, expected, inst):
+        result = crc8(inst)
+        self.assertEquals(result, expected, 'CRC value was "{0}" expected "{1}"'.format(result, expected))
+
+    def setUp(self):
+        pass
+
+    def tearDown(self):
+        pass
+
+    def test_GIVEN_empty_string_WHEN_crc8_THEN_result_is_blank(self):
+        self.calc_and_test("", "")
+
+    def test_GIVEN_a_WHEN_crc8_THEN_result_is_20(self):
+        self.calc_and_test("20", "a")
+
+    def test_GIVEN_b_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("29", "b")
+
+    def test_GIVEN_string_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("A8", "hello world")
+
+    def test_GIVEN_string_which_gives_hex_letters_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("EB", "NDW1407")
+
+    def test_GIVEN_string_which_gives_hex_less_than_10_WHEN_crc8_THEN_result_correct(self):
+        self.calc_and_test("03", "l")
+
+
+class TestEnvironmentDetails(unittest.TestCase):
+
+    def test_GIVEN_readable_pv_WHEN_get_inst_list_THEN_list_returns(self):
+        expected_result = [{"name": "john"}]
+        compressed_list = compress_and_hex(json.dumps(expected_result))
+        api = Mock()
+        api.get_pv_value = Mock(return_value=compressed_list)
+        env_details = EnvironmentDetails()
+
+        result = env_details.get_instrument_list(api)
+
+        self.assertEquals(result, expected_result)
+
+    def test_GIVEN_invalid_list_WHEN_get_inst_list_THEN_list_returns(self):
+        invalid_json = '["name": "john"}]'
+        compressed_list = compress_and_hex(invalid_json)
+        api = Mock()
+        api.get_pv_value = Mock(return_value=compressed_list)
+        env_details = EnvironmentDetails()
+
+        result = env_details.get_instrument_list(api)
+
+        self.assertEquals(result, EnvironmentDetails.DEFAULT_INST_LIST)
+
+
+class TestGetJsonPVValue(unittest.TestCase):
+    def test_GIVEN_invalid_json_WHEN_get_pv_THEN_list_raise(self):
+        invalid_json = '["name": "john"}]'
+        compressed_list = compress_and_hex(invalid_json)
+        api = Mock()
+        api.get_pv_value = Mock(return_value=compressed_list)
+
+
+        self.assertRaisesRegexp(PVReadException, "Can not unmarshal.*", get_json_pv_value, "name", api)
+
+    def test_GIVEN_valid_json_WHEN_get_pv_THEN_return_python_object(self):
+        expected_result = [{"name": "john"}]
+        compressed_list = compress_and_hex(json.dumps(expected_result))
+        api = Mock()
+        api.get_pv_value = Mock(return_value=compressed_list)
+
+        result = get_json_pv_value("name", api)
+
+        self.assertEquals(result, expected_result)
+
+    def test_GIVEN_invalid_compressed_string_WHEN_get_pv_THEN_raise(self):
+        invalid_string = 'sfjklsdf;'
+        api = Mock()
+        api.get_pv_value = Mock(return_value=(invalid_string))
+
+        self.assertRaisesRegexp(PVReadException, "Can not decompress.*", get_json_pv_value, "name", api)
+
+    def test_GIVEN_pv_can_not_be_read_WHEN_get_pv_THEN_raise(self):
+        api = Mock()
+        api.get_pv_value = Mock(side_effect=Exception())
+
+        self.assertRaisesRegexp(PVReadException, "Can not read.*", get_json_pv_value, "name", api)
