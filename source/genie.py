@@ -1936,3 +1936,19 @@ def check_limit_violations(*blocks):
         return __api.check_limit_violations(blocks)
     except Exception as e:
         _handle_exception(e)
+
+@usercommand
+@helparglist('name')
+def prefix_pv_name(name):
+    """Prepends the instrument PV prefix on to the supplied PV name
+
+    Args:
+        name (string) : The PV without the prefix.
+
+    Returns:
+        string: The PV with the instrument prefix prepended
+    """
+    try:
+        return __api.prefix_pv_name(name)
+    except Exception as e:
+        _handle_exception(e)
