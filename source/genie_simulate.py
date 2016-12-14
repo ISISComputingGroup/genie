@@ -909,10 +909,10 @@ class API(object):
     def prefix_pv_name(self, name):
         pass
 
-    def set_pv_value(self, name, value, wait=False):
+    def set_pv_value(self, name, value, wait=False, is_local=False):
         pass
 
-    def get_pv_value(self, name, to_string=False, attempts=3):
+    def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
         pass
 
     def pv_exists(self, name):
