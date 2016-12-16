@@ -664,7 +664,7 @@ def waitfor_move(*blocks, **kwargs):
 
 
 @usercommand
-@helparglist('name[, to_string]')
+@helparglist('name[, to_string][, is_local]')
 def get_pv(name, to_string=False, is_local=False):
     """Get the value for the specified PV.
 
@@ -678,15 +678,13 @@ def get_pv(name, to_string=False, is_local=False):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        if not __api.pv_exists(name):
-            raise Exception('PV %s does not exist' % name)
         return __api.get_pv_value(name, to_string, is_local)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
-@helparglist('name, value[, wait]')
+@helparglist('name, value[, wait][, is_local]')
 def set_pv(name, value, wait=False, is_local=False):
     """Set the value for the specified PV.
 

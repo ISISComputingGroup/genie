@@ -178,6 +178,10 @@ class API(object):
         if is_local:
             if not str.startswith(name, API.__inst_prefix):
                 name = self.prefix_pv_name(name)
+
+        if not API.pv_exists(name):
+            raise Exception('PV %s does not exist' % name)
+
         while True:
             try:
                 return Wrapper.get_pv_value(name, to_string)
