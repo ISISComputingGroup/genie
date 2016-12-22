@@ -664,39 +664,39 @@ def waitfor_move(*blocks, **kwargs):
 
 
 @usercommand
-@helparglist('name[, to_string]')
-def get_pv(name, to_string=False):
+@helparglist('name[, to_string][, is_local]')
+def get_pv(name, to_string=False, is_local=False):
     """Get the value for the specified PV.
 
     Args:
         name (string) : the name of the PV to get the value for
         to_string (bool, optional) : whether to get the value as a string
+        is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
 
     Returns:
         the current PV value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        if not __api.pv_exists(name):
-            raise Exception('PV %s does not exist' % name)
-        return __api.get_pv_value(name, to_string)
+        return __api.get_pv_value(name, to_string, is_local)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
-@helparglist('name, value[, wait]')
-def set_pv(name, value, wait=False):
+@helparglist('name, value[, wait][, is_local]')
+def set_pv(name, value, wait=False, is_local=False):
     """Set the value for the specified PV.
 
     Args:
         name (string) : the PV name
         value : the new value to set
         wait (bool, optional) : whether to wait until the value has been received by the hardware
+        is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        __api.set_pv_value(name, value, wait)
+        __api.set_pv_value(name, value, wait, is_local)
     except Exception as e:
         _handle_exception(e)
 
@@ -1934,5 +1934,21 @@ def check_limit_violations(*blocks):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.check_limit_violations(blocks)
+    except Exception as e:
+        _handle_exception(e)
+
+@usercommand
+@helparglist('name')
+def prefix_pv_name(name):
+    """Prepends the instrument PV prefix on to the supplied PV name
+
+    Args:
+        name (string) : The PV without the prefix.
+
+    Returns:
+        string: The PV with the instrument prefix prepended
+    """
+    try:
+        return __api.prefix_pv_name(name)
     except Exception as e:
         _handle_exception(e)

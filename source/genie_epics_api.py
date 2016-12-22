@@ -141,7 +141,7 @@ class API(object):
             print "There was a problem with loading init_" + instrument.lower() + " so will use default"
             print "Error was: %s" % err
 
-    def set_pv_value(self, name, value, wait=False):
+    def set_pv_value(self, name, value, wait=False, is_local=False):
         """Set the PV to a value.
            When setting a PV value this call should be used unless there is a special requirement.
 
@@ -149,7 +149,11 @@ class API(object):
             name - the PV name
             value - the value to set
             wait - wait for the value to be set before returning
+            is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
         """
+        if is_local:
+            if not str.startswith(name, API.__inst_prefix):
+                name = self.prefix_pv_name(name)
         self.log_info_msg("set_pv_value %s %s" % (name, str(value)))
         attempts = 3
         while True:
@@ -162,14 +166,22 @@ class API(object):
                     self.log_info_msg("set_pv_value exception %s" % e.message)
                     raise e
 
-    def get_pv_value(self, name, to_string=False, attempts=3):
+    def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
         """Get the current value of the PV.
             When getting a PV value this call should be used unless there is a special requirement.
 
         Parameters:
             name - the PV name
             to_string - whether to cast it to a string
+            is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
         """
+        if is_local:
+            if not str.startswith(name, API.__inst_prefix):
+                name = self.prefix_pv_name(name)
+
+        if not self.pv_exists(name):
+            raise Exception('PV %s does not exist' % name)
+
         while True:
             try:
                 return Wrapper.get_pv_value(name, to_string)

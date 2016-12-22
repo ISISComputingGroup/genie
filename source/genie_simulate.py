@@ -891,6 +891,8 @@ class ChangeCache(object):
 
 
 class API(object):
+    _pv_prefix = None
+
     def __init__(self, pv_prefix = None, globs = None):
         self.block_dict = dict()
         self.num_periods = 1
@@ -902,15 +904,15 @@ class API(object):
         self.sample_pars = {}
 
     def set_instrument(self, pv_prefix, globs):
-        pass
+        self._pv_prefix = pv_prefix
 
     def prefix_pv_name(self, name):
         pass
 
-    def set_pv_value(self, name, value, wait=False):
+    def set_pv_value(self, name, value, wait=False, is_local=False):
         pass
 
-    def get_pv_value(self, name, to_string=False, attempts=3):
+    def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
         pass
 
     def pv_exists(self, name):
@@ -1040,3 +1042,9 @@ class API(object):
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
+
+    def prefix_pv_name(self, name):
+        """Adds the instrument prefix to the specified PV"""
+        if self._pv_prefix is not None:
+            return self._pv_prefix + name
+        return name
