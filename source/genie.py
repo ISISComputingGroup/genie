@@ -12,6 +12,8 @@ from genie_script_checker import ScriptChecker
 from utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
     get_correct_directory_path_existing
 
+print "Genie python version " + CURRENT_VERSION
+
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
     print "\n=========== RUNNING IN SIMULATION MODE ===========\n"
