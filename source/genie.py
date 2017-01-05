@@ -5,6 +5,7 @@ import sys
 import glob
 import re
 import ctypes
+from version import CURRENT_VERSION
 from functools import wraps
 from collections import OrderedDict
 from genie_script_checker import ScriptChecker
@@ -1952,3 +1953,12 @@ def prefix_pv_name(name):
         return __api.prefix_pv_name(name)
     except Exception as e:
         _handle_exception(e)
+
+@usercommand
+def get_version():
+    """Tells you the version of genie_python that is used.
+
+    Returns:
+        string: The current version number of genie python
+    """
+    return CURRENT_VERSION
