@@ -1957,6 +1957,7 @@ def prefix_pv_name(name):
         _handle_exception(e)
 
 @usercommand
+@helparglist('')
 def get_version():
     """Tells you the version of genie_python that is used.
 
