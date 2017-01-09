@@ -1,1 +1,1 @@
-CURRENT_VERSION = "0.0.0"
+VERSION = "0.0.0.qualifier"
