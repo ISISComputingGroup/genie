@@ -5,14 +5,14 @@ import sys
 import glob
 import re
 import ctypes
-from version import CURRENT_VERSION
+from version import VERSION
 from functools import wraps
 from collections import OrderedDict
 from genie_script_checker import ScriptChecker
 from utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
     get_correct_directory_path_existing
 
-print "Genie python version " + CURRENT_VERSION
+print "Genie python version " + VERSION
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
@@ -1964,4 +1964,4 @@ def get_version():
     Returns:
         string: The current version number of genie python
     """
-    return CURRENT_VERSION
+    return VERSION
