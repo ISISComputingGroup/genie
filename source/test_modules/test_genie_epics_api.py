@@ -35,7 +35,6 @@ class TestEpicsApiSequence(unittest.TestCase):
         self.mock_wrapper.get_pv_value = MagicMock(return_value = self.mock_pv_value)
         API.blockserver = MagicMock()
 
-
     def tearDown(self):
         pass
 
