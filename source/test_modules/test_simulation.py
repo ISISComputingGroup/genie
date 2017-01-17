@@ -261,3 +261,4 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(2.5, a["lowlimit"])
         self.assertEquals(3, a["highlimit"])
         self.assertEquals(True, a["runcontrol"])
+

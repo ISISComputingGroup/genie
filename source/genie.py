@@ -681,7 +681,7 @@ def get_pv(name, to_string=False, is_local=False):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        return __api.get_pv_value(name, to_string, is_local)
+        return __api.get_pv_value(name, to_string, is_local=is_local)
     except Exception as e:
         _handle_exception(e)
 

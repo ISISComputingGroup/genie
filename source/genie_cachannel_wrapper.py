@@ -17,7 +17,7 @@ class CaChannelWrapper(object):
         """Set the PV to a value.
            When getting a PV value this call should be used, unless there is a special requirement.
 
-        Parameters:
+        Args:
             name - the PV name
             value - the value to set
             wait - wait for the value to be set before returning

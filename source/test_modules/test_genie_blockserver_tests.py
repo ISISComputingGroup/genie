@@ -19,8 +19,8 @@ from mock import MagicMock, Mock
 from genie_blockserver import BlockServer
 from utilities import compress_and_hex
 
-class TestGenieBlockserver(unittest.TestCase):
 
+class TestGenieBlockserver(unittest.TestCase):
     def setUp(self):
         self.mock_api = MagicMock()
         self.mock_api.return_value.prefix_pv_name = Mock(side_effect = self._add_prefix)

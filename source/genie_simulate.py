@@ -1,5 +1,6 @@
 import os
 
+
 class Waitfor(object):
     def __init__(self):
         pass
@@ -54,7 +55,7 @@ class Dae(object):
         self.detector_tables = [""]
         self.tcb_tables = []
         self.period_files = []
-        self.spectrum = {'time':1, 'signal':1, 'sum':None, 'mode': 'distribution'}
+        self.spectrum = {'time': 1, 'signal': 1, 'sum': None, 'mode': 'distribution'}
         self.change_cache = ChangeCache()
 
     def begin_run(self, period=None, meas_id=None, meas_type=None, meas_subid=None,
@@ -891,9 +892,9 @@ class ChangeCache(object):
 
 
 class API(object):
-    _pv_prefix = None
+    __inst_prefix = None
 
-    def __init__(self, pv_prefix = None, globs = None):
+    def __init__(self, pv_prefix=None, globs=None):
         self.block_dict = dict()
         self.num_periods = 1
         self.run_number = 123456
@@ -904,16 +905,25 @@ class API(object):
         self.sample_pars = {}
 
     def set_instrument(self, pv_prefix, globs):
-        self._pv_prefix = pv_prefix
+        API.__inst_prefix = pv_prefix
 
     def prefix_pv_name(self, name):
-        pass
+        """Adds the instrument prefix to the specified PV"""
+        if API.__inst_prefix is not None and not name.startswith(API.__inst_prefix):
+            if not API.__inst_prefix.endswith(':'):
+                name = ':' + name
+            return API.__inst_prefix + name
+        return name
 
     def set_pv_value(self, name, value, wait=False, is_local=False):
-        pass
+        if is_local:
+            name = self.prefix_pv_name(name)
+        print "set_pv_value called (name=%s value=%s wait=%s is_local=%s)" % (name, value, wait, is_local)
 
     def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
-        pass
+        if is_local:
+            name = self.prefix_pv_name(name)
+        print "get_pv_value called (name=%s value=%s attempts=%s is_local=%s)" % (name, to_string, attempts, is_local)
 
     def pv_exists(self, name):
         return True
@@ -984,7 +994,7 @@ class API(object):
 
     def log_entered_command(self):
         pass
-        
+
     def log_command(self, arg1, arg2):
         pass
 
@@ -1042,9 +1052,3 @@ class API(object):
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
-
-    def prefix_pv_name(self, name):
-        """Adds the instrument prefix to the specified PV"""
-        if self._pv_prefix is not None:
-            return self._pv_prefix + name
-        return name
