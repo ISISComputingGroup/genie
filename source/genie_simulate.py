@@ -966,7 +966,7 @@ class API(object):
             # locals() adds all argument names and values to a dictionary (including 'self')
             arguments = locals()
             if wait:
-                self.block_dict[name]['wait'] == True
+                self.block_dict[name]['wait'] = True
             else:
                 for key, value in arguments.items():
                     if key != 'self' and value is not None:
