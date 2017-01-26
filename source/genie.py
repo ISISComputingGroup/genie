@@ -280,7 +280,7 @@ def cset(*args, **kwargs):
 
         if block is not None:
             # Something like cset("block1", runcontrol=True) or cset("block1", 10)
-            if wait:
+            if wait and value is None:
                 raise Exception('Cannot wait as no setpoint specified. Please type: help(cset) for help')
             __api.set_block_value(block, value, runcontrol, lowlimit, highlimit, wait)
         elif len(blocks) == 1:
