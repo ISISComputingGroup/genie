@@ -1,4 +1,5 @@
 from genie_python.genie import *
+# Second import is required for user scripts.
 from genie_python import genie as g
 import ctypes
 import os
