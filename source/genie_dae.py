@@ -568,6 +568,8 @@ class Dae(object):
             value = 4
         elif source == 'isis (first ts1)':
             value = 5
+        elif source == 'isis (ts1 only)':
+            value = 6
         else:
             raise Exception('Invalid timing source entered, try help(change_sync)!')
         self.change_cache.dae_sync = value
