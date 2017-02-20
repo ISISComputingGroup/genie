@@ -94,9 +94,17 @@ class CaChannelWrapper(object):
         else:
             chan = CaChannel(name)
             chan.setTimeout(timeout)
+            event = Event()
             # Try to connect - throws if cannot
             try:
-                chan.searchw()
+                chan.search_and_connect(None, CaChannelWrapper.putCB, event)
+                interval = 0.1
+                time_elapsed = 0.0
+                while not event.is_set() and time_elapsed <= EXIST_TIMEOUT:
+                    chan.pend_event(interval)
+                    time_elapsed += interval
+                if not event.is_set():
+                    raise Exception()
             except:
                 # Ideally we should not print anything and just use the return code, but we get a timout message
                 # printed by the channel access DLL anyway so best to say which PV this error refers to 
