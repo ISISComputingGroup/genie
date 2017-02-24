@@ -1,6 +1,7 @@
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
 from utilities import waveform_to_string
+from channel_access_exceptions import UnableToConnectToPVException
 
 TIMEOUT = 15         # default timeout for PV set/get
 EXIST_TIMEOUT = 3    # separate smaller timeout for pv_exists() and searchw() operations 
@@ -29,9 +30,9 @@ class CaChannelWrapper(object):
             chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
             try:
-                chan.searchw()
-            except:
-                raise Exception("Unable to find PV %s" % name)
+                CaChannelWrapper.connect_to_pv(chan)
+            except UnableToConnectToPVException as e:
+                raise e
             CACHE[name] = chan
         chan.setTimeout(timeout)
         if not chan.write_access():
@@ -61,9 +62,9 @@ class CaChannelWrapper(object):
             chan.setTimeout(EXIST_TIMEOUT)
             # Try to connect - throws if cannot
             try:
-                chan.searchw()
-            except:
-                raise Exception("Unable to find PV %s" % name)
+                CaChannelWrapper.connect_to_pv(chan)
+            except UnableToConnectToPVException as e:
+                raise e
             CACHE[name] = chan
         chan.setTimeout(timeout)
         if not chan.read_access():
@@ -94,13 +95,28 @@ class CaChannelWrapper(object):
         else:
             chan = CaChannel(name)
             chan.setTimeout(timeout)
-            # Try to connect - throws if cannot
             try:
-                chan.searchw()
-            except:
-                # Ideally we should not print anything and just use the return code, but we get a timout message
-                # printed by the channel access DLL anyway so best to say which PV this error refers to 
-                print("Unable to find PV %s" % name)
+                CaChannelWrapper.connect_to_pv(chan)
+            except UnableToConnectToPVException as e:
+                print e.message
                 return False
             CACHE[name] = chan
             return True
+
+    @staticmethod
+    def connect_to_pv(ca_channel):
+        event = Event()
+        try:
+            ca_channel.search_and_connect(None, CaChannelWrapper.putCB, event)
+        except CaChannelException as e:
+            raise UnableToConnectToPVException(ca_channel.pvname)
+
+        interval = 0.1
+        time_elapsed = 0.0
+        timeout = ca_channel.getTimeout()
+
+        while not event.is_set() and time_elapsed <= timeout:
+            ca_channel.pend_event(interval)
+            time_elapsed += interval
+        if not event.is_set():
+            raise UnableToConnectToPVException(ca_channel.pvname)
