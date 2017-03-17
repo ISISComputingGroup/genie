@@ -59,6 +59,19 @@ class ScriptChecker(object):
         with file(name, mode="r") as f:
             return self.check_script_lines(f, warnings_as_error)
 
+    def _set_regex(self, variable):
+        """
+        Sets the regex with a string to be used to check for variables that match the string from other strings
+        Args:
+            variable: the assigned string from the search function
+        Return:
+            the string to be added to the regex to be used for searching the variables in other scripts with the same
+            string
+        """
+        assignment_regex = "[\/\+\-\*\%]?=[^=]"
+        regex = r'\b{0}[.][\w\s]*' + assignment_regex + r'|\b{0}[\s]*' + assignment_regex
+        return regex.format(variable)
+
     def _check_g_inst_name(self, line, line_no):
         """
         Checks the lines of the script with variable named 'g' or 'inst'
@@ -69,10 +82,10 @@ class ScriptChecker(object):
         Return:
             list of warnings;  Empty lists for no error or warnings
         """
-        g_error = re.search(r'\bg[.][\w\s]*[\/\+\-\*\%]?=[^=]|\bg[\s]*[\/\+\-\*\%]?=[^=]', line)
+        g_error = re.search(self._set_regex('g'), line)
         if g_error:
             return [], ["'g' assignment in line " + str(line_no)]
-        inst_error = re.search(r'\binst[.][\w\s]*[\/\+\-\*\%]?=[^=]|\binst[\s]*[\/\+\-\*\%]?=[^=]', line)
+        inst_error = re.search(self._set_regex('inst'), line)
         if inst_error:
             return [], ["'inst' assignment in line " + str(line_no)]
         return [], []
