@@ -102,3 +102,157 @@ class TestScriptChecker(unittest.TestCase):
         result = self.checker.check_script_lines(script_lines)
 
         self.assertEquals(result, [])
+
+    def test_GIVEN_g_assignment_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "g=1"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 2"])
+
+    def test_GIVEN_g_assignment_after_whitespace_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "  g=2"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 2"])
+
+    def test_GIVEN_g_assignment_with_space_before_number_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "  g= 3"
+            "def test():",]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 1"])
+
+    def test_GIVEN_inst_assignment_with_point_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "inst.test=4"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 2"])
+
+    def test_GIVEN_inst_assignment_with_space_between_assignment_and_value_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "inst = 5"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 2"])
+
+    def test_GIVEN_inst_assignment_with_2_symbols_before_number_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "inst+=6"
+            "def test():",]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 1"])
+
+    def test_GIVEN_inst_assignment_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "inst=7"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 2"])
+
+    def test_GIVEN_inst_assignment_after_whitespace_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "  inst=8"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 2"])
+
+    def test_GIVEN_inst_assignment_with_space_before_number_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "   inst= 9"
+            "def test():",]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'inst' assignment in line 1"])
+
+    def test_GIVEN_g_assignment_with_point_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "g.test=10"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 2"])
+
+    def test_GIVEN_g_assignment_with_space_between_assignment_and_value_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "def test():",
+            "g = 11"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 2"])
+
+    def test_GIVEN_g_assignment_with_2_symbols_before_number_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "g+=12",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 1"])
+
+    def test_GIVEN_variable_assignment_with_g__WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "going=13",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_function_with_g_WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "going()",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_variable_assignment_with_inst__WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "instrument=15",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_function_with_inst_WHEN_check_THEN_no_message(self):
+        script_lines = [
+            "instrument()",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, [])
+
+    def test_GIVEN_2_g_assignments_WHEN_check_THEN_warning_message(self):
+        script_lines = [
+            "g=16",
+            "g=17",
+            "def test():"]
+
+        result = self.checker.check_script_lines(script_lines, True)
+
+        self.assertEquals(result, ["'g' assignment in line 1", "'g' assignment in line 2"])
