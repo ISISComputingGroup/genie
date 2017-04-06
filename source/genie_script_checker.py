@@ -61,26 +61,26 @@ class ScriptChecker(object):
 
     def _set_regex(self, variable):
         """
-        Sets the regex with a string to be used to check for variables that match the string from other strings
+        Sets the function to find any of the symbols listed below
         Args:
             variable: the assigned string from the search function
         Return:
-            the string to be added to the regex to be used for searching the variables in other scripts with the same
-            string
+            the string to be used in the regex search function
         """
-        assignment_regex = "[\/\+\-\*\%]?=[^=]"
+        assignment_regex = "[\|\&\^\/\+\-\*\%]?=[^=]"
         regex = r'\b{0}[.][\w\s]*' + assignment_regex + r'|\b{0}[\s]*' + assignment_regex
         return regex.format(variable)
 
     def _check_g_inst_name(self, line, line_no):
         """
-        Checks the lines of the script with variable named 'g' or 'inst'
+        Checks a line of a script for assignments of variables named g or inst
         Args:
             line: the line to check
             line_no: the line number
 
         Return:
-            list of warnings;  Empty lists for no error or warnings
+            list of warnings: contains tuple of 2 lists, 1 which contains an empty list with no warnings,
+                              the other containing the list of warnings
         """
         g_error = re.search(self._set_regex('g'), line)
         if g_error:
