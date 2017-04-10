@@ -59,7 +59,7 @@ class ScriptChecker(object):
         with file(name, mode="r") as f:
             return self.check_script_lines(f, warnings_as_error)
 
-    def _set_regex(self, variable):
+    def _find_regex(self, variable):
         """
         Sets the function to find any of the symbols listed below
         Args:
@@ -82,10 +82,10 @@ class ScriptChecker(object):
             list of warnings: contains tuple of 2 lists, 1 which contains an empty list with no warnings,
                               the other containing the list of warnings
         """
-        g_error = re.search(self._set_regex('g'), line)
+        g_error = re.search(self._find_regex('g'), line)
         if g_error:
             return [], ["'g' assignment in line " + str(line_no)]
-        inst_error = re.search(self._set_regex('inst'), line)
+        inst_error = re.search(self._find_regex('inst'), line)
         if inst_error:
             return [], ["'inst' assignment in line " + str(line_no)]
         return [], []
