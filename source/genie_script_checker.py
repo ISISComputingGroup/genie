@@ -59,6 +59,38 @@ class ScriptChecker(object):
         with file(name, mode="r") as f:
             return self.check_script_lines(f, warnings_as_error)
 
+    def _find_regex(self, variable):
+        """
+        Sets the function to find any of the symbols listed below
+        Args:
+            variable: the assigned string from the search function
+        Return:
+            the string to be used in the regex search function
+        """
+        assignment_regex = "[\|\&\^\/\+\-\*\%]?=[^=]"
+        regex = r'\b{0}[.][\w\s]*' + assignment_regex + r'|\b{0}[\s]*' + assignment_regex
+        return regex.format(variable)
+
+    def _check_g_inst_name(self, line, line_no):
+        """
+        Checks a line of a script for assignments of variables named g or inst
+        Args:
+            line: the line to check
+            line_no: the line number
+
+        Return:
+            list of warnings: contains tuple of 2 lists, 1 which contains an empty list with no warnings,
+                              the other containing the list of warnings
+        """
+        g_error = re.search(self._find_regex('g'), line)
+        if g_error:
+            return [], ["'g' assignment in line " + str(line_no)]
+        inst_error = re.search(self._find_regex('inst'), line)
+        if inst_error:
+            return [], ["'inst' assignment in line " + str(line_no)]
+        return [], []
+
+
     def check_script_lines(self, lines, warning_as_error=False):
         """
         Check the lines of the script for possible errors
@@ -69,14 +101,22 @@ class ScriptChecker(object):
         Returns: error in the script; empty list if none
 
         """
-        errors = []
+        name_errors = []
+        bracket_errors = []
         line_no = 0
         for line in lines:
             line_no += 1
+            # Look for genie code with 'g' or 'inst', g = 1.
+            name_error, name_warnings = self._check_g_inst_name(line, line_no)
+            name_errors.extend(name_error)
+            name_errors.extend(self._process_warnings(warning_as_error, name_warnings))
+
             # Look for genie commands missing brackets, e.g. begin, end, cshow etc.
-            error, warnings = self._check_genie_commands_has_brackets(line, line_no)
-            errors.extend(error)
-            errors.extend(self._process_warnings(warning_as_error, warnings))
+            bracket_error, bracket_warnings = self._check_genie_commands_has_brackets(line, line_no)
+            bracket_errors.extend(bracket_error)
+            bracket_errors.extend(self._process_warnings(warning_as_error, bracket_warnings))
+
+        errors = name_errors + bracket_errors
 
         return errors
 
