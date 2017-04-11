@@ -1188,7 +1188,6 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
             raise Exception("Script file was not found (%s)" % get_correct_path(name))
 
         directory, filename = os.path.split(os.path.abspath(full_name))
-        directory += '\\'
 
         mod = __load_module(filename[0:-3], directory)
         # If we get this far then the script is syntactically correct as far as Python is concerned
@@ -1205,7 +1204,8 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         # Safe to load
         # Read the file to get the name of the functions
         funcs = []
-        f = open(directory + filename, "r")
+        file_path = os.path.join(directory, filename)
+        f = open(file_path, "r")
         for l in f.readlines():
             m = re.match("^def\s+(.+)\(", l)
             if m is not None:
@@ -1220,14 +1220,18 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
         if len(scripts) > 0:
             # This is where the script file is actually loaded
-            execfile(directory + filename, globs)
+            execfile(file_path, globs)
             msg = "Loaded the following script(s): "
             for script in scripts:
                 msg += script + ", "
             print msg[0:-2]
-            print "From: %s%s" % (directory, filename)
+            print "From: %s" % file_path
         else:
-            raise Exception("No runnable scripts found in %s%s - is the file empty?" % (directory, filename))
+            raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
+
+        if directory not in sys.path:
+            sys.path.append(directory)
+
     except Exception as e:
         _handle_exception(e)
 

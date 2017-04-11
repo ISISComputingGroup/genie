@@ -16,6 +16,7 @@
 import os
 import unittest
 import genie
+import sys
 
 
 class TestGenie(unittest.TestCase):
@@ -41,6 +42,40 @@ class TestGenie(unittest.TestCase):
         # Act
         self.assertRaises(Exception, genie.load_script, script)
 
+    def test_GIVEN_valid_script_WHEN_load_script_THEN_can_call_script(self):
+        #Arrange
+        script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "valid.py")
+
+        # Act
+        genie.load_script(script)
+
+        #Assert
+        self.assertTrue(genie.valid())
+
+    def test_GIVEN_error_script_WHEN_load_script_THEN_script_folder_not_added_to_path(self):
+        #Arrange
+        directory = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts")
+        script = os.path.join(directory, "error.py")
+
+        # Act
+        self.assertRaises(Exception, genie.load_script, script)
+
+        #Assert
+        self.assertTrue(directory not in sys.path)
+
+    def test_GIVEN_valid_script_WHEN_load_script_THEN_script_folder_added_to_path(self):
+        #Arrange
+        directory = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts")
+        script = os.path.join(directory, "valid.py")
+
+        # Act
+        genie.load_script(script)
+
+        #Assert
+        print "dir is: " + str(sys.path)
+        self.assertTrue(directory in sys.path)
+
+
     def test_GIVEN_script_checker_error_WHEN_load_script_THEN_error(self):
         # Arrange
         script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "error_for_script_checker.py")
@@ -54,3 +89,5 @@ class TestGenie(unittest.TestCase):
 
         # Act
         genie.load_script(script, check_script=False)
+
+
