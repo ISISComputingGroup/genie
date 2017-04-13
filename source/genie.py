@@ -11,6 +11,7 @@ from collections import OrderedDict
 from genie_script_checker import ScriptChecker
 from utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
     get_correct_directory_path_existing
+import inspect
 
 print "Genie python version " + VERSION
 
@@ -1221,6 +1222,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         if len(scripts) > 0:
             # This is where the script file is actually loaded
             execfile(file_path, globs)
+
             msg = "Loaded the following script(s): "
             for script in scripts:
                 msg += script + ", "
