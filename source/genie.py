@@ -1190,50 +1190,55 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
         directory, filename = os.path.split(os.path.abspath(full_name))
 
-        mod = __load_module(filename[0:-3], directory)
-        # If we get this far then the script is syntactically correct as far as Python is concerned
-        # Now check the script details manually
-        if check_script:
-            sc = ScriptChecker(__file__)
-            errs = sc.check_script(name, warnings_as_error=warnings_as_error)
-            if len(errs) > 0:
-                combined = "script not loaded as errors found in script: "
-                for e in errs:
-                    combined += "\n\t" + e
-                raise Exception(combined)
-
-        # Safe to load
-        # Read the file to get the name of the functions
-        funcs = []
-        file_path = os.path.join(directory, filename)
-        f = open(file_path, "r")
-        for l in f.readlines():
-            m = re.match("^def\s+(.+)\(", l)
-            if m is not None:
-                funcs.append(m.group(1))
-        f.close()
-        scripts = []
-        for att in dir(mod):
-            if isinstance(mod.__dict__.get(att), types.FunctionType):
-                # Check function comes from script file not an import
-                if att in funcs:
-                    scripts.append(att)
-
-        if len(scripts) > 0:
-            # This is where the script file is actually loaded
-            execfile(file_path, globs)
-
-            msg = "Loaded the following script(s): "
-            for script in scripts:
-                msg += script + ", "
-            print msg[0:-2]
-            print "From: %s" % file_path
-        else:
-            raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
-
+        # Add the directory to the path in case there are relative imports
         if directory not in sys.path:
             sys.path.append(directory)
 
+        try:
+            mod = __load_module(filename[0:-3], directory)
+            # If we get this far then the script is syntactically correct as far as Python is concerned
+            # Now check the script details manually
+            if check_script:
+                sc = ScriptChecker(__file__)
+                errs = sc.check_script(full_name, warnings_as_error=warnings_as_error)
+                if len(errs) > 0:
+                    combined = "script not loaded as errors found in script: "
+                    for e in errs:
+                        combined += "\n\t" + e
+                    raise Exception(combined)
+
+            # Safe to load
+            # Read the file to get the name of the functions
+            funcs = []
+            file_path = os.path.join(directory, filename)
+            f = open(file_path, "r")
+            for l in f.readlines():
+                m = re.match("^def\s+(.+)\(", l)
+                if m is not None:
+                    funcs.append(m.group(1))
+            f.close()
+            scripts = []
+            for att in dir(mod):
+                if isinstance(mod.__dict__.get(att), types.FunctionType):
+                    # Check function comes from script file not an import
+                    if att in funcs:
+                        scripts.append(att)
+
+            if len(scripts) > 0:
+                # This is where the script file is actually loaded
+                execfile(file_path, globs)
+
+                msg = "Loaded the following script(s): "
+                for script in scripts:
+                    msg += script + ", "
+                print msg[0:-2]
+                print "From: %s" % file_path
+            else:
+                raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
+        except Exception as e:
+            if directory in sys.path:
+                sys.path.remove(directory)
+            raise e
     except Exception as e:
         _handle_exception(e)
 
