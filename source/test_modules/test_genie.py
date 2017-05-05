@@ -16,6 +16,7 @@
 import os
 import unittest
 import genie
+import timeout_decorator
 import sys
 
 
@@ -75,5 +76,30 @@ class TestGenie(unittest.TestCase):
 
         # Act
         genie.load_script(script, check_script=False)
+
+    def test_WHEN_seconds_negative_THEN_waitfor_time_raises_error(self):
+        self.assertRaises(Exception, genie.waitfor_time, -1)
+
+    def test_WHEN_minutes_negative_THEN_waitfor_time_raises_error(self):
+        self.assertRaises(Exception, genie.waitfor_time, (None, -1))
+
+    def test_WHEN_hours_negative_THEN_waitfor_time_raises_error(self):
+        self.assertRaises(Exception, genie.waitfor_time, (None, None, -1))
+
+    @timeout_decorator.timeout(2)
+    def test_WHEN_time_is_0_seconds_THEN_waitfor_time_returns(self):
+        genie.waitfor_time(seconds=0)
+
+    @timeout_decorator.timeout(2)
+    def test_WHEN_time_is_0_minutes_THEN_waitfor_time_returns(self):
+        genie.waitfor_time(minutes=0)
+
+    @timeout_decorator.timeout(2)
+    def test_WHEN_time_is_0_hours_THEN_waitfor_time_returns(self):
+        genie.waitfor_time(hours=0)
+
+    @timeout_decorator.timeout(2)
+    def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
+        genie.waitfor_time(time="00:00:00")
 
 
