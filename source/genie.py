@@ -537,6 +537,8 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
         if seconds is None and minutes is None and hours is None and time is None:
             raise Exception("Cannot execute waitfor_time - need to set at least one parameter. Type help(waitfor_time) "
                             "to see guidelines")
+        if any(t is not None and t < 0 for t in [seconds,minutes,hours]):
+            raise Exception("Cannot execute waitfor_time - Time parameters cannot be negative")
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_time - try calling set_instrument first")
         __api.waitfor.start_waiting(seconds=seconds, minutes=minutes, hours=hours, time=time)
