@@ -16,7 +16,6 @@
 import os
 import unittest
 import genie
-import timeout_decorator
 import sys
 
 class TestGenie(unittest.TestCase):
@@ -88,21 +87,15 @@ class TestGenie(unittest.TestCase):
         with self.assertRaises(Exception):
             genie.waitfor_time(hours=-1)
 
-    ZERO_WAIT_TIMEOUT = 2
-
-    @timeout_decorator.timeout(ZERO_WAIT_TIMEOUT)
     def test_WHEN_time_is_0_seconds_THEN_waitfor_time_returns(self):
         genie.waitfor_time(seconds=0)
 
-    @timeout_decorator.timeout(ZERO_WAIT_TIMEOUT)
     def test_WHEN_time_is_0_minutes_THEN_waitfor_time_returns(self):
         genie.waitfor_time(minutes=0)
 
-    @timeout_decorator.timeout(ZERO_WAIT_TIMEOUT)
     def test_WHEN_time_is_0_hours_THEN_waitfor_time_returns(self):
         genie.waitfor_time(hours=0)
 
-    @timeout_decorator.timeout(ZERO_WAIT_TIMEOUT)
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
 
