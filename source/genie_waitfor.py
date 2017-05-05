@@ -129,9 +129,8 @@ class WaitForController(object):
 
     def _get_time_delta(self, seconds, minutes, hours):
         """
-        Returns a timedelta representation of the input seconds, minutes and hours.
-        :return: A timedelta representation of the input parameters. If all parameters are None, then None returned,
-        else None parameters are interpreted as 0
+        Returns a timedelta representation of the input seconds, minutes and hours. If all parameters are None, then
+        None returned, else None parameters are interpreted as 0
         """
         if any(t is not None for t in (seconds, minutes, hours)):
             num_seconds, num_minutes, num_hours = (0 if t is None else t for t in (seconds, minutes, hours))
