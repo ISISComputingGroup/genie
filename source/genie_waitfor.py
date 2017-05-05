@@ -132,11 +132,11 @@ class WaitForController(object):
         Returns a timedelta representation of the input seconds, minutes and hours. If all parameters are None, then
         None returned, else None parameters are interpreted as 0
         """
-        if any(t is not None for t in (seconds, minutes, hours)):
+        if all(t is None for t in (seconds, minutes, hours)):
+            return None
+        else:
             num_seconds, num_minutes, num_hours = (0 if t is None else t for t in (seconds, minutes, hours))
             return timedelta(hours=num_hours, minutes=num_minutes, seconds=num_seconds)
-        else:
-            return None
         
     def init_wait_block(self, block, value, lowlimit, highlimit, timeout_msg=""):
         self.block = block
