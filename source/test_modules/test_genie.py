@@ -76,15 +76,15 @@ class TestGenie(unittest.TestCase):
         genie.load_script(script, check_script=False)
 
     def test_WHEN_seconds_negative_THEN_waitfor_time_raises_error(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             genie.waitfor_time(seconds=-1)
 
     def test_WHEN_minutes_negative_THEN_waitfor_time_raises_error(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             genie.waitfor_time(minutes=-1)
 
     def test_WHEN_hours_negative_THEN_waitfor_time_raises_error(self):
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             genie.waitfor_time(hours=-1)
 
     def test_WHEN_time_is_0_seconds_THEN_waitfor_time_returns(self):
