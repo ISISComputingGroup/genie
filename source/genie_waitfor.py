@@ -126,21 +126,17 @@ class WaitForController(object):
                 return False
             else:
                 return True
-                
+
     def _get_time_delta(self, seconds, minutes, hours):
-        delta = None
-        secs = 0
-        mins = 0
-        hrs = 0
-        if seconds is not None:
-            secs = seconds
-        if minutes is not None:
-            mins = minutes
-        if hours is not None:
-            hrs = hours
-        if secs > 0 or mins > 0 or hrs > 0:
-            delta = timedelta(hours=hrs, minutes=mins, seconds=secs)
-        return delta
+        """
+        Returns a timedelta representation of the input seconds, minutes and hours. If all parameters are None, then
+        None returned, else None parameters are interpreted as 0
+        """
+        if all(t is None for t in (seconds, minutes, hours)):
+            return None
+        else:
+            num_seconds, num_minutes, num_hours = (0 if t is None else t for t in (seconds, minutes, hours))
+            return timedelta(hours=num_hours, minutes=num_minutes, seconds=num_seconds)
         
     def init_wait_block(self, block, value, lowlimit, highlimit, timeout_msg=""):
         self.block = block
