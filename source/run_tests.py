@@ -25,6 +25,7 @@ import argparse
 from test_modules.test_utilities import TestUtilitiesSequence
 from test_modules.test_simulation import TestSimulationSequence
 from test_modules.test_genie_epics_api import TestEpicsApiSequence
+from test_modules.test_genie_epics_api import TestEpicsApiSetInstrumentName
 from test_modules.test_genie_blockserver_tests import TestGenieBlockserver
 from test_modules.test_script_checker import TestScriptChecker
 from test_modules.test_genie import  TestGenie
@@ -33,6 +34,7 @@ TEST_CLASSES = [
     TestUtilitiesSequence,
     TestSimulationSequence,
     TestEpicsApiSequence,
+    TestEpicsApiSetInstrumentName,
     TestGenieBlockserver,
     TestScriptChecker,
     TestGenie

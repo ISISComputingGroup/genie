@@ -44,7 +44,6 @@ class API(object):
         test_machine_pv_prefix = "TE:"
 
         instrument_machine_prefixes = ["NDX", "NDE"]
-        non_instrument_machine_prefixes = ["NDW", "NDLT"]
 
         if machine_identifier is None:
             machine_identifier = self._environment_details.get_host_name()
@@ -61,7 +60,6 @@ class API(object):
             machine = "NDW{0}".format(instrument)
         else:
             machine = machine_identifier.upper()
-
 
         is_instrument = any(machine_identifier.startswith(p)
                             for p in instrument_machine_prefixes + [instrument_pv_prefix])
