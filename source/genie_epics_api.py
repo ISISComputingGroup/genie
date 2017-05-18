@@ -28,7 +28,7 @@ class API(object):
 
     def __init__(self, pv_prefix, globs, environment_details=None):
         """Constructor for the EPICS enabled API.
-        
+
         Parameters:
             pv_prefix - used for prefixing the PV and block names
             globs - globals
@@ -60,25 +60,23 @@ class API(object):
         if instrument in [inst["name"] for inst in self._environment_details.get_instrument_list(self)]:
             # Actual instruments
             pv_prefix = self._create_pv_prefix(instrument, True)
-            self.init_instrument(instrument, globs)
 
         elif instrument.startswith(("NDX", "NDE", "IN:")):
             # Actual instruments
-            instrument = instrument[3:]
+            instrument = instrument[3:].rstrip(":")
             pv_prefix = self._create_pv_prefix(instrument, True)
-            self.init_instrument(instrument.rstrip(":"), globs)
 
         elif instrument.startswith(("NDW", "NDLT", "TE:")):
             # Dev machine
             if instrument.startswith("TE:"):
                 instrument = instrument[3:]
-
             pv_prefix = self._create_pv_prefix(instrument, False)
-            print instrument.lower() + " will use init_default "
 
-        else:
-            print "THIS IS an UNKNOWN Instrument!"
-            print "Will use init_default "
+        # Whatever machine we're on, try to initialize and fall back if unsuccessful
+        try:
+            self.init_instrument(instrument, globs)
+        except Exception as e:
+            print e.message
 
         print "PV prefix is " + pv_prefix
         API.__inst_prefix = pv_prefix
@@ -138,8 +136,8 @@ class API(object):
             init_func = getattr(API.__localmod, "init")
             init_func(name)
         except Exception as err:
-            print "There was a problem with loading init_" + instrument.lower() + " so will use default"
-            print "Error was: %s" % err
+            raise Exception("There was a problem with loading init_{0} so will use default.\nError was {1}"
+                            .format(instrument.lower(), err))
 
     def set_pv_value(self, name, value, wait=False, is_local=False):
         """Set the PV to a value.
@@ -210,13 +208,13 @@ class API(object):
         # If we get here then the block does not exist
         # but this should be picked up elsewhere
         return name
-        
+
     def get_blocks(self):
         """Gets a list of block names from the blockserver
         Note: does not include the prefix"""
         # Get blocks from block server
         return API.blockserver.get_block_names()
-        
+
     def block_exists(self, name):
         """Checks whether the block exists.
         Note: this is case insensitive"""
@@ -232,11 +230,11 @@ class API(object):
         if wait is not None and runcontrol is not None:
             # Cannot set both at the same time
             raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
-            
+
         if not self.run_pre_post_cmd('cset_precmd', runcontrol=runcontrol, wait=wait):
             print 'cset cancelled by pre-command'
             return
-            
+
         full_name = self.correct_blockname(name)
 
         if lowlimit is not None and highlimit is not None:
@@ -244,17 +242,17 @@ class API(object):
                 temp = highlimit
                 highlimit = lowlimit
                 lowlimit = temp
-        
-        # if lowlimit is not None:
-            # if lowlimit == float("inf"):
+
+                # if lowlimit is not None:
+                # if lowlimit == float("inf"):
                 # lowlimit = 'Infinity'
-            # elif lowlimit == float("-inf"):
+                # elif lowlimit == float("-inf"):
                 # lowlimit = '-Infinity'
-        # if highlimit is not None:
-            # if highlimit == float("inf"):
+                # if highlimit is not None:
+                # if highlimit == float("inf"):
                 # highlimit = 'Infinity'
-            # elif highlimit == float("-inf"):
-                # highlimit = '-Infinity'            
+                # elif highlimit == float("-inf"):
+                # highlimit = '-Infinity'
         if value is not None:
             # Need to append :SP to the blockname - this is NOT a long term solution!
             # If a field is included then strip it off
@@ -287,11 +285,11 @@ class API(object):
             self.set_pv_value(full_name + ":RC:LOW", lowlimit)
         if highlimit is not None:
             self.set_pv_value(full_name + ":RC:HIGH", highlimit)
-            
+
     def get_block_value(self, name, to_string=False, attempts=3):
         """Gets the current value for the block"""
         return self.get_pv_value(self.correct_blockname(name), to_string, attempts)
-            
+
     def set_multiple_blocks(self, names, values):
         """Sets values for multiple blocks"""
         # With LabVIEW we could set values then press go after all values are set
@@ -299,11 +297,11 @@ class API(object):
         temp = zip(names, values)
         # Set the values
         for name, value in temp:
-            self.set_block_value(name, value)        
-            
+            self.set_block_value(name, value)
+
     def run_pre_post_cmd(self, command, **pars):
         """Runs a pre or post command.
-        
+
         Parameters:
             command - the command name as a string
             pars - the parameters to pass to the command
@@ -330,11 +328,11 @@ class API(object):
     def log_error_msg(self, error_msg):
         """Log the error to the log file"""
         self.write_to_log("ERROR: " + error_msg, 'CMD')
-    
+
     def write_to_log(self, message, source):
         """Writes a message to the default log file.
         Can be used for error logging and logging commands sent.
-        
+
         Parameters:
             message - the message to log
             source - the source of the message
@@ -352,14 +350,14 @@ class API(object):
         except:
             pass
 
-    def _get_pars(self,pv_prefix_identifier,get_names_from_blockserver):
+    def _get_pars(self, pv_prefix_identifier, get_names_from_blockserver):
         """Get the current parameter values for a given pv subset as a dictionary"""
         names = get_names_from_blockserver()
         ans = {}
         if names is not None:
             for n in names:
                 val = self.get_pv_value(self.prefix_pv_name(n))
-                m = re.match(".+:"+pv_prefix_identifier+":(.+)", n)
+                m = re.match(".+:" + pv_prefix_identifier + ":(.+)", n)
                 if m is not None:
                     ans[m.groups()[0]] = val
                 else:
@@ -369,10 +367,10 @@ class API(object):
     def get_sample_pars(self):
         """Get the current sample parameter values as a dictionary"""
         return self._get_pars("SAMPLE", API.blockserver.get_sample_par_names)
-        
+
     def set_sample_par(self, name, value):
         """Set a new value for a sample parameter
-        
+
         Parameters:
             name - the name of the parameter to change
             value - the new value
@@ -390,10 +388,10 @@ class API(object):
     def get_beamline_pars(self):
         """Get the current beamline parameter values as a dictionary"""
         return self._get_pars("BL", API.blockserver.get_beamline_par_names)
-        
+
     def set_beamline_par(self, name, value):
         """Set a new value for a beamline parameter
-        
+
         Parameters:
             name - the name of the parameter to change
             value - the new value
@@ -407,7 +405,7 @@ class API(object):
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
         raise Exception("Beamline parameter %s does not exist" % name)
-        
+
     def get_runcontrol_settings(self, name):
         """Gets the current run-control settings for a block.
 
@@ -424,7 +422,7 @@ class API(object):
             return ans[name]
 
         return dict()
-        
+
     def check_alarms(self, blocks):
         """Checks whether the specified blocks are in alarm.
 
@@ -462,7 +460,7 @@ class API(object):
                     field_values.append([block_name, field_value])
                 except:
                     # Could not get value
-                    print "\nCould not get " + field_description + " for block %s" %b
+                    print "\nCould not get " + field_description + " for block %s" % b
             else:
                 print "Block %s does not exist, so ignoring it" % b
 
@@ -488,4 +486,3 @@ class API(object):
             send_sms(phone_num, message)
         except Exception as e:
             raise Exception("Could not send SMS\n" + str(e))
-
