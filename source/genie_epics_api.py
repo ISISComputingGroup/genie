@@ -39,12 +39,43 @@ class API(object):
         else:
             self._environment_details = environment_details
 
-    def set_instrument(self, pv_prefix, globs):
+    def _get_machine_details_from_identifier(self, machine_identifier):
+        instrument_pv_prefix = "IN:"
+        test_machine_pv_prefix = "TE:"
+
+        instrument_machine_prefixes = ["NDX", "NDE"]
+        non_instrument_machine_prefixes = ["NDW", "NDLT"]
+
+        if machine_identifier is None:
+            machine_identifier = self._environment_details.get_host_name()
+
+        instrument = machine_identifier.upper()
+        for p in [instrument_pv_prefix, test_machine_pv_prefix] + instrument_machine_prefixes:
+            if machine_identifier.startswith(p):
+                instrument = machine_identifier.upper()[len(p):].rstrip(":")
+                break
+
+        if machine_identifier.startswith(instrument_pv_prefix):
+            machine = "NDX{0}".format(instrument)
+        elif machine_identifier.startswith(test_machine_pv_prefix):
+            machine = "NDW{0}".format(instrument)
+        else:
+            machine = machine_identifier.upper()
+
+
+        is_instrument = any(machine_identifier.startswith(p)
+                            for p in instrument_machine_prefixes + [instrument_pv_prefix])
+        pv_prefix = self._get_pv_prefix(instrument, is_instrument)
+
+        return instrument, machine, pv_prefix
+
+    def set_instrument(self, machine_identifier, globs):
         """
         Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed
         Will do some checking to allow you to pass instrument names in so
         Args:
-            pv_prefix: should be the pv prefix but also accepts instrument name; if none defaults to computer hostname
+            machine_identifier: should be the pv prefix but also accepts instrument name; if none defaults to computer
+            host name
             globs: globals
 
         Returns:
@@ -52,29 +83,11 @@ class API(object):
         """
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
 
-        if pv_prefix is None:
-            pv_prefix = self._environment_details.get_host_name()
-
-        instrument = pv_prefix.upper()
-
-        if instrument in [inst["name"] for inst in self._environment_details.get_instrument_list(self)]:
-            # Actual instruments
-            pv_prefix = self._create_pv_prefix(instrument, True)
-
-        elif instrument.startswith(("NDX", "NDE", "IN:")):
-            # Actual instruments
-            instrument = instrument[3:].rstrip(":")
-            pv_prefix = self._create_pv_prefix(instrument, True)
-
-        elif instrument.startswith(("NDW", "NDLT", "TE:")):
-            # Dev machine
-            if instrument.startswith("TE:"):
-                instrument = instrument[3:]
-            pv_prefix = self._create_pv_prefix(instrument, False)
+        instrument, machine, pv_prefix = self._get_machine_details_from_identifier(machine_identifier)
 
         # Whatever machine we're on, try to initialize and fall back if unsuccessful
         try:
-            self.init_instrument(instrument, globs)
+            self.init_instrument(instrument, machine, globs)
         except Exception as e:
             print e.message
 
@@ -85,7 +98,7 @@ class API(object):
         API.waitfor = WaitForController(self)
         API.blockserver = BlockServer(self)
 
-    def _create_pv_prefix(self, instrument, is_instrument):
+    def _get_pv_prefix(self, instrument, is_instrument):
         """
         Create the pv prefix based on instrument name and whether it is an instrument or a dev machine
         Args:
@@ -115,16 +128,15 @@ class API(object):
             return API.__inst_prefix + name
         return name
 
-    def init_instrument(self, instrument, globs):
+    def init_instrument(self, instrument, machine_name, globs):
         try:
-            name = instrument.lower()
-
             # Try to call init on init_default to add the path for the instrument specific python files
             init_func = getattr(API.__mod, "init")
-            init_func(name)
+            init_func(machine_name)
 
             # Load it
-            API.__localmod = __import__('init_' + name, globals(), locals(), ['init_' + name], -1)
+            instrument = instrument.lower()
+            API.__localmod = __import__('init_' + instrument, globals(), locals(), ['init_' + instrument], -1)
             if API.__localmod.__file__.endswith('.pyc'):
                 file_loc = API.__localmod.__file__[:-1]
             else:
@@ -134,7 +146,7 @@ class API(object):
             execfile(file_loc, globs)
             # Call the init command
             init_func = getattr(API.__localmod, "init")
-            init_func(name)
+            init_func(machine_name)
         except Exception as err:
             raise Exception("There was a problem with loading init_{0} so will use default.\nError was {1}"
                             .format(instrument.lower(), err))
