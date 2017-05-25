@@ -17,7 +17,6 @@
 import unittest
 from mock import MagicMock, patch
 from genie_epics_api import API
-from utilities import EnvironmentDetails
 
 
 class TestEpicsApiSequence(unittest.TestCase):
@@ -115,79 +114,129 @@ class TestEpicsApiSequence(unittest.TestCase):
 
 class TestEpicsApiSetInstrumentName(unittest.TestCase):
 
-    def prefix_set_and_check(self, pv_prefix_to_set, expected_pv_prefix, host_name="host"):
-
-        computer_details = EnvironmentDetails(host_name)
-        api = API(None, None, environment_details=computer_details)
-        api.set_instrument(pv_prefix_to_set, None)
-        result = api.prefix_pv_name("")
-        self.assertEqual(result,
-                         expected_pv_prefix,
-                         'Expected "{expected}" was "{actual}"'.format(expected=expected_pv_prefix, actual=result))
-
     def setUp(self):
-        pass
+        self.api = API("", None)
 
-    def tearDown(self):
-        pass
+    def test_WHEN_machine_identifier_begins_ndx_THEN_instrument_is_name_without_ndx(self):
+        # Act
+        expected = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDX"+expected)
 
-    def test_WHEN_standard_instrument_WHEN_inst_set_THEN_name_recognised(self):
-        pv_prefix_to_set = "LARMOR"
-        expected_pv_prefix = "IN:{0}:".format(pv_prefix_to_set)
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, instrument)
 
-    def test_WHEN_prefix_starts_with_in_WHEN_inst_set_THEN_instrument_set_as_expected(self):
-        pv_prefix_to_set = "IN:LARMOR:"
-        expected_pv_prefix = "IN:LARMOR:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+    def test_WHEN_machine_identifier_begins_ndx_THEN_machine_name_is_machine_identifier(self):
+        # Act
+        expected = "NDXNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
-    def test_WHEN_prefix_in_lower_case_WHEN_inst_set_THEN_instrument_prefix_is_capitalised(self):
-        pv_prefix_to_set = "in:larmor:"
-        expected_pv_prefix = "IN:LARMOR:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, machine)
 
-    def test_WHEN_prefix_doesnt_end_in_colon_WHEN_inst_set_THEN_extra_colon_added_to_prefix(self):
-        pv_prefix_to_set = "In:Larmor"
-        expected_pv_prefix = "IN:LARMOR:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+    def test_WHEN_machine_identifier_begins_ndx_THEN_pv_prefix_begins_with_in_colon(self):
+        # Act
+        name = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDX" + name)
+        expected = "IN:" + name + ":"
 
-    def test_WHEN_prefix_starts_with_ndx_WHEN_inst_set_THEN_instrument_set_as_expected(self):
-        pv_prefix_to_set = "NDXLARMOR:"
-        expected_pv_prefix = "IN:LARMOR:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, pv_prefix)
 
-    def test_WHEN_is_not_recognised_WHEN_inst_set_THEN_prefix_is_unaltered(self):
-        pv_prefix_to_set = "unrecognised:pvprefix:"
-        expected_pv_prefix = pv_prefix_to_set
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+    def test_WHEN_machine_identifier_begins_ndw_THEN_instrument_is_same_as_name(self):
+        # Act
+        expected = "NDWNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
-    def test_WHEN_prefix_starts_with_ndw_with_short_name_WHEN_inst_set_THEN_instrument_set_as_NDW_in_TE(self):
+        # Assert
+        self.assertEqual(expected, instrument)
 
-        pv_prefix_to_set = "NDWBLAH"
-        expected_pv_prefix = "TE:{0}:".format(pv_prefix_to_set)
+    def test_WHEN_machine_identifier_begins_ndx_THEN_machine_name_is_machine_identifier(self):
+        # Act
+        expected = "NDWNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, machine)
 
-    def test_WHEN_prefix_starts_with_ndw_with_long_name_WHEN_inst_set_THEN_instrument_set_as_NDW_with_CRC_in_TE(self):
+    def test_WHEN_machine_identifier_begins_ndw_THEN_pv_prefix_begins_with_te_colon(self):
+        # Act
+        machine = "NDWname"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
+        expected = "TE:" + machine + ":"
 
-        pv_prefix_to_set = "NDWBLAH_REALLY_LONG"
-        expected_pv_prefix = "TE:NDWBLA3C:"
+        # Assert
+        self.assertEqual(expected, pv_prefix)
 
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+    def test_WHEN_machine_identifier_begins_nde_THEN_instrument_is_name_without_nde(self):
+        # Act
+        expected = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDE"+expected)
 
-    def test_WHEN_prefix_starts_with_ndx_with_long_name_WHEN_inst_set_THEN_instrument_set_as_NDW_with_CRC_in_IN(self):
+        # Assert
+        self.assertEqual(expected, instrument)
 
-        pv_prefix_to_set = "NDXBLAH_REALLY_LONG"
-        expected_pv_prefix = "IN:BLAH_R32:"
+    def test_WHEN_machine_identifier_begins_nde_THEN_machine_name_is_machine_identifier(self):
+        # Act
+        expected = "NDENAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, machine)
 
-    def test_WHEN_prefix_starts_with_nde_WHEN_inst_set_THEN_instrument_set_as_expected(self):
-        pv_prefix_to_set = "NDELARMOR"
-        expected_pv_prefix = "IN:LARMOR:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+    def test_WHEN_machine_identifier_begins_nde_THEN_pv_prefix_begins_with_in_colon(self):
+        # Act
+        name = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDE" + name)
+        expected = "IN:" + name + ":"
 
-    def test_WHEN_prefix_starts_with_te_WHEN_inst_set_THEN_instrument_set_as_expected(self):
-        pv_prefix_to_set = "TE:TESTNAME:"
-        expected_pv_prefix = "TE:TESTNAME:"
-        self.prefix_set_and_check(pv_prefix_to_set, expected_pv_prefix)
+        # Assert
+        self.assertEqual(expected, pv_prefix)
+
+    def test_WHEN_machine_identifier_begins_ndlt_THEN_instrument_is_same_as_machine_name(self):
+        # Act
+        expected = "NDLTNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+
+        # Assert
+        self.assertEqual(expected, instrument)
+
+    def test_WHEN_machine_identifier_begins_ndlt_THEN_machine_name_is_machine_identifier(self):
+        # Act
+        expected = "NDLTNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+
+        # Assert
+        self.assertEqual(expected, machine)
+
+    def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_te_colon(self):
+        # Act
+        machine = "NDLTNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
+        expected = "TE:" + machine + ":"
+
+        # Assert
+        self.assertEqual(expected, pv_prefix)
+
+    def test_WHEN_machine_identifier_begins_in_colon_THEN_instrument_is_name_without_prefix(self):
+        # Act
+        expected = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("IN:" + expected + ":")
+
+        # Assert
+        self.assertEqual(expected, instrument)
+
+    def test_WHEN_machine_identifier_begins_in_colon_THEN_machine_name_is_machine_identifier(self):
+        # Act
+        name = "NAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("IN:" + name + ":")
+
+        # Assert
+        self.assertEqual("NDX" + name, machine)
+
+    def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_te_colon(self):
+        # Act
+        expected = "IN:NAME:"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+
+        # Assert
+        self.assertEqual(expected, pv_prefix)
