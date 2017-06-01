@@ -18,6 +18,7 @@ import unittest
 import genie
 import sys
 
+
 class TestGenie(unittest.TestCase):
     def setUp(self):
         genie._exceptions_raised = True
@@ -42,23 +43,23 @@ class TestGenie(unittest.TestCase):
         self.assertRaises(Exception, genie.load_script, script)
 
     def test_GIVEN_valid_script_WHEN_load_script_THEN_can_call_script(self):
-        #Arrange
+        # Arrange
         script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "valid.py")
 
         # Act
         genie.load_script(script)
 
-        #Assert
+        # Assert
         self.assertTrue(genie.valid())
 
     def test_GIVEN_valid_script_WHEN_load_script_THEN_can_import_from_script_directory(self):
-        #Arrange
+        # Arrange
         script = os.path.join(os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts"), "valid.py")
 
         # Act
         genie.load_script(script)
 
-        #Assert
+        # Assert
         self.assertTrue(genie.check_import())
 
     def test_GIVEN_script_checker_error_WHEN_load_script_THEN_error(self):
@@ -98,5 +99,3 @@ class TestGenie(unittest.TestCase):
 
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
-
-
