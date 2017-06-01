@@ -81,7 +81,13 @@ DAE_PVS_LOOKUP = {
 
 class Dae(object):
     def __init__(self, api, prefix=""):
-        """The constructor"""
+        """
+        The constructor.
+
+        Args:
+            api: the API used for communication
+            prefix: the PV prefix
+        """
         self.api = api
         self.inst_prefix = prefix
         self.in_change = False
@@ -89,36 +95,101 @@ class Dae(object):
         self.verbose = False
         
     def __prefix_pv_name(self, name):
-        """Adds the prefix to the PV name"""
+        """
+        Adds the prefix to the PV name.
+
+        Args:
+            name: the name to be prefixed
+
+        Returns:
+            string: the full PV name
+        """
         if self.inst_prefix is not None:
             name = self.inst_prefix + name
         return name
           
     def _get_dae_pv_name(self, name):
-        """Retrieves the full pv name of a DAE variable"""
+        """
+        Retrieves the full pv name of a DAE variable.
+
+        Args:
+            name: the short name for the DAE variable
+
+        Returns:
+            string: the full PV name
+        """
         return self.__prefix_pv_name(DAE_PVS_LOOKUP[name.lower()])
 
     def _get_pv_value(self, name, to_string=False):
-        """Get a PV's value"""
+        """
+        Gets a PV's value.
+
+        Args:
+            name: the PV name
+            to_string: whether to convert the value to a string
+
+        Returns:
+            object: the PV's value
+        """
         return self.api.get_pv_value(name, to_string)
 
     def _set_pv_value(self, name, value, wait=False):
+        """
+        Sets a PV value via the API.
+
+        Args:
+            name: the PV name
+            value: the value to set
+            wait: whether to wait for it to be set before returning
+        """
         self.api.set_pv_value(name, value, wait)
         
     def _check_for_runstate_error(self, pv, header=""):
+        """
+        Check for errors on the run state PV.
+
+        Args:
+            pv: the PV name
+            header: information to include in the exception raised.
+
+        Raises:
+            Exception: if there is an error on the specified PV
+
+        """
         status = self._get_pv_value(pv + ".STAT", to_string=True)
         if status != "NO_ALARM":
             errmsg = self._get_pv_value(self._get_dae_pv_name("errormessage"), to_string=True)
             raise Exception(header.strip() + " " + errmsg)
             
     def _print_verbose_messages(self):
+        """
+        Prints all the messages.
+        """
         msgs = self._get_pv_value(self._get_dae_pv_name("allmessages"), to_string=True)
         print msgs
         
     def _dehex_decompress(self, value):
+        """
+        Dehexs and decompresses the supplied value.
+
+        Args:
+            value: the value
+
+        Returns:
+            string: the decoded value
+        """
         return zlib.decompress(value.decode("hex"))
         
     def set_verbose(self, verbose):
+        """
+        Sets the verbosity of the DAE messages printed
+
+        Args:
+            verbose: bool setting
+
+        Raise:
+            Exception: if the supplied value is not a bool
+        """
         if isinstance(verbose, bool):
             self.verbose = verbose
             if verbose:
@@ -132,7 +203,7 @@ class Dae(object):
                   sample_id=None, delayed=False, quiet=False, paused=False):
         """Starts a data collection run.
         
-        Parameters:
+        Args:
             period - the period to begin data collection in [optional]
             meas_id - the measurement id [optional]
             meas_type - the type of measurement [optional]
@@ -179,147 +250,259 @@ class Dae(object):
         self._set_pv_value(self._get_dae_pv_name("beginrun"), options, wait=True)
 
     def post_begin_check(self, verbose=False):
+        """
+        Checks the BEGIN PV for errors after beginning a run.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("beginrun"), "BEGIN")
         if verbose or self.verbose:
             self._print_verbose_messages()
 
     def abort_run(self):
-        """Abort the current run."""
+        """
+        Abort the current run.
+        """
         print "** Aborting Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1.0, wait=True)
 
     def post_abort_check(self, verbose=False):
+        """
+        Checks the ABORT PV for errors after aborting a run.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("abortrun"), "ABORT")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
     def end_run(self):
-        """End the current run."""
+        """
+        End the current run.
+        """
         print "** Ending Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1.0, wait=True)
 
     def post_end_check(self, verbose=False):
+        """
+        Checks the END PV for errors after ending a run.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("endrun"), "END")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
     def recover_run(self):
-        """Recovers the run if it has been aborted.
+        """
+        Recovers the run if it has been aborted.
+
         The command should be run before the next run is started.
         Note: the run will be recovered in the paused state.
         """
         self._set_pv_value(self._get_dae_pv_name("recoverrun"), 1.0, wait=True)
 
     def post_recover_check(self, verbose=False):
+        """
+        Checks the RECOVER PV for errors after recovering a run.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("recoverrun"), "RECOVER")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
     def update_store_run(self):
-        """Performs an update and a store operation in a combined operation.
+        """
+        Performs an update and a store operation in a combined operation.
+
         This is more efficient than doing the commands separately.
         """
         print "** Saving Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1.0, wait=True)
 
     def post_update_store_check(self, verbose=False):
+        """
+        Checks the associated PV for errors after an update store.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("saverun"), "SAVE")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
     def update_run(self):
-        """Data is loaded from the DAE into the computer memory, but is not written to disk.
+        """
+        Data is loaded from the DAE into the computer memory, but is not written to disk.
         """
         self._set_pv_value(self._get_dae_pv_name("updaterun"), 1.0, wait=True)
 
     def post_update_check(self, verbose=False):
+        """
+        Checks the associated PV for errors after an update.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("updaterun"), "UPDATE")
         if verbose or self.verbose:
             self._print_verbose_messages()
             
     def store_run(self):
-        """Data loaded into memory by a previous update_run command is now written to disk."""
+        """
+        Data loaded into memory by a previous update_run command is now written to disk.
+        """
         self._set_pv_value(self._get_dae_pv_name("storerun"), 1.0, wait=True)
 
     def post_store_check(self, verbose=False):
+        """
+        Checks the associated PV for errors after a store.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("storerun"), "STORE")
         if verbose or self.verbose:
             self._print_verbose_messages()
 
     def snapshot_crpt(self, filename):
-        """Save a snapshot of the CRPT.
+        """
+        Save a snapshot of the CRPT.
 
-        Parameters:
+        Args:
             filename - the name and location to save the file(s) to
         """
         self._set_pv_value(self._get_dae_pv_name("snapshot"), filename, wait=True)
 
     def post_snapshot_check(self, verbose=False):
+        """
+        Checks the associated PV for errors after a snapshot.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("snapshot"), "SNAPSHOTCRPT")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
     def pause_run(self):
-        """Pause the current run."""
+        """
+        Pause the current run.
+        """
         print "** Pausing Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1.0, wait=True)
 
     def post_pause_check(self, verbose=False):
+        """
+        Checks the PAUSE PV for errors after pausing.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("pauserun"), "PAUSE")
         if verbose or self.verbose:
             self._print_verbose_messages()
         
     def resume_run(self):
-        """Resume the current run after it has been paused."""
+        """
+        Resume the current run after it has been paused.
+        """
         print "** Resuming Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1.0, wait=True)
 
     def post_resume_check(self, verbose=False):
+        """
+        Checks the RESUME PV for errors after resuming.
+
+        Args:
+            verbose: whether to print verbosely
+        """
         self._check_for_runstate_error(self._get_dae_pv_name("resumerun"), "RESUME")
         if verbose or self.verbose:
             self._print_verbose_messages()
 
     def get_run_state(self):
-        """Get the current state of the DAE
-        Note: this value can take a few seconds to update after a change of state"""
+        """
+        Gets the current state of the DAE.
+
+        Note: this value can take a few seconds to update after a change of state.
+
+        Returns:
+            string: the current run state
+
+        Raises:
+            Exception: if cannot retrieve value
+        """
         try:
             return self._get_pv_value(self._get_dae_pv_name("runstate"), to_string=True)
         except:
             raise Exception("get_run_state: could not get run state")
 
     def get_run_number(self):
-        """Get the current run number."""
+        """
+        Gets the current run number.
+
+        Returns:
+            string: the current run number
+        """
         return self._get_pv_value(self._get_dae_pv_name("runnumber"))
         
     def get_period_type(self):
-        """Get the period type"""
+        """
+        Gets the period type.
+
+        Returns:
+            string: the period type
+        """
         return self._get_pv_value(self._get_dae_pv_name("periodtype"))
         
     def get_period_seq(self):
-        """Get the period sequence"""
+        """
+        Gets the period sequence.
+
+        Returns:
+            object: the period sequence
+        """
         return self._get_pv_value(self._get_dae_pv_name("periodseq"))
         
     def get_period(self):
-        """Returns the current period number."""
+        """
+        Gets  the current period number.
+
+        Returns:
+            int: the current period
+        """
         return self._get_pv_value(self._get_dae_pv_name("period"))
         
     def get_num_periods(self):
-        """Returns the number of periods."""
+        """
+        Gets the number of periods.
+
+        Returns:
+            int: the number of periods
+        """
         return self._get_pv_value(self._get_dae_pv_name("numperiods"))
 
     def set_period(self, period):
-        """Change to the specified period.
+        """
+        Change to the specified period.
         
-        Parameters:
-            period - the number of the period to change to
+        Args:
+            period: the number of the period to change to
         """
         self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
         
     def get_uamps(self, period=False):
-        """Returns the current number of micro-amp hours.
+        """
+        Returns the current number of micro-amp hours.
         
-        Parameters:
-            period - whether to return the micro-amp hours for the current period [optional]
+        Args:
+            period: whether to return the micro-amp hours for the current period [optional]
         """
         if period:
             return self._get_pv_value(self._get_dae_pv_name("uampsperiod"))
@@ -327,18 +510,32 @@ class Dae(object):
             return self._get_pv_value(self._get_dae_pv_name("uamps"))
         
     def get_mevents(self):
-        """Returns the total number of events for all the detectors."""
+        """
+        Gets the total number of events for all the detectors.
+
+        Returns:
+            int: the total number of events
+        """
         return self._get_pv_value(self._get_dae_pv_name("mevents"))
         
     def get_total_counts(self):
-        """Get the total counts for the current run."""
+        """
+        Gets the total counts for the current run.
+
+        Returns:
+            int: the total counts
+        """
         return self._get_pv_value(self._get_dae_pv_name("totalcounts"))
         
     def get_good_frames(self, period=False):
-        """Returns the current number of good frames.
+        """
+        Gets the current number of good frames.
         
-        Parameters:
-            period - whether to return the number of good frames for the current period [optional]
+        Args:
+            period: whether to get for the current period only [optional]
+
+        Returns:
+            int: the number of good frames
         """
         if period:
             return self._get_pv_value(self._get_dae_pv_name("goodframesperiod"))
@@ -346,10 +543,14 @@ class Dae(object):
             return self._get_pv_value(self._get_dae_pv_name("goodframes"))
         
     def get_raw_frames(self, period=False):
-        """Returns the current number of raw frames.
+        """
+        Gets the current number of raw frames.
         
-        Parameters:
-            period - whether to return the number of raw frames for the current period [optional]
+        Args:
+            period: whether to get for the current period only [optional]
+
+        Returns:
+            int: the number of raw frames
         """
         if period:
             return self._get_pv_value(self._get_dae_pv_name("rawframesperiod"))
@@ -357,35 +558,84 @@ class Dae(object):
             return self._get_pv_value(self._get_dae_pv_name("rawframes"))
         
     def sum_all_dae_memory(self):
-        """Returns the sum of the counts in the DAE."""
+        """
+        Gets the sum of the counts in the DAE.
+
+        Returns:
+            int: the sum
+        """
         return self._get_pv_value(self._get_dae_pv_name("histmemory"))
         
     def get_memory_used(self):
-        """Get the DAE memory used"""
+        """
+        Gets the DAE memory used.
+
+        Returns:
+            int: the memory used
+        """
         return self._get_pv_value(self._get_dae_pv_name("memoryused"))
         
     def sum_all_spectra(self):
-        """Returns the sum of all the spectra in the DAE."""
+        """
+        Returns the sum of all the spectra in the DAE.
+
+        Returns:
+            int: the sum of spectra
+        """
         return self._get_pv_value(self._get_dae_pv_name("spectrasum"))
         
     def get_num_spectra(self):
-        """Get the number of spectra"""
+        """
+        Gets the number of spectra.
+
+        Returns:
+            int: the number of spectra
+        """
         return self._get_pv_value(self._get_dae_pv_name("numspectra"))
         
     def get_rb_number(self):
-        """Get the RB number for the current run."""
+        """
+        Gets the RB number for the current run.
+
+        Returns:
+            string: the current RB number
+        """
         return self._get_pv_value(self._get_dae_pv_name("rbnum"))
+
+    def set_rb_number(self, rbno):
+        """
+        Set the RB number for the current run.
+
+        Args:
+            rbno: the new RB number as a string.
+        """
+        self._set_pv_value(self._get_dae_pv_name("rbnum_sp"), rbno)
         
     def get_title(self):
-        """Get the title for the current run."""
+        """
+        Gets the title for the current run.
+
+        Returns
+            string: the current title
+        """
         return self._get_pv_value(self._get_dae_pv_name("title"), to_string=True)
     
     def set_title(self, title):
-        """Get the title for the current run."""
+        """
+        Set the title for the current/next run.
+
+        Args:
+            title: the title to set
+        """
         self._set_pv_value(self._get_dae_pv_name("title_sp"), title)
         
     def get_users(self):
-        """Get the users for the current run"""
+        """
+        Gets the users for the current run.
+
+        Returns:
+            string: the usernames
+        """
         try:
             # Data comes as compressed and hexed json
             raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("users"), to_string=True))
@@ -402,26 +652,50 @@ class Dae(object):
             return ""
         
     def set_users(self, users):
-        """Set the users for the current run"""
+        """
+        Set the users for the current run.
+
+        Args:
+            users: the users as a string
+        """
         self._set_pv_value(self._get_dae_pv_name("users_sp"), users)
         
     def get_starttime(self):
-        """Get the start time for the current run"""
+        """
+        Gets the start time for the current run.
+
+        Returns
+            string: the start time
+        """
         return self._get_pv_value(self._get_dae_pv_name("starttime"))
         
     def get_npratio(self):
-        """Get the n/p ratio for the current run"""
+        """
+        Gets the n/p ratio for the current run.
+
+        Returns:
+            float: the ratio
+        """
         return self._get_pv_value(self._get_dae_pv_name("npratio"))
         
     def get_timing_source(self):
-        """Get the DAE timing source"""
+        """
+        Gets the DAE timing source.
+
+        Returns:
+            string: the current timing source being used
+        """
         return self._get_pv_value(self._get_dae_pv_name("timingsource"))
         
     def get_run_duration(self, period=False):
-        """Get either the total run duration or the period duration
+        """
+        Gets either the total run duration or the period duration
         
-        Parameters:
-            period - whether to return the duration for the current period [optional]
+        Args:
+            period: whether to return the duration for the current period [optional]
+
+        Returns:
+            int: the run duration in seconds
         """
         if period:
             return self._get_pv_value(self._get_dae_pv_name("rundurationperiod"))
@@ -429,50 +703,105 @@ class Dae(object):
             return self._get_pv_value(self._get_dae_pv_name("runduration"))
             
     def get_num_timechannels(self):
-        """Get the number of time channels"""
+        """
+        Gets the number of time channels.
+
+        Returns:
+            int: the number of time channels
+        """
         return self._get_pv_value(self._get_dae_pv_name("numtimechannels"))
         
     def get_monitor_counts(self):
-        """Get the number of monitor counts"""
+        """
+        Gets the number of monitor counts.
+
+        Returns:
+            int: the number of monitor counts
+        """
         return self._get_pv_value(self._get_dae_pv_name("monitorcounts"))
         
     def get_monitor_spectrum(self):
-        """Get the monitor spectrum"""
+        """
+        Gets the monitor spectrum.
+
+        Returns:
+            int: the detector number of the monitor
+        """
         return self._get_pv_value(self._get_dae_pv_name("monitorspectrum"))
         
     def get_monitor_to(self):
-        """Get the monitor 'to' limit"""
+        """
+        Gets the monitor 'to' limit.
+
+        Returns:
+            float: the 'to' time for the monitor
+        """
         return self._get_pv_value(self._get_dae_pv_name("monitorto"))
         
     def get_monitor_from(self):
-        """Get the monitor 'from' limit"""
+        """
+        Gets the monitor 'from' limit.
+
+        Returns:
+            float: the 'from' time for the monitor
+        """
         return self._get_pv_value(self._get_dae_pv_name("monitorfrom"))
         
     def get_beam_current(self):
-        """Get the beam current"""
+        """
+        Gets the beam current.
+
+        Returns:
+            float: the current value
+        """
         return self._get_pv_value(self._get_dae_pv_name("beamcurrent"))
         
     def get_total_uamps(self):
-        """Get the total microamp hours for the current run"""
+        """
+        Gets the total microamp hours for the current run.
+
+        Returns:
+            float: the total micro-amp hours.
+        """
         return self._get_pv_value(self._get_dae_pv_name("totaluamps"))
         
     def get_total_dae_counts(self):
-        """Get the total DAE counts for the current run"""
+        """
+        Gets the total DAE counts for the current run.
+
+        Returns:
+            int: the total count
+        """
         return self._get_pv_value(self._get_dae_pv_name("totaldaecounts"))
         
     def get_countrate(self):
-        """Get the count rate"""
+        """
+        Gets the count rate.
+
+        Returns:
+            float: the count rate
+        """
         return self._get_pv_value(self._get_dae_pv_name("countrate"))
         
     def get_eventmode_fraction(self):
-        """Get the event mode fraction"""
-        return self._get_pv_value(self._get_dae_pv_name("countrate"))
+        """
+        Gets the event mode fraction.
+
+        Returns:
+            float: the fraction
+        """
+        return self._get_pv_value(self._get_dae_pv_name("eventmodefraction"))
         
     def change_start(self):
-        """Start a change operation.
-        The operaton is finished when change_finish is called.
+        """
+        Start a change operation.
+
+        The operaiton is finished when change_finish is called.
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
+
+        Raises:
+            Exception: if the run state is not SETUP or change already started
         """
         # Check in setup
         if self.get_run_state() != "SETUP":
@@ -484,8 +813,10 @@ class Dae(object):
             self.change_cache = ChangeCache()
         
     def change_finish(self):
-        """End a change operation.
-        The operaton is begun when change_start is called.
+        """
+        End a change operation.
+
+        The operation is begun when change_start is called.
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
         """
@@ -497,12 +828,13 @@ class Dae(object):
             self.change_cache = ChangeCache()
             
     def change_tables(self, wiring=None, detector=None, spectra=None):
-        """Load the wiring, detector and/or spectra tables.
+        """
+        Load the wiring, detector and/or spectra tables.
         
-        Parameters:
-            wiring - the filename of the wiring table file [optional]
-            detector - the filename of the detector table file [optional]
-            spectra - the filename of the spectra table file [optional]
+        Args:
+            wiring: the filename of the wiring table file [optional]
+            detector: the filename of the detector table file [optional]
+            spectra: the filename of the spectra table file [optional]
         """
         did_change = False
         if not self.in_change:
@@ -518,12 +850,16 @@ class Dae(object):
             self.change_finish()
                 
     def change_monitor(self, spec, low, high):
-        """Change the monitor to a specified spectrum and range.
+        """
+        Change the monitor to a specified spectrum and range.
         
-        Parameters:
-            spectrum - the spectrum number (integer)
-            low - the low end of the integral (float)
-            high - the high end of the integral (float)
+        Args:
+            spectrum: the spectrum number (integer)
+            low: the low end of the integral (float)
+            high: the high end of the integral (float)
+
+        Raises:
+            ValueError: if a value supplied is not correctly typed
         """
         try:
             spec = int(spec)
@@ -546,10 +882,14 @@ class Dae(object):
             self.change_finish()
             
     def change_sync(self, source):
-        """Change the source the DAE using for synchronisation.
+        """
+        Change the source the DAE using for synchronisation.
         
-        Parameters:
-            source - the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
+        Args:
+            source: the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
+
+        Raises:
+            Exception: if an invalid source is entered
         """
         did_change = False
         if not self.in_change:
@@ -577,11 +917,15 @@ class Dae(object):
             self.change_finish()
 
     def change_tcb_file(self, tcb_file=None, default=False):
-        """Change the time channel boundaries.
+        """
+        Change the time channel boundaries.
         
-        Parameters:
-            tcb_file - the file to load [optional]
-            default - load the default file "c:\\labview modules\\dae\\tcb.dat" [optional]
+        Args:
+            tcb_file: the file to load [optional]
+            default: load the default file "c:\\labview modules\\dae\\tcb.dat" [optional]
+
+        Raises:
+            Exception: if the TCB file is not specified or not found
         """
         did_change = False
         if not self.in_change:
@@ -600,15 +944,16 @@ class Dae(object):
             self.change_finish()
 
     def change_tcb(self, low, high, step, trange, log=False, regime=1):
-        """Change the time channel boundaries.
+        """
+        Change the time channel boundaries.
         
-        Parameters:
-            low - the lower limit
-            high - the upper limit
-            step - the step size
-            trange - the time range (1 to 5)
-            log - whether to use LOG binning [optional]  
-            regime - the time regime to set (1 to 6)[optional]        
+        Args:
+            low: the lower limit
+            high: the upper limit
+            step: the step size
+            trange: the time range (1 to 5)
+            log: whether to use LOG binning [optional]
+            regime: the time regime to set (1 to 6)[optional]
         """
         did_change = False
         if not self.in_change:
@@ -624,22 +969,25 @@ class Dae(object):
             self.change_finish()
                 
     def change_vetos(self, **params):
-        """Change the DAE veto settings.
+        """
+        Change the DAE veto settings.
         
-        Parameters:
-            clearall - remove all vetos [optional]
-            smp - set SMP veto [optional]
-            ts2 - set TS2 veto [optional]
-            hz50 - set 50 hz veto [optional]
-            ext0 - set external veto 0 [optional]
-            ext1 - set external veto 1 [optional]
-            ext2 - set external veto 2 [optional]
-            ext3 - set external veto 3 [optional]
+        Args:
+            clearall: remove all vetos [optional]
+            smp: set SMP veto [optional]
+            ts2: set TS2 veto [optional]
+            hz50: set 50 hz veto [optional]
+            ext0: set external veto 0 [optional]
+            ext1: set external veto 1 [optional]
+            ext2: set external veto 2 [optional]
+            ext3: set external veto 3 [optional]
         
         If clearall is specified then all vetos are turned off, but it is possible to turn other vetoes 
-        back on at the same time, for example:
-        
-            change_vetos(clearall=True, smp=True)    #Turns all vetoes off then turns the SMP veto back on
+        back on at the same time.
+
+        Example:
+            Turns all vetoes off then turns the SMP veto back on
+            >>> change_vetos(clearall=True, smp=True)
         """
         did_change = False
         if not self.in_change:
@@ -673,12 +1021,16 @@ class Dae(object):
             self.change_finish()
             
     def set_fermi_veto(self, enable=None, delay=1.0, width=1.0):
-        """Configure the fermi chopper veto.
+        """
+        Configure the fermi chopper veto.
         
-        Parameters:
-            enable - enable the fermi veto
-            delay - the veto delay
-            width - the veto width
+        Args:
+            enable: enable the fermi veto
+            delay: the veto delay
+            width: the veto width
+
+        Raises:
+            Exception: if invalid typed value supplied.
         """
         if not isinstance(enable, bool):
             raise Exception("Fermi veto: enable must be a boolean value")
@@ -700,10 +1052,14 @@ class Dae(object):
             self.change_finish()
             
     def set_num_soft_periods(self, number):
-        """Sets the number of software periods for the DAE.
+        """
+        Sets the number of software periods for the DAE.
         
-        Parameters:
-            number - the number of periods to create
+        Args:
+            number: the number of periods to create
+
+        Raises:
+            Exception: if wrongly typed value supplied
         """
         if not isinstance(number, float) and not isinstance(number, int):
             raise Exception("Number of soft periods must be a numeric value")
@@ -717,10 +1073,11 @@ class Dae(object):
             self.change_finish()
             
     def set_period_mode(self, mode):
-        """Sets the period mode for the DAE
+        """
+        Sets the period mode for the DAE.
         
-        Parameters:
-            mode - the mode to switch to ('soft', 'int', 'ext')
+        Args:
+            mode: the mode to switch to ('soft', 'int', 'ext')
         """
         did_change = False
         if not self.in_change:
@@ -735,30 +1092,35 @@ class Dae(object):
 
     def configure_hard_periods(self, mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False,
                                dwell=False, unused=False, frames=None, output=None, label=None):
-        """Configures the DAE's hardware periods.
+        """
+        Configures the DAE's hardware periods.
         
-        Parameters:
-            mode - set the mode to internal ('int') or external ('ext')
-        
+        Args:
+            mode: set the mode to internal ('int') or external ('ext')
+
             Internal periods parameters [optional]:
-                period_file - the file containing the internal period settings (ignores any other settings)
-                sequences - the number of period sequences
-                output_delay - the output delay in microseconds
-                period - the number of the period to set the following for:
-                    daq - it is a aquisition period
-                    dwell - it is a dwell period
-                    unused - it is a unused period
-                    frames - the number of frames to count for
-                    output - the binary output
-                    label - the label for the period
+                period_file: the file containing the internal period settings (ignores any other settings)
+                sequences: the number of period sequences
+                output_delay: the output delay in microseconds
+                period: the number of the period to set the following for:
+                    daq: it is a aquisition period
+                    dwell: it is a dwell period
+                    unused: it is a unused period
+                    frames: the number of frames to count for
+                    output: the binary output
+                    label: the label for the period
                 
                 Note: if the period number is unspecified then the settings will be applied to all periods.
+
+        Raises:
+            Exception: if mode is not 'int' or 'ext'
             
-        EXAMPLE: setting external periods
-        enable_hardware_periods('ext')
+        Examples:
+            Setting external periods
+            >>> enable_hardware_periods('ext')
         
-        EXAMPLE: setting internal periods from a file
-        enable_hardware_periods('int', 'myperiods.txt')        
+            Setting internal periods from a file
+            >>> enable_hardware_periods('int', 'myperiods.txt')
         """
         did_change = False
         if not self.in_change:
@@ -785,21 +1147,25 @@ class Dae(object):
             
     def configure_internal_periods(self, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                                    unused=False, frames=None, output=None, label=None):
-        """Configure the internal periods without switching to internal period mode.
+        """
+        Configure the internal periods without switching to internal period mode.
         
-        Parameters:
-            file - the file containing the internal period settings (ignores any other settings) [optional]
-            sequences - the number of period sequences [optional]
-            output_delay - the output delay in microseconds [optional]
-            period - the number of the period to set values for [optional]
-            daq -  the specified period is a aquisition period [optional]
-            dwell - the specified period is a dwell period [optional]
-            unused - the specified period is a unused period [optional]
-            frames - the number of frames to count for the specified period [optional]
-            output - the binary output the specified period [optional]
-            label - the label for the period the specified period [optional]
+        Args:
+            file: the file containing the internal period settings (ignores any other settings) [optional]
+            sequences: the number of period sequences [optional]
+            output_delay: the output delay in microseconds [optional]
+            period: the number of the period to set values for [optional]
+            daq:  the specified period is a aquisition period [optional]
+            dwell: the specified period is a dwell period [optional]
+            unused: the specified period is a unused period [optional]
+            frames: the number of frames to count for the specified period [optional]
+            output: the binary output the specified period [optional]
+            label: the label for the period the specified period [optional]
                 
-            Note: if the period number is unspecified then the settings will be applied to all periods.
+        Note: if the period number is unspecified then the settings will be applied to all periods.
+
+        Raises:
+            Exception: if wrongly typed value supplied
         """
         did_change = False
         if not self.in_change:
@@ -821,18 +1187,22 @@ class Dae(object):
             
     def define_hard_period(self, period=None, daq=False, dwell=False, unused=False, frames=None,
                            output=None, label=None):
-        """Define the hardware periods.
+        """
+        Define the hardware periods.
         
-        Parameters:
-            period - the number of the period to set values for [optional]
-            daq -  the specified period is a aquisition period [optional]
-            dwell - the specified period is a dwell period [optional]
-            unused - the specified period is a unused period [optional]
-            frames - the number of frames to count for the specified period [optional]
-            output - the binary output the specified period [optional]
-            label - the label for the period the specified period [optional]
+        Args:
+            period: the number of the period to set values for [optional]
+            daq:  the specified period is a aquisition period [optional]
+            dwell: the specified period is a dwell period [optional]
+            unused: the specified period is a unused period [optional]
+            frames: the number of frames to count for the specified period [optional]
+            output: the binary output the specified period [optional]
+            label: the label for the period the specified period [optional]
                 
-            Note: if the period number is unspecified then the settings will be applied to all periods.
+        Note: if the period number is unspecified then the settings will be applied to all periods.
+
+        Raises:
+            Exception: if supplied period is not a integer between 0 and 9
         """
         did_change = False
         if not self.in_change:
@@ -867,14 +1237,18 @@ class Dae(object):
             self.change_finish()
 
     def _change_dae_settings(self):
-        """Changes the DAE settings"""
+        """
+        Changes the DAE settings.
+        """
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("daesettings"), to_string=True))
         changed = self.change_cache.change_dae_settings(root)
         if changed:
             self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root), wait=True)
         
     def _change_tcb_settings(self):
-        """Changes the TCB settings"""
+        """
+        Changes the TCB settings.
+        """
         # TCB data comes as hex and zipped!
         value = self._get_pv_value(self._get_dae_pv_name("tcbsettings"), to_string=True)
         xml = self._dehex_decompress(value)
@@ -887,14 +1261,26 @@ class Dae(object):
             self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), ans.encode('hex'), wait=True)
             
     def _change_period_settings(self):
-        """Changes the period settings"""
+        """
+        Changes the period settings.
+        """
         root = ET.fromstring(self._get_pv_value(self._get_dae_pv_name("periodsettings"), to_string=True))
         changed = self.change_cache.change_period_settings(root)
         if changed:
             self._set_pv_value(self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip(), wait=True)
 
     def get_spectrum(self, spectrum, period=1, dist=False):
-        """Get a spectrum from the DAE via a PV"""
+        """
+        Gets a spectrum from the DAE via a PV.
+
+        Args:
+            spectrum: the spectrum number
+            period: the period number
+            dist: whether to get as a distribution or histogram
+
+        Returns:
+            dict: all the spectrum data
+        """
         y_data = self._get_pv_value(self._get_dae_pv_name("getspectrum_y") % (period, spectrum))
         y_size = self._get_pv_value(self._get_dae_pv_name("getspectrum_y_size") % (period, spectrum))
         y_data = y_data[:y_size]
@@ -904,6 +1290,12 @@ class Dae(object):
         return {'time': x_data, 'signal': y_data, 'sum': None, 'mode': 'distribution'}
 
     def in_transition(self):
+        """
+        Checks whether the DAE is in transition.
+
+        Returns:
+            bool: is the DAE in transition
+        """
         transition = self._get_pv_value(self._get_dae_pv_name("statetrans"))
         if transition == "Yes":
             return True
@@ -911,21 +1303,41 @@ class Dae(object):
             return False
 
     def get_wiring_tables(self):
-        """Get a list of wiring table choices"""
+        """
+        Gets a list of wiring table choices.
+
+        Returns:
+            list: the table choices
+        """
         raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("wiringtables"), to_string=True))
         return json.loads(raw)
         
     def get_spectra_tables(self):
-        """Get a list of spectra table choices"""
+        """
+        Gets a list of spectra table choices.
+
+        Returns:
+            list: the table choices
+        """
         raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("spectratables"), to_string=True))
         return json.loads(raw)
         
     def get_detector_tables(self):
-        """Get a list of detector table choices"""
+        """
+        Gets a list of detector table choices.
+
+        Returns:
+            list: the table choices
+        """
         raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("detectortables"), to_string=True))
         return json.loads(raw)
 
     def get_period_files(self):
-        """Get a list of period file choices"""
+        """
+        Gets a list of period file choices.
+
+        Returns:
+            list: the table choices
+        """
         raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("periodfiles"), to_string=True))
         return json.loads(raw)
