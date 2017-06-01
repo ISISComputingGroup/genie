@@ -1662,7 +1662,7 @@ def change(**params):
         period (int, optional): the new period (must be in a non-running state)
         nperiods (int, optional): the new number of software periods (must be in a non-running state)
         user (string, optional): the new user(s)
-        rb (string, optional): the new RB number
+        rb (int, optional): the new RB number
 
     Examples:
         Change the title:
@@ -1763,10 +1763,20 @@ def change_rb(rb):
     Changes the RB number.
 
     Args:
-        rb: the new RB number
+        rb (int): the new RB number
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
+        if isinstance(rb, int):
+            # If it is an int then that is fine, just cast to str as the PV is a string
+            rb = str(rb)
+        elif isinstance(rb, str):
+            # Let's be kind in case they enter a string.
+            # Check string contains only digits though
+            if not rb.isdigit():
+                raise TypeError("RB number must be a number.")
+        else:
+            raise TypeError("RB number must be a number.")
         __api.dae.set_rb_number(rb)
     except Exception as e:
         _handle_exception(e)

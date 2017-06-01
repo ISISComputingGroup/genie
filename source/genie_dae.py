@@ -607,7 +607,7 @@ class Dae(object):
         Set the RB number for the current run.
 
         Args:
-            rbno: the new RB number as a string.
+            rbno (str): the new RB number
         """
         self._set_pv_value(self._get_dae_pv_name("rbnum_sp"), rbno)
         
