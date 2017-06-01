@@ -27,12 +27,13 @@ class API(object):
     plots = PlotController()
 
     def __init__(self, pv_prefix, globs, environment_details=None):
-        """Constructor for the EPICS enabled API.
+        """
+        Constructor for the EPICS enabled API.
 
-        Parameters:
-            pv_prefix - used for prefixing the PV and block names
-            globs - globals
-            computer_details - details of the computer environment
+        Args:
+            pv_prefix: used for prefixing the PV and block names
+            globs: globals
+            computer_details: details of the computer environment
         """
         if environment_details is None:
             self._environment_details = EnvironmentDetails()
@@ -69,8 +70,10 @@ class API(object):
 
     def set_instrument(self, machine_identifier, globs):
         """
-        Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed
-        Will do some checking to allow you to pass instrument names in so
+        Set the instrument being used by setting the PV prefix or by the hostname if no prefix was passed.
+
+        Will do some checking to allow you to pass instrument names in so.
+
         Args:
             machine_identifier: should be the pv prefix but also accepts instrument name; if none defaults to computer
             host name
@@ -99,12 +102,13 @@ class API(object):
     def _get_pv_prefix(self, instrument, is_instrument):
         """
         Create the pv prefix based on instrument name and whether it is an instrument or a dev machine
+
         Args:
             instrument: instrument name
             is_instrument: True is an instrument; False not an instrument
 
         Returns:
-
+            string: the PV prefix
         """
         clean_instrument = instrument
         if clean_instrument.endswith(":"):
@@ -121,7 +125,9 @@ class API(object):
         return "{prefix}:{instrument}:".format(prefix=pv_prefix_prefix, instrument=clean_instrument)
 
     def prefix_pv_name(self, name):
-        """Adds the instrument prefix to the specified PV"""
+        """
+        Adds the instrument prefix to the specified PV.
+        """
         if API.__inst_prefix is not None:
             return API.__inst_prefix + name
         return name
@@ -150,14 +156,16 @@ class API(object):
                             .format(instrument.lower(), err))
 
     def set_pv_value(self, name, value, wait=False, is_local=False):
-        """Set the PV to a value.
-           When setting a PV value this call should be used unless there is a special requirement.
+        """
+        Set the PV to a value.
 
-        Parameters:
-            name - the PV name
-            value - the value to set
-            wait - wait for the value to be set before returning
-            is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
+        When setting a PV value this call should be used unless there is a special requirement.
+
+        Args:
+            name: the PV name
+            value: the value to set
+            wait: wait for the value to be set before returning
+            is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
         """
         if is_local:
             if not str.startswith(name, API.__inst_prefix):
@@ -175,13 +183,15 @@ class API(object):
                     raise e
 
     def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
-        """Get the current value of the PV.
-            When getting a PV value this call should be used unless there is a special requirement.
+        """
+        Get the current value of the PV.
 
-        Parameters:
-            name - the PV name
-            to_string - whether to cast it to a string
-            is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
+        When getting a PV value this call should be used unless there is a special requirement.
+
+        Args:
+            name: the PV name
+            to_string: whether to cast it to a string
+            is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
         """
         if is_local:
             if not str.startswith(name, API.__inst_prefix):
@@ -199,15 +209,21 @@ class API(object):
                     raise e
 
     def pv_exists(self, name):
-        """See if the PV exists"""
+        """
+        See if the PV exists.
+        """
         return Wrapper.pv_exists(name)
 
     def reload_current_config(self):
-        """Reload the current configuration."""
+        """
+        Reload the current configuration.
+        """
         API.blockserver.reload_current_config()
 
     def correct_blockname(self, name, add_prefix=True):
-        """Corrects the casing of the block."""
+        """
+        Corrects the casing of the block.
+        """
         blocks = self.get_blocks()
         for i in range(len(blocks)):
             if name.lower() == blocks[i].lower():
@@ -220,14 +236,20 @@ class API(object):
         return name
 
     def get_blocks(self):
-        """Gets a list of block names from the blockserver
-        Note: does not include the prefix"""
+        """
+        Gets a list of block names from the blockserver.
+
+        Note: does not include the prefix
+        """
         # Get blocks from block server
         return API.blockserver.get_block_names()
 
     def block_exists(self, name):
-        """Checks whether the block exists.
-        Note: this is case insensitive"""
+        """
+        Checks whether the block exists.
+
+        Note: this is case insensitive
+        """
         blks = self.get_blocks()
         blks = [x.lower() for x in blks]
         if name.lower() in blks:
@@ -235,7 +257,9 @@ class API(object):
         return False
 
     def set_block_value(self, name, value=None, runcontrol=None, lowlimit=None, highlimit=None, wait=False):
-        """Sets a range of block values"""
+        """
+        Sets a range of block values.
+        """
         # Run pre-command
         if wait is not None and runcontrol is not None:
             # Cannot set both at the same time
@@ -264,7 +288,7 @@ class API(object):
                 # elif highlimit == float("-inf"):
                 # highlimit = '-Infinity'
         if value is not None:
-            # Need to append :SP to the blockname - this is NOT a long term solution!
+            # Need to append :SP to the blockname: this is NOT a long term solution!
             # If a field is included then strip it off
             if "." in name:
                 name = name[:name.index('s')]
@@ -297,11 +321,15 @@ class API(object):
             self.set_pv_value(full_name + ":RC:HIGH", highlimit)
 
     def get_block_value(self, name, to_string=False, attempts=3):
-        """Gets the current value for the block"""
+        """
+        Gets the current value for the block.
+        """
         return self.get_pv_value(self.correct_blockname(name), to_string, attempts)
 
     def set_multiple_blocks(self, names, values):
-        """Sets values for multiple blocks"""
+        """
+        Sets values for multiple blocks.
+        """
         # With LabVIEW we could set values then press go after all values are set
         # Not sure we are going to do something similar for EPICS
         temp = zip(names, values)
@@ -310,11 +338,12 @@ class API(object):
             self.set_block_value(name, value)
 
     def run_pre_post_cmd(self, command, **pars):
-        """Runs a pre or post command.
+        """
+        Runs a pre or post command.
 
-        Parameters:
-            command - the command name as a string
-            pars - the parameters to pass to the command
+        Args:
+            command: the command name as a string
+            pars: the parameters to pass to the command
         """
         try:
             # Try getting the instrument specific version
@@ -340,12 +369,14 @@ class API(object):
         self.write_to_log("ERROR: " + error_msg, 'CMD')
 
     def write_to_log(self, message, source):
-        """Writes a message to the default log file.
+        """
+        Writes a message to the default log file.
+
         Can be used for error logging and logging commands sent.
 
-        Parameters:
-            message - the message to log
-            source - the source of the message
+        Args:
+            message: the message to log
+            source: the source of the message
         """
         try:
             curr_time = localtime()
@@ -361,7 +392,9 @@ class API(object):
             pass
 
     def _get_pars(self, pv_prefix_identifier, get_names_from_blockserver):
-        """Get the current parameter values for a given pv subset as a dictionary"""
+        """
+        Get the current parameter values for a given pv subset as a dictionary.
+        """
         names = get_names_from_blockserver()
         ans = {}
         if names is not None:
@@ -375,15 +408,18 @@ class API(object):
         return ans
 
     def get_sample_pars(self):
-        """Get the current sample parameter values as a dictionary"""
+        """
+        Get the current sample parameter values as a dictionary.
+        """
         return self._get_pars("SAMPLE", API.blockserver.get_sample_par_names)
 
     def set_sample_par(self, name, value):
-        """Set a new value for a sample parameter
+        """
+        Set a new value for a sample parameter.
 
-        Parameters:
-            name - the name of the parameter to change
-            value - the new value
+        Args:
+            name: the name of the parameter to change
+            value: the new value
         """
         names = API.blockserver.get_sample_par_names()
         if names is not None:
@@ -396,15 +432,18 @@ class API(object):
         raise Exception("Sample parameter %s does not exist" % name)
 
     def get_beamline_pars(self):
-        """Get the current beamline parameter values as a dictionary"""
+        """
+        Get the current beamline parameter values as a dictionary.
+        """
         return self._get_pars("BL", API.blockserver.get_beamline_par_names)
 
     def set_beamline_par(self, name, value):
-        """Set a new value for a beamline parameter
+        """
+        Set a new value for a beamline parameter.
 
-        Parameters:
-            name - the name of the parameter to change
-            value - the new value
+        Args:
+            name: the name of the parameter to change
+            value: the new value
         """
         names = API.blockserver.get_beamline_par_names()
         if names is not None:
@@ -417,13 +456,14 @@ class API(object):
         raise Exception("Beamline parameter %s does not exist" % name)
 
     def get_runcontrol_settings(self, name):
-        """Gets the current run-control settings for a block.
+        """
+        Gets the current run-control settings for a block.
 
-        Parameters:
-            name - the name of the block
+        Args:
+            name: the name of the block
 
         Returns:
-            dict - the run-control settings
+            dict: the run-control settings
         """
         name = self.correct_blockname(name)
         name = name[name.rfind(':') + 1:]
@@ -434,13 +474,14 @@ class API(object):
         return dict()
 
     def check_alarms(self, blocks):
-        """Checks whether the specified blocks are in alarm.
+        """
+        Checks whether the specified blocks are in alarm.
 
         Args:
-            blocks (list) : the blocks to check
+            blocks (list): the blocks to check
 
         Returns:
-            list, list : the blocks in minor alarm and major alarm respectively
+            list, list: the blocks in minor alarm and major alarm respectively
         """
         alarm_states = self._get_fields_from_blocks(blocks, "SEVR", "alarm state")
         minor = [t[0] for t in alarm_states if t[1] == "MINOR"]
@@ -448,13 +489,14 @@ class API(object):
         return minor, major
 
     def check_limit_violations(self, blocks):
-        """Checks whether the specified blocks have soft limit violations.
+        """
+        Checks whether the specified blocks have soft limit violations.
 
         Args:
-            blocks (list) : the blocks to check
+            blocks (list): the blocks to check
 
         Returns:
-            list : the blocks which have soft limit violations
+            list: the blocks which have soft limit violations
             """
         violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
         return [t[0] for t in violation_states if t[1] == 1]
@@ -477,15 +519,17 @@ class API(object):
         return field_values
 
     def get_current_block_values(self):
-        """Gets the current block values including the run-control settings.
+        """
+        Gets the current block values including the run-control settings.
 
         Returns:
-            dict - contains a tuple for each block containing the value and the run-control settings
+            dict: contains a tuple for each block containing the value and the run-control settings
         """
         return API.blockserver.get_current_block_values()
 
     def send_sms(self, phone_num, message):
-        """Sends an SMS message to a phone number.
+        """
+        Sends an SMS message to a phone number.
 
         Args:
             phone_num (string): the phone number to send the SMS to
