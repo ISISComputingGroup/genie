@@ -13,7 +13,7 @@ from utilities import waveform_to_string, get_correct_path, get_correct_filepath
     get_correct_directory_path_existing
 import inspect
 
-print "Genie python version " + VERSION
+print "genie_python version " + VERSION
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
@@ -84,14 +84,17 @@ except:
 
 
 def usercommand(func):
-    """Decorator that marks a function as a user command (e.g. for NICOS)."""
+    """
+    Decorator that marks a function as a user command (e.g. for NICOS).
+    """
     func.is_usercommand = True
     func.is_hidden = False
     return func
 
 
 def helparglist(args):
-    """Decorator that supplies a custom argument list to be displayed by
+    """
+    Decorator that supplies a custom argument list to be displayed by
     a help (e.g. for NICOS).
     """
 
@@ -114,8 +117,9 @@ if os.name == 'nt':
 
 
 def _print_error_message(message):
-    """Print the error message to screen"""
-    # Look at using colorama?
+    """
+    Print the error message to screen.
+    """
     if os.name == 'nt':
         # Is windows
         std_output_handle = -11
@@ -134,7 +138,9 @@ def _print_error_message(message):
 
 
 def _handle_exception(exception=None, message=None):
-    """Handles any exception in the way we want"""
+    """
+    Handles any exception in the way we want.
+    """
     if exception is not None:
         if message is not None:
             _print_error_message(message)
@@ -151,11 +157,12 @@ def _handle_exception(exception=None, message=None):
 
 
 def set_instrument(pv_prefix):
-    """Sets the instrument this session is communicating with.
+    """
+    Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
 
     Args:
-        pv_prefix (string) : the PV prefix
+        pv_prefix (string): the PV prefix
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -164,8 +171,11 @@ def set_instrument(pv_prefix):
     except Exception as e:
         _handle_exception(e)
 
+
 def reload_current_config():
-    """Reload the current configuration."""
+    """
+    Reload the current configuration.
+    """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.reload_current_config()
@@ -176,10 +186,11 @@ def reload_current_config():
 @usercommand
 @helparglist('')
 def get_blocks():
-    """Get the names of the blocks.
+    """
+    Get the names of the blocks.
 
     Returns:
-        list : the blocknames
+        list: the blocknames
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -191,12 +202,13 @@ def get_blocks():
 @usercommand
 @helparglist('...')
 def cset(*args, **kwargs):
-    """Sets the setpoint and runcontrol settings for blocks.
+    """
+    Sets the setpoint and runcontrol settings for blocks.
 
     Args:
-        runcontrol (bool, optional) : whether to set runcontrol for this block
-        wait (string, optional) : pause execution until setpoint is reached (one block only)
-        lowlimit (float, optional) : the lower limit for runcontrol or waiting
+        runcontrol (bool, optional): whether to set runcontrol for this block
+        wait (string, optional): pause execution until setpoint is reached (one block only)
+        lowlimit (float, optional): the lower limit for runcontrol or waiting
         highlimit (float, optional): the upper limit for runcontrol or waiting
 
     Note: cannot use wait and runcontrol in the same command
@@ -304,15 +316,16 @@ def cset(*args, **kwargs):
 @usercommand
 @helparglist('block')
 def cget(block):
-    """Gets the useful values associated with a block.
+    """
+    Gets the useful values associated with a block.
 
     The value will be None if the block is not "connected".
 
     Args:
-        block (string) : the name of the block
+        block (string): the name of the block
 
     Returns
-        dict : details about about the block
+        dict: details about about the block
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -343,7 +356,8 @@ def cget(block):
 
 
 def _cshow_all():
-    """Handles the cshow command for all the blocks.
+    """
+    Handles the cshow command for all the blocks.
     """
     blks = __api.get_current_block_values()
     for bn, bv in blks.iteritems():
@@ -351,7 +365,8 @@ def _cshow_all():
 
 
 def _cshow_one(block):
-    """Handles the cshow command for one block only.
+    """
+    Handles the cshow command for one block only.
 
     Args:
         block (list): the block values
@@ -365,7 +380,8 @@ def _cshow_one(block):
 
 
 def _check_block_connected(value):
-    """Checks whether a block is connected and if it isn't sets the value appropriately.
+    """
+    Checks whether a block is connected and if it isn't sets the value appropriately.
 
     Args:
         value (object): the block value
@@ -380,7 +396,8 @@ def _check_block_connected(value):
 
 
 def _print_cshow(name, value):
-    """Prints the cshow string for one block.
+    """
+    Prints the cshow string for one block.
 
     Args:
         name (string): the block name
@@ -395,10 +412,11 @@ def _print_cshow(name, value):
 
 
 def cshow(block=None):
-    """Show the current settings for one block or for all blocks.
+    """
+    Show the current settings for one block or for all blocks.
 
     Args:
-        block (string, optional) : the name of the block
+        block (string, optional): the name of the block
 
     Examples:
         Showing all block values:
@@ -425,21 +443,22 @@ def cshow(block=None):
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
             frames=None, uamps=None, **pars):
-    """Interrupts execution until certain conditions are met.
+    """
+    Interrupts execution until certain conditions are met.
 
     Args:
-        block (string, optional) : the name of the block to wait for
-        value (float, optional) : the block value to wait for
+        block (string, optional): the name of the block to wait for
+        value (float, optional): the block value to wait for
         lowlimit (float, optional): wait for the block to be >= this value
-        highlimit (float, optional) : wait for the block to be <= this value
-        maxwait (float, optional) : wait no longer that the specified number of seconds
-        wait_all (bool, optional) : wait for all conditions to be met (e.g. a number of frames and an amount of uamps)
-        seconds (float, optional) : wait for a specified number of seconds
-        minutes (float, optional) : wait for a specified number of minutes
-        hours (float, optional) : wait for a specified number of hours
-        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
-        frames (int, optional) : wait for a total number of good frames to be collected
-        uamps (float, optional) : wait for a total number of uamps to be received
+        highlimit (float, optional): wait for the block to be <= this value
+        maxwait (float, optional): wait no longer that the specified number of seconds
+        wait_all (bool, optional): wait for all conditions to be met (e.g. a number of frames and an amount of uamps)
+        seconds (float, optional): wait for a specified number of seconds
+        minutes (float, optional): wait for a specified number of minutes
+        hours (float, optional): wait for a specified number of hours
+        time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+        frames (int, optional): wait for a total number of good frames to be collected
+        uamps (float, optional): wait for a total number of uamps to be received
 
     Examples:
         Wait for a block to reach a specific value:
@@ -493,7 +512,8 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 @usercommand
 @helparglist('block[, value][, lowlimit][, highlimit][, maxwait]')
 def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
-    """Interrupts execution until block reaches specific value
+    """
+    Interrupts execution until block reaches specific value
 
     Args:
         block: the name of the block to wait for
@@ -520,13 +540,14 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
 @usercommand
 @helparglist('[seconds][, minutes][, hours][, time]')
 def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
-    """Interrupts execution for a specified amount of time
+    """
+    Interrupts execution for a specified amount of time
 
     Args:
-        seconds (float, optional) : wait for a specified number of seconds
-        minutes (float, optional) : wait for a specified number of minutes
-        hours (float, optional) : wait for a specified number of hours
-        time (string, optional) : a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
+        seconds (float, optional): wait for a specified number of seconds
+        minutes (float, optional): wait for a specified number of minutes
+        hours (float, optional): wait for a specified number of hours
+        time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
 
     Examples:
         >>> waitfor_time(seconds=10)
@@ -549,7 +570,8 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
 @usercommand
 @helparglist('frames')
 def waitfor_frames(frames):
-    """Interrupts execution to wait for number of total good frames to reach parameter value
+    """
+    Interrupts execution to wait for number of total good frames to reach parameter value
 
     Args:
         frames: the number of frames to wait for
@@ -568,7 +590,8 @@ def waitfor_frames(frames):
 @usercommand
 @helparglist('uamps')
 def waitfor_uamps(uamps):
-    """Interrupts execution to wait for a specific total charge
+    """
+    Interrupts execution to wait for a specific total charge
 
     Args:
         uamps: the charge to wait for
@@ -587,12 +610,13 @@ def waitfor_uamps(uamps):
 @usercommand
 @helparglist('state[, maxwaitsecs][, onexit]')
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
-    """Wait for a particular instrument run state.
+    """
+    Wait for a particular instrument run state.
 
     Args:
-        state (string) : the state to wait for (e.g. "paused")
-        maxwaitsecs (int, optional) : the maximum time to wait for the state before carrying on
-        onexit (bool, optional) : wait for runstate to change from the specified state
+        state (string): the state to wait for (e.g. "paused")
+        maxwaitsecs (int, optional): the maximum time to wait for the state before carrying on
+        onexit (bool, optional): wait for runstate to change from the specified state
 
     Examples:
         Wait for a run to enter the paused state:
@@ -614,15 +638,16 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 @usercommand
 @helparglist('[block, ...][, start_timeout][, move_timeout]')
 def waitfor_move(*blocks, **kwargs):
-    """ Wait for all motion or specific motion to complete.
+    """
+    Wait for all motion or specific motion to complete.
 
     If block names are supplied then it will only wait for those to stop moving. Otherwise, it will wait for all motion
     to stop.
 
     Args:
-        blocks (string, multiple, optional) : the names of specific blocks to wait for
-        start_timeout (int, optional) : the number of seconds to wait for the movement to begin (default = 2 seconds)
-        move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
+        blocks (string, multiple, optional): the names of specific blocks to wait for
+        start_timeout (int, optional): the number of seconds to wait for the movement to begin (default = 2 seconds)
+        move_timeout (int, optional): the maximum number of seconds to wait for motion to stop
 
     Examples:
         Wait for all motors to stop moving:
@@ -672,12 +697,13 @@ def waitfor_move(*blocks, **kwargs):
 @usercommand
 @helparglist('name[, to_string][, is_local]')
 def get_pv(name, to_string=False, is_local=False):
-    """Get the value for the specified PV.
+    """
+    Get the value for the specified PV.
 
     Args:
-        name (string) : the name of the PV to get the value for
-        to_string (bool, optional) : whether to get the value as a string
-        is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
+        name (string): the name of the PV to get the value for
+        to_string (bool, optional): whether to get the value as a string
+        is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
 
     Returns:
         the current PV value
@@ -692,13 +718,14 @@ def get_pv(name, to_string=False, is_local=False):
 @usercommand
 @helparglist('name, value[, wait][, is_local]')
 def set_pv(name, value, wait=False, is_local=False):
-    """Set the value for the specified PV.
+    """
+    Set the value for the specified PV.
 
     Args:
-        name (string) : the PV name
-        value : the new value to set
-        wait (bool, optional) : whether to wait until the value has been received by the hardware
-        is_local (bool, optional) : whether to automatically prepend the local inst prefix to the PV name
+        name (string): the PV name
+        value: the new value to set
+        wait (bool, optional): whether to wait until the value has been received by the hardware
+        is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -710,7 +737,8 @@ def set_pv(name, value, wait=False, is_local=False):
 @usercommand
 @helparglist('verbose')
 def set_messages_verbosity(verbose):
-    """Set the global verbosity of messages.
+    """
+    Set the global verbosity of messages.
 
     Args:
         verbose (bool): set the verbosity
@@ -723,18 +751,19 @@ def set_messages_verbosity(verbose):
 @helparglist('...')
 def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", delayed=False, quiet=False, paused=False,
           verbose=False):
-    """Starts a data collection run.
+    """
+    Starts a data collection run.
 
     Args:
-        period (int, optional) : the period to begin data collection in
-        meas_id (string, optional) : the measurement id
-        meas_type (string, optional) : the type of measurement
-        meas_subid (string, optional) : the measurement sub-id
-        sample_id (string, optional) : the sample id
-        delayed (bool, optional) : puts the period card to into delayed start mode
-        quiet (bool, optional) : suppress the output to the screen
-        paused (bool, optional) : begin in the paused state
-        verbose (bool, optional) : show the messages from the DAE
+        period (int, optional): the period to begin data collection in
+        meas_id (string, optional): the measurement id
+        meas_type (string, optional): the type of measurement
+        meas_subid (string, optional): the measurement sub-id
+        sample_id (string, optional): the sample id
+        delayed (bool, optional): puts the period card to into delayed start mode
+        quiet (bool, optional): suppress the output to the screen
+        paused (bool, optional): begin in the paused state
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -750,10 +779,11 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
 @usercommand
 @helparglist('[verbose]')
 def abort(verbose=False):
-    """Abort the current run.
+    """
+    Abort the current run.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -769,10 +799,11 @@ def abort(verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def end(verbose=False):
-    """End the current run.
+    """
+    End the current run.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -788,10 +819,11 @@ def end(verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def pause(verbose=False):
-    """Pause the current run.
+    """
+    Pause the current run.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -807,10 +839,11 @@ def pause(verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def resume(verbose=False):
-    """Resume the current run after it has been paused.
+    """
+    Resume the current run after it has been paused.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -826,13 +859,14 @@ def resume(verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def recover(verbose=False):
-    """Recovers the run if it has been aborted.
+    """
+    Recovers the run if it has been aborted.
     The command should be run before the next run is started.
 
     Note: the run will be recovered in the paused state.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -846,11 +880,12 @@ def recover(verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def updatestore(verbose=False):
-    """Performs an update and a store operation in a combined operation.
+    """
+    Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -864,11 +899,12 @@ def updatestore(verbose=False):
 @usercommand
 @helparglist('[pause_run], [verbose]')
 def update(pause_run=True, verbose=False):
-    """Data is loaded from the DAE into the computer memory, but is not written to disk.
+    """
+    Data is loaded from the DAE into the computer memory, but is not written to disk.
 
     Args:
-        pause_run (bool, optional) : whether to pause data collection first [optional]
-        verbose (bool, optional) : show the messages from the DAE
+        pause_run (bool, optional): whether to pause data collection first [optional]
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -891,10 +927,11 @@ def update(pause_run=True, verbose=False):
 @usercommand
 @helparglist('[verbose]')
 def store(verbose=False):
-    """Data loaded into memory by a previous update command is now written to disk.
+    """
+    Data loaded into memory by a previous update command is now written to disk.
 
     Args:
-        verbose (bool, optional) : show the messages from the DAE
+        verbose (bool, optional): show the messages from the DAE
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -908,11 +945,12 @@ def store(verbose=False):
 @usercommand
 @helparglist('[filename], [verbose]')
 def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
-    """Create a snapshot of the current data.
+    """
+    Create a snapshot of the current data.
 
     Args:
-        filename (string, optional) : where to write the data file(s)
-        verbose (bool, optional) : show the messages from the DAE
+        filename (string, optional): where to write the data file(s)
+        verbose (bool, optional): show the messages from the DAE
 
     Examples:
         Snapshot to a file called my_snapshot:
@@ -932,13 +970,14 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
 @usercommand
 @helparglist('[period]')
 def get_uamps(period=False):
-    """Get the current number of micro-amp hours.
+    """
+    Get the current number of micro-amp hours.
 
     Args:
-        period (bool, optional) : whether to return the value for the current period only
+        period (bool, optional): whether to return the value for the current period only
 
     Returns:
-        float : the number of uamps
+        float: the number of uamps
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -950,13 +989,14 @@ def get_uamps(period=False):
 @usercommand
 @helparglist('[period]')
 def get_frames(period=False):
-    """Gets the current number of good frames.
+    """
+    Gets the current number of good frames.
 
     Args:
-        period (bool, optional) : whether to return the value for the current period only
+        period (bool, optional): whether to return the value for the current period only
 
     Returns:
-        int : the number of frames
+        int: the number of frames
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -968,12 +1008,13 @@ def get_frames(period=False):
 @usercommand
 @helparglist('')
 def get_runstate():
-    """Get the current status of the instrument as a string.
+    """
+    Get the current status of the instrument as a string.
 
     Note: this value can take a few seconds to update after a change of state.
 
     Returns:
-        string : the current run state
+        string: the current run state
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -985,10 +1026,11 @@ def get_runstate():
 @usercommand
 @helparglist('')
 def get_mevents():
-    """Gets the total counts for all the detectors.
+    """
+    Gets the total counts for all the detectors.
 
     Returns:
-        float : the number of mevents
+        float: the number of mevents
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1000,10 +1042,11 @@ def get_mevents():
 @usercommand
 @helparglist('')
 def get_period():
-    """Gets the current period number.
+    """
+    Gets the current period number.
 
     Returns:
-        int : the current period
+        int: the current period
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1015,10 +1058,11 @@ def get_period():
 @usercommand
 @helparglist('')
 def get_number_periods():
-    """Get the number of software periods.
+    """
+    Get the number of software periods.
 
     Returns:
-        int : the number of periods
+        int: the number of periods
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1028,12 +1072,13 @@ def get_number_periods():
 
 
 def set_period(period):
-    """Sets the current period number.
+    """
+    Sets the current period number.
 
-    Deprecated - use change_period
+    Deprecated - use change_period.
 
     Args:
-        period (int) : the period to switch to
+        period (int): the period to switch to
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_period is deprecated - use change_period"
@@ -1043,10 +1088,11 @@ def set_period(period):
 @usercommand
 @helparglist('')
 def get_runnumber():
-    """Get the current run-number.
+    """
+    Get the current run-number.
 
     Returns:
-        string : the run-number
+        string: the run-number
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1058,10 +1104,11 @@ def get_runnumber():
 @usercommand
 @helparglist('')
 def get_totalcounts():
-    """Get the total counts for the current run.
+    """
+    Get the total counts for the current run.
 
     Returns:
-        int : the total counts
+        int: the total counts
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1073,10 +1120,11 @@ def get_totalcounts():
 @usercommand
 @helparglist('')
 def get_title():
-    """Returns the current title.
+    """
+    Returns the current title.
 
     Returns:
-        string : the title
+        string: the title
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1086,12 +1134,13 @@ def get_title():
 
 
 def set_title(title):
-    """Sets the current title.
+    """
+    Sets the current title.
 
-    Deprecated - use change_title
+    Deprecated - use change_title.
 
     Args:
-        title : the new title
+        title: the new title
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_title is deprecated - use change_title"
@@ -1101,10 +1150,11 @@ def set_title(title):
 @usercommand
 @helparglist('')
 def get_rb():
-    """Returns the current RB number.
+    """
+    Returns the current RB number.
 
     Returns:
-        string : the RB number
+        string: the RB number
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1116,10 +1166,11 @@ def get_rb():
 @usercommand
 @helparglist('')
 def get_dashboard():
-    """Get the current experiment values.
+    """
+    Get the current experiment values.
 
     Returns:
-        dict : the experiment values
+        dict: the experiment values
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1150,7 +1201,8 @@ def get_dashboard():
 
 
 def _get_correct_globals():
-    """This is a hack to find the frame in which to add the script function(s).
+    """
+    This is a hack to find the frame in which to add the script function(s).
 
     The frame we want is the outermost one that contains a reference to cshow().
     """
@@ -1165,12 +1217,13 @@ def _get_correct_globals():
 
 
 def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
-    """Loads a user script.
+    """
+    Loads a user script.
     Args:
-        name (string) : the name of the file to load
-        dummy (object) : This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
-        remove this
-        check_script : When True run the script checker on the script; False otherwise (default True)
+        name (string): the name of the file to load
+        dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
+            remove this
+        check_script: When True run the script checker on the script; False otherwise (default True)
         warnings_as_error: When true throw an exception on a warning; False otherwise (default False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1246,7 +1299,9 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
 
 def __load_module(name, directory):
-    """This will reload the module if it has already been loaded."""
+    """
+    This will reload the module if it has already been loaded.
+    """
     fpath = None
     try:
         fpath, pathname, description = imp.find_module(name, [directory])
@@ -1260,22 +1315,24 @@ def __load_module(name, directory):
 
 
 def get_script_dir():
-    """Get the current script directory.
+    """
+    Get the current script directory.
 
     Returns:
-        string : the directory
+        string: the directory
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     return SCRIPT_DIR
 
 
 def set_script_dir(directory):
-    """Set the directory for loading scripts from.
+    """
+    Set the directory for loading scripts from.
 
     Deprecated - use change_script_dir.
 
     Args:
-        directory (string) : the directory to load scripts from
+        directory (string): the directory to load scripts from
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_script_dir is deprecated - use change_script_dir"
@@ -1283,10 +1340,11 @@ def set_script_dir(directory):
 
 
 def change_script_dir(directory):
-    """Set the directory for loading scripts from.
+    """
+    Set the directory for loading scripts from.
 
     Args:
-        directory (string) : the directory to load scripts from
+        directory (string): the directory to load scripts from
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1300,7 +1358,9 @@ def change_script_dir(directory):
 @usercommand
 @helparglist('')
 def change_start():
-    """Start a change operation.
+    """
+    Start a change operation.
+
     The operation is finished when change_finish is called.
 
     Between these two calls a sequence of other change commands can be called.
@@ -1317,7 +1377,9 @@ def change_start():
 @usercommand
 @helparglist('')
 def change_finish():
-    """End a change operation.
+    """
+    End a change operation.
+
     The operation is begun when change_start is called.
 
     Between these two calls a sequence of other change commands can be called.
@@ -1333,12 +1395,13 @@ def change_finish():
 @usercommand
 @helparglist('spec, low, high')
 def change_monitor(spec, low, high):
-    """Change the monitor to a specified spectrum and range.
+    """
+    Change the monitor to a specified spectrum and range.
 
     Args:
-        spectrum (int) : the spectrum number
-        low (float) : the low end of the integral
-        high (float) : the high end of the integral
+        spectrum (int): the spectrum number
+        low (float): the low end of the integral
+        high (float): the high end of the integral
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1350,12 +1413,13 @@ def change_monitor(spec, low, high):
 @usercommand
 @helparglist('[wiring], [detector], [spectra]')
 def change_tables(wiring=None, detector=None, spectra=None):
-    """Load the wiring, detector and/or spectra tables.
+    """
+    Load the wiring, detector and/or spectra tables.
 
     Args:
-        wiring (string, optional) : the filename of the wiring table file
-        detector (string, optional) : the filename of the detector table file
-        spectra (string, optional) : the filename of the spectra table file
+        wiring (string, optional): the filename of the wiring table file
+        detector (string, optional): the filename of the detector table file
+        spectra (string, optional): the filename of the spectra table file
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1367,10 +1431,11 @@ def change_tables(wiring=None, detector=None, spectra=None):
 @usercommand
 @helparglist('source')
 def change_sync(source):
-    """Change the source the DAE using for synchronisation.
+    """
+    Change the source the DAE using for synchronisation.
 
     Args:
-        source (string) : the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
+        source (string): the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1382,10 +1447,11 @@ def change_sync(source):
 @usercommand
 @helparglist('[tcbfile], [default]')
 def change_tcb_file(tcbfile=None, default=False):
-    """Change the time channel boundaries.
+    """
+    Change the time channel boundaries.
 
     Args:
-        tcbfile (string, optional) : the file to load
+        tcbfile (string, optional): the file to load
         default (bool, optional): load the default file
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1398,15 +1464,16 @@ def change_tcb_file(tcbfile=None, default=False):
 @usercommand
 @helparglist('low, high, step, trange[, log][, regime]')
 def change_tcb(low, high, step, trange, log=False, regime=1):
-    """Change the time channel boundaries.
+    """
+    Change the time channel boundaries.
 
     Args
-        low (float) : the lower limit
-        high (float) : the upper limit
-        step (float) : the step size
-        trange (int) : the time range (1 to 5)
-        log (bool, optional) : whether to use LOG binning
-        regime (int, optional) : the time regime to set (1 to 6)
+        low (float): the lower limit
+        high (float): the upper limit
+        step (float): the step size
+        trange (int): the time range (1 to 5)
+        log (bool, optional): whether to use LOG binning
+        regime (int, optional): the time regime to set (1 to 6)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1418,17 +1485,18 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 @usercommand
 @helparglist('[...]')
 def change_vetos(**params):
-    """Change the DAE veto settings.
+    """
+    Change the DAE veto settings.
 
     Args:
-        clearall (bool, optional) : remove all vetos
-        smp (bool, optional) : set SMP veto
-        ts2 (bool, optional) : set TS2 veto
-        hz50 (bool, optional) : set 50 hz veto
+        clearall (bool, optional): remove all vetos
+        smp (bool, optional): set SMP veto
+        ts2 (bool, optional): set TS2 veto
+        hz50 (bool, optional): set 50 hz veto
         ext0  (bool, optional): set external veto 0
         ext1  (bool, optional): set external veto 1
-        ext2 (bool, optional) : set external veto 2
-        ext3 (bool, optional) : set external veto 3
+        ext2 (bool, optional): set external veto 2
+        ext3 (bool, optional): set external veto 3
 
     Note: If clearall is specified then all vetos are turned off,
     but it is possible to turn other vetoes back on at the same time:
@@ -1447,12 +1515,13 @@ def change_vetos(**params):
 @usercommand
 @helparglist('[enable], [delay], [width]')
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
-    """Configure the fermi chopper veto.
+    """
+    Configure the fermi chopper veto.
 
     Args:
-        enable (bool, optional) : enable the fermi veto
-        delay (float, optional) : the veto delay
-        width (float, optional) : the veto width
+        enable (bool, optional): enable the fermi veto
+        delay (float, optional): the veto delay
+        width (float, optional): the veto width
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1464,10 +1533,11 @@ def change_fermi_veto(enable=None, delay=1.0, width=1.0):
 @usercommand
 @helparglist('[nperiods]')
 def enable_soft_periods(nperiods=None):
-    """Switch the DAE to software periods mode.
+    """
+    Switch the DAE to software periods mode.
 
     Args:
-        nperiods (int, optional) : the number of software periods
+        nperiods (int, optional): the number of software periods
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1479,13 +1549,14 @@ def enable_soft_periods(nperiods=None):
 
 
 def set_number_soft_periods(number, enable=None):
-    """Sets the number of software periods for the DAE.
+    """
+    Sets the number of software periods for the DAE.
 
-    Deprecated - use change_number_soft_periods
+    Deprecated - use change_number_soft_periods.
 
     Args:
-        number (int) : the number of periods to create
-        enable (bool, optional) : switch to soft period mode
+        number (int): the number of periods to create
+        enable (bool, optional): switch to soft period mode
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_number_soft_periods is deprecated - use change_number_soft_periods"
@@ -1496,20 +1567,21 @@ def set_number_soft_periods(number, enable=None):
 @helparglist('mode[, ...]')
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
                         unused=False, frames=None, output=None, label=None):
-    """Sets the DAE to use hardware periods.
+    """
+    Sets the DAE to use hardware periods.
 
     Args:
-        mode (string) : set the mode to internal ('int') or external ('ext')
-        period_file (string, optional) : the file containing the internal period settings (ignores any other settings)
-        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
-        output_delay (int, optional) : the output delay in microseconds
-        period (int, optional) : the number of the period to set the following parameters for
-        daq (bool, optional) :  the specified period is a acquisition period
-        dwell (bool, optional) : the specified period is a dwell period
-        unused (bool, optional) : the specified period is a unused period
-        frames (int, optional) : the number of frames to count for the specified period
-        output (int, optional) : the binary output the specified period
-        label (string, optional) : the label for the period the specified period
+        mode (string): set the mode to internal ('int') or external ('ext')
+        period_file (string, optional): the file containing the internal period settings (ignores any other settings)
+        sequences (int, optional): the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional): the output delay in microseconds
+        period (int, optional): the number of the period to set the following parameters for
+        daq (bool, optional):  the specified period is a acquisition period
+        dwell (bool, optional): the specified period is a dwell period
+        unused (bool, optional): the specified period is a unused period
+        frames (int, optional): the number of frames to count for the specified period
+        output (int, optional): the binary output the specified period
+        label (string, optional): the label for the period the specified period
 
     Note: if the period number is unspecified then the settings will be applied to all periods
 
@@ -1532,18 +1604,19 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 @helparglist('[...]')
 def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
                                frames=None, output=None, label=None):
-    """Configure the internal periods without switching to internal period mode.
+    """
+    Configure the internal periods without switching to internal period mode.
 
     Args:
-        sequences (int, optional) : the number of times to repeat the period loop (0 = infinite loop)
-        output_delay (int, optional) : the output delay in microseconds
-        period (int, optional) : the number of the period to set the following parameters for
-        daq (bool, optional) :  the specified period is a acquisition period
-        dwell (bool, optional) : the specified period is a dwell period
-        unused (bool, optional) : the specified period is a unused period
-        frames (int, optional) : the number of frames to count for the specified period
-        output (int, optional) : the binary output the specified period
-        label (string, optional) : the label for the period the specified period
+        sequences (int, optional): the number of times to repeat the period loop (0 = infinite loop)
+        output_delay (int, optional): the output delay in microseconds
+        period (int, optional): the number of the period to set the following parameters for
+        daq (bool, optional):  the specified period is a acquisition period
+        dwell (bool, optional): the specified period is a dwell period
+        unused (bool, optional): the specified period is a unused period
+        frames (int, optional): the number of frames to count for the specified period
+        output (int, optional): the binary output the specified period
+        label (string, optional): the label for the period the specified period
 
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
@@ -1557,16 +1630,17 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 @usercommand
 @helparglist('[...]')
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
-    """Define the internal hardware periods.
+    """
+    Define the internal hardware periods.
 
     Args:
-        period (int, optional) : the number of the period to set the following parameters for
-        daq (bool, optional) :  the specified period is a acquisition period
-        dwell (bool, optional) : the specified period is a dwell period
-        unused (bool, optional) : the specified period is a unused period
-        frames (int, optional) : the number of frames to count for the specified period
-        output (int, optional) : the binary output the specified period
-        label (string, optional) : the label for the period the specified period
+        period (int, optional): the number of the period to set the following parameters for
+        daq (bool, optional):  the specified period is a acquisition period
+        dwell (bool, optional): the specified period is a dwell period
+        unused (bool, optional): the specified period is a unused period
+        frames (int, optional): the number of frames to count for the specified period
+        output (int, optional): the binary output the specified period
+        label (string, optional): the label for the period the specified period
 
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
@@ -1578,22 +1652,24 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 
 
 def change(**params):
-    """Change experiment parameters.
+    """
+    Change experiment parameters.
 
     Note: it is possible to change more than one item at a time.
 
     Args:
-        title (string, optional) : change the current title
-        period (int, optional) : change to a different period (must be in a non-running state)
-        nperiods (int, optional) : change the number of software periods (must be in a non-running state)
-        user (string, optional) : change the user(s)
+        title (string, optional): the new title
+        period (int, optional): the new period (must be in a non-running state)
+        nperiods (int, optional): the new number of software periods (must be in a non-running state)
+        user (string, optional): the new user(s)
+        rb (int, optional): the new RB number
 
     Examples:
         Change the title:
         >>> change(title="The new title")
 
         Change the RB number and the users:
-        >>> change(rbno=123456, user="A. User and Ann Other")
+        >>> change(rb=123456, user="A. User and Ann Other")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1607,6 +1683,8 @@ def change(**params):
                 change_number_soft_periods(params[k])
             elif key == 'user' or key == 'users':
                 change_users(params[k])
+            elif key == 'rb':
+                change_rb(params[k])
     except Exception as e:
         _handle_exception(e)
 
@@ -1614,10 +1692,11 @@ def change(**params):
 @usercommand
 @helparglist('title')
 def change_title(title):
-    """Sets the current title.
+    """
+    Sets the current title.
 
     Args:
-        title : the new title
+        title: the new title
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1629,10 +1708,11 @@ def change_title(title):
 @usercommand
 @helparglist('period')
 def change_period(period):
-    """Changes the current period number.
+    """
+    Changes the current period number.
 
     Args:
-        period (int) : the period to switch to
+        period (int): the period to switch to
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1644,11 +1724,12 @@ def change_period(period):
 @usercommand
 @helparglist('number[, enable]')
 def change_number_soft_periods(number, enable=None):
-    """Sets the number of software periods for the DAE.
+    """
+    Sets the number of software periods for the DAE.
 
     Args:
-        number (int) : the number of periods to create
-        enable (bool, optional) : switch to soft period mode
+        number (int): the number of periods to create
+        enable (bool, optional): switch to soft period mode
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1660,9 +1741,10 @@ def change_number_soft_periods(number, enable=None):
 
 
 @usercommand
-@helparglist('number[, enable]')
+@helparglist('users')
 def change_users(users):
-    """Changes the users of the DAE
+    """
+    Changes the users.
 
     Args:
         users: a string containing the user name(s)
@@ -1675,17 +1757,44 @@ def change_users(users):
 
 
 @usercommand
-@helparglist('spectrum[, period][, dist]')
-def get_spectrum(spectrum, period=1, dist=False):
-    """Get the specified spectrum from the DAE.
+@helparglist('rb')
+def change_rb(rb):
+    """
+    Changes the RB number.
 
     Args:
-        spectrum (int) : the spectrum number
-        period (int, optional) : the period
-        dist (bool, optional) : whether to get the spectrum as a distribution
+        rb (int): the new RB number
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        if isinstance(rb, int):
+            # If it is an int then that is fine, just cast to str as the PV is a string
+            rb = str(rb)
+        elif isinstance(rb, str):
+            # Let's be kind in case they enter a string.
+            # Check string contains only digits though
+            if not rb.isdigit():
+                raise TypeError("RB number must be a number.")
+        else:
+            raise TypeError("RB number must be a number.")
+        __api.dae.set_rb_number(rb)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('spectrum[, period][, dist]')
+def get_spectrum(spectrum, period=1, dist=False):
+    """
+    Get the specified spectrum from the DAE.
+
+    Args:
+        spectrum (int): the spectrum number
+        period (int, optional): the period
+        dist (bool, optional): whether to get the spectrum as a distribution
 
     Returns:
-        dict : dictionary of values
+        dict: dictionary of values
     """
     try:
         return __api.dae.get_spectrum(spectrum, period, dist)
@@ -1694,12 +1803,13 @@ def get_spectrum(spectrum, period=1, dist=False):
 
 
 def plot_spectrum(spectrum, period=1, dist=False):
-    """Get the specified spectrum from the DAE and plot it.
+    """
+    Get the specified spectrum from the DAE and plot it.
 
     Args:
-        spectrum (int) : the spectrum number
-        period (int, optional) : the period. Default is 1
-        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
+        spectrum (int): the spectrum number
+        period (int, optional): the period. Default is 1
+        dist (bool, optional): whether to get the spectrum as a distribution. Default is False
 
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1712,13 +1822,14 @@ def plot_spectrum(spectrum, period=1, dist=False):
 
 
 def add_spectrum(spectrum, period=1, dist=False, figure=None):
-    """Add a spectrum graph to an existing plot
+    """
+    Add a spectrum graph to an existing plot
 
     Args:
-        spectrum (int) : the spectrum number
-        period (int, optional) : the period. Default is 1
-        dist (bool, optional) : whether to get the spectrum as a distribution. Default is False
-        figure (int, optional) : specifies which figure to plot the spectrum in. Default is last active plot
+        spectrum (int): the spectrum number
+        period (int, optional): the period. Default is 1
+        dist (bool, optional): whether to get the spectrum as a distribution. Default is False
+        figure (int, optional): specifies which figure to plot the spectrum in. Default is last active plot
 
     Examples:
         Add Spectrum 2 to last active plot window
@@ -1752,10 +1863,11 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
 @usercommand
 @helparglist('')
 def get_sample_pars():
-    """Get the current sample parameter values.
+    """
+    Get the current sample parameter values.
 
     Returns:
-        dict : the sample parameters
+        dict: the sample parameters
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1766,13 +1878,14 @@ def get_sample_pars():
 
 
 def set_sample_par(name, value):
-    """Set a new value for a sample parameter
+    """
+    Set a new value for a sample parameter.
 
-    Deprecated - use change_sample_par
+    Deprecated - use change_sample_par.
 
     Args:
-        name (string) : the name of the parameter to change
-        value : the new value
+        name (string): the name of the parameter to change
+        value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_sample_par is deprecated - use change_sample_par"
@@ -1782,11 +1895,12 @@ def set_sample_par(name, value):
 @usercommand
 @helparglist('name, value')
 def change_sample_par(name, value):
-    """Set a new value for a sample parameter
+    """
+    Set a new value for a sample parameter.
 
     Args:
-        name (string) : the name of the parameter to change
-        value : the new value
+        name (string): the name of the parameter to change
+        value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1798,10 +1912,11 @@ def change_sample_par(name, value):
 @usercommand
 @helparglist('')
 def get_beamline_pars():
-    """Get the current beamline parameter values.
+    """
+    Get the current beamline parameter values.
 
     Returns:
-        dict : the beamline parameters
+        dict: the beamline parameters
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1812,13 +1927,14 @@ def get_beamline_pars():
 
 
 def set_beamline_par(name, value):
-    """Set a new value for a beamline parameter
+    """
+    Set a new value for a beamline parameter
 
     Deprecated - use change_beamline_par
 
     Args:
-        name (string) : the name of the parameter to change
-        value : the new value
+        name (string): the name of the parameter to change
+        value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     print "set_beamline_par is deprecated - use change_beamline_par"
@@ -1828,11 +1944,12 @@ def set_beamline_par(name, value):
 @usercommand
 @helparglist('name, value')
 def change_beamline_par(name, value):
-    """Set a new value for a beamline parameter
+    """
+    Set a new value for a beamline parameter
 
     Args:
-        name (string) : the name of the parameter to change
-        value : the new value
+        name (string): the name of the parameter to change
+        value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1844,7 +1961,8 @@ def change_beamline_par(name, value):
 @usercommand
 @helparglist('phone_num, message')
 def send_sms(phone_num, message):
-    """Sends an SMS message to a phone number.
+    """
+    Sends an SMS message to a phone number.
 
     Args:
         phone_num (string): the phone number to send the SMS to
@@ -1857,10 +1975,11 @@ def send_sms(phone_num, message):
 @usercommand
 @helparglist('')
 def get_wiring_tables():
-    """Gets a list of possible wiring table choices.
+    """
+    Gets a list of possible wiring table choices.
 
     Returns:
-        list : the files
+        list: the files
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1872,10 +1991,11 @@ def get_wiring_tables():
 @usercommand
 @helparglist('')
 def get_spectra_tables():
-    """Gets a list of possible spectra table choices.
+    """
+    Gets a list of possible spectra table choices.
 
     Returns:
-        list : the files
+        list: the files
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1887,10 +2007,11 @@ def get_spectra_tables():
 @usercommand
 @helparglist('')
 def get_detector_tables():
-    """Gets a list of possible detector table choices.
+    """
+    Gets a list of possible detector table choices.
 
     Returns:
-        list : the files
+        list: the files
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1902,10 +2023,11 @@ def get_detector_tables():
 @usercommand
 @helparglist('')
 def get_period_files():
-    """Gets a list of possible period file choices.
+    """
+    Gets a list of possible period file choices.
 
     Returns:
-        list : the files
+        list: the files
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1915,13 +2037,14 @@ def get_period_files():
 
 
 def check_alarms(*blocks):
-    """Checks whether the specified blocks are in alarm.
+    """
+    Checks whether the specified blocks are in alarm.
 
     Args:
-        blocks (string, multiple) : the block(s) to check
+        blocks (string, multiple): the block(s) to check
 
     Returns:
-        list, list : the blocks in minor alarm and major alarm respectively
+        list, list: the blocks in minor alarm and major alarm respectively
 
     Example:
         Check alarm state for block1 and block2:
@@ -1935,10 +2058,11 @@ def check_alarms(*blocks):
 
 
 def check_limit_violations(*blocks):
-    """Checks whether the specified blocks have soft limit violations.
+    """
+    Checks whether the specified blocks have soft limit violations.
 
     Args:
-        blocks (string, multiple) : the block(s) to check
+        blocks (string, multiple): the block(s) to check
 
     Returns:
         list: the blocks that have soft limit violations
@@ -1956,10 +2080,11 @@ def check_limit_violations(*blocks):
 @usercommand
 @helparglist('name')
 def prefix_pv_name(name):
-    """Prepends the instrument PV prefix on to the supplied PV name
+    """
+    Prepends the instrument PV prefix on to the supplied PV name
 
     Args:
-        name (string) : The PV without the prefix.
+        name (string): The PV without the prefix.
 
     Returns:
         string: The PV with the instrument prefix prepended
@@ -1972,7 +2097,8 @@ def prefix_pv_name(name):
 @usercommand
 @helparglist('')
 def get_version():
-    """Tells you the version of genie_python that is used.
+    """
+    Tells you the version of genie_python that is used.
 
     Returns:
         string: The current version number of genie python

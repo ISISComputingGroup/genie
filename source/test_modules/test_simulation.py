@@ -262,3 +262,13 @@ class TestSimulationSequence(unittest.TestCase):
         self.assertEquals(3, a["highlimit"])
         self.assertEquals(True, a["runcontrol"])
 
+    def test_GIVEN_change_rb_WHEN_get_rb_THEN_values_match(self):
+        # Arrange
+        from random import randint
+        rb = str(randint(123456, 654321))
+
+        # Act
+        genie.change_rb(rb)
+
+        # Assert
+        self.assertEquals(rb, genie.get_rb())

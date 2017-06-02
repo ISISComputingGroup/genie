@@ -252,6 +252,9 @@ class Dae(object):
         """
         return self.rb_number
 
+    def set_rb_number(self, rb):
+        self.rb_number = rb
+
     def get_mevents(self):
         return self.mevents
 
