@@ -40,6 +40,7 @@ DAE_PVS_LOOKUP = {
     "users": "ED:SURNAME",
     "users_table_sp": "ED:USERNAME:SP",
     "users_dae_sp": "ED:USERNAME:DAE:SP",
+    "users_surname_sp": "ED:SURNAME",
     "starttime": "DAE:STARTTIME",
     "npratio": "DAE:NPRATIO",
     "timingsource": "DAE:DAETIMINGSOURCE",
@@ -618,18 +619,18 @@ class Dae(object):
             title: the title to set
         """
         self._set_pv_value(self._get_dae_pv_name("title_sp"), title)
-        
+
     def get_users(self):
         """
         Gets the users for the current run.
 
         Returns:
-            string: the usernames
+            string: the names
         """
         try:
-            # Data comes as compressed and hexed json
-            raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("users"), to_string=True))
-            names_list = json.loads(raw)
+            # Data comes as comma separated list
+            raw = self._get_pv_value(self._get_dae_pv_name("users_dae_sp"), to_string=True)
+            names_list = [x.strip() for x in raw.split(',')]
             if len(names_list) > 1:
                 last = names_list.pop(-1)
                 names = ", ".join(names_list)
@@ -651,8 +652,11 @@ class Dae(object):
         # Clear out the "Users Table" by sending an empty list - must be compressed and hexed JSON
         self._set_pv_value(self._get_dae_pv_name("users_table_sp"), compress_and_hex("[]"), True)
         # Set the surnames PV - must be compressed and hexed JSON list
-        json_str = json.dumps([x.strip() for x in users.split(',')])
-        self._set_pv_value(self._get_dae_pv_name("users"), compress_and_hex(json_str))
+        if users.strip() == "":
+            json_str = "[]"
+        else:
+            json_str = json.dumps([x.strip() for x in users.split(',')])
+        self._set_pv_value(self._get_dae_pv_name("users_surname_sp"), compress_and_hex(json_str))
         # Set the value in the DAE - must be ascii string
         ascii_str = convert_string_to_ascii(users)
         self._set_pv_value(self._get_dae_pv_name("users_dae_sp"), ascii_str)
