@@ -46,8 +46,11 @@ class API(object):
 
         instrument_machine_prefixes = ["NDX", "NDE"]
 
+        # machine_identifier needs to be uppercase for both 'NDXALF' and 'ndxalf' to be valid
         if machine_identifier is None:
-            machine_identifier = self._environment_details.get_host_name()
+            machine_identifier = self._environment_details.get_host_name().upper()
+        else:
+            machine_identifier = machine_identifier.upper()
 
         instrument = machine_identifier.upper()
         for p in [instrument_pv_prefix, test_machine_pv_prefix] + instrument_machine_prefixes:
@@ -78,9 +81,6 @@ class API(object):
             machine_identifier: should be the pv prefix but also accepts instrument name; if none defaults to computer
             host name
             globs: globals
-
-        Returns:
-
         """
         API.__mod = __import__('init_default', globals(), locals(), [], -1)
 

@@ -2,11 +2,12 @@ import json
 import zlib
 import os
 import re
+import unicodedata
 
 
 class PVReadException(Exception):
     """
-    Exception to throw when there is a problem reading a pv
+    Exception to throw when there is a problem reading a PV.
     """
     def __init__(self, message):
         self.message = message
@@ -33,8 +34,40 @@ def waveform_to_string(data):
     return output
 
 
+def convert_string_to_ascii(data):
+    """
+    Converts a string to be ascii.
+
+    Args:
+        data: the string to convert
+
+    Returns:
+        string: the ascii equivalent
+    """
+    def _make_ascii_mappings():
+        """
+        Create mapping for characters not converted to 7-bit by NFKD.
+        """
+        mappings_in = [ ord(char) for char in u'\xd0\xd7\xd8\xde\xdf\xf0\xf8\xfe' ]
+        mappings_out = u'DXOPBoop'
+        d = dict(zip(mappings_in, mappings_out))
+        d[ord(u'\xc6')] = u'AE'
+        d[ord(u'\xe6')] = u'ae'
+        return d
+    if isinstance(data, str):
+        # If it is a string, it needs to be converted to unicode
+        data = data.decode('utf-8')
+    # Replace all compatibility characters with their equivalents
+    normalised = unicodedata.normalize('NFKD', data)
+    # Keep non-combining chars only
+    extracted = u''.join([c for c in normalised if not unicodedata.combining(c)])
+    # Finally translate to ascii
+    return extracted.translate(_make_ascii_mappings()).encode('ascii', 'ignore')
+
+
 def get_correct_path(path):
-    """Corrects the slashes and escapes any slash characters.
+    """
+    Corrects the slashes and escapes any slash characters.
 
     Note: does not check whether the file exists.
 
@@ -53,7 +86,9 @@ def get_correct_path(path):
 
 
 def _correct_path_casing_existing(path):
-    """If the file exists it get the correct path with the correct casing"""
+    """
+    If the file exists it get the correct path with the correct casing.
+    """
     if os.name == 'nt':
         try:
             # Correct path case for windows as Python needs correct casing
@@ -88,42 +123,48 @@ def _convert_to_rawstring(data):
 
 
 def get_correct_filepath_existing(path):
-    """Corrects the file path to make it OS independent.
-
-    Raises if the file does not exist.
+    """
+    Corrects the file path to make it OS independent.
 
     Args:
         path (string): the file path to correct
 
     Returns:
          string : the corrected file path
+
+    Raises:
+         if the directory does not exist.
     """
     path = get_correct_path(path)
     return _correct_path_casing_existing(path)
 
 
 def get_correct_directory_path_existing(path):
-    """Corrects the directory path to make it OS independent.
+    """
+    Corrects the directory path to make it OS independent.
 
-        Raises if the directory does not exist.
+    Args:
+        path (string): the directory path to correct
 
-        Args:
-            path (string): the directory path to correct
+    Returns:
+         string : the corrected directory path
 
-        Returns:
-             string : the corrected directory path
-        """
+    Raises:
+         if the directory does not exist.
+    """
     name = get_correct_path(path)
     return _correct_path_casing_existing(name)
 
 
 def crc8(value):
     """
-    Generate a CRC 8 from the value (See EPICS\utils_win32\master\src\crc8.c)
+    Generate a CRC 8 from the value (See EPICS\utils_win32\master\src\crc8.c).
+
     Args:
         value: the value to generate a CRC from
 
-    Returns: a string representation of the CRC8 of the value; two characters
+    Returns:
+        string: representation of the CRC8 of the value; two characters
 
     """
     if value == "":
@@ -153,14 +194,18 @@ def crc8(value):
 
 def get_json_pv_value(pv_name, api, attempts=3):
     """
-    Get the pv value decompress and convert from json
+    Get the pv value decompress and convert from JSON.
+
     Args:
         pv_name: name of the pv to read
         api: the api to use to read it
         attempts: number of attempts to try to read PV
 
-    Returns: pv value as python objects
-    Raises PVReadException: if value can not be read
+    Returns:
+        pv value as python objects
+
+    Raises:
+         PVReadException: if value can not be read
 
     """
     try:
@@ -201,7 +246,8 @@ class EnvironmentDetails(object):
 
     def __init__(self, host_name=None):
         """
-        Consturctor
+        Consturctor.
+
         Args:
             host_name: computer host name to use; None to get it from the system
         Returns:
@@ -216,19 +262,23 @@ class EnvironmentDetails(object):
 
     def get_host_name(self):
         """
+        Gets the name of the computer.
 
-        Returns: the host name of the computer
-
+        Returns:
+            the host name of the computer
         """
         print "pv prefix {0}".format(self._host_name)
         return self._host_name
 
     def get_instrument_list(self, api):
         """
-        Get the instrument list
+        Get the instrument list.
+
         Args:
             api: api to use to get a pv value
-        Returns: the current instrument list
+
+        Returns:
+            the current instrument list
         """
         try:
             return get_json_pv_value(self.INSTRUMENT_LIST_PV, api, attempts=1)

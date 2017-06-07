@@ -16,7 +16,7 @@
 import json
 import unittest
 from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path, crc8, \
-    EnvironmentDetails, get_json_pv_value, PVReadException
+    EnvironmentDetails, get_json_pv_value, PVReadException, convert_string_to_ascii
 from mock import Mock
 
 
@@ -256,3 +256,85 @@ class TestGetJsonPVValue(unittest.TestCase):
         api.get_pv_value = Mock(side_effect=Exception())
 
         self.assertRaisesRegexp(PVReadException, "Can not read.*", get_json_pv_value, "name", api)
+
+
+class TestConvertStringToAscii(unittest.TestCase):
+    def test_GIVEN_string_with_only_ascii_WHEN_converted_THEN_no_change(self):
+        # Arrange
+        input = "abcdefghijklmnopqrstuvwxyz1234567890"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual(input, output)
+
+    def test_GIVEN_unicode_with_only_ascii_WHEN_converted_THEN_no_change(self):
+        # Arrange
+        input = u"abcdefghijklmnopqrstuvwxyz1234567890"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual(input, output)
+
+    def test_GIVEN_unicode_with_non_ascii_accented_e_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = u"\xe8\xe9\xea\xeb"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('eeee', output)
+
+    def test_GIVEN_string_with_non_ascii_accented_e_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = "\xc3\xa8\xc3\xa9\xc3\xaa\xc3\xab"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('eeee', output)
+
+    def test_GIVEN_unicode_with_non_ascii_accented_o_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = u"mot\xf6rhead"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('motorhead', output)
+
+    def test_GIVEN_string_with_non_asci_accented_o_i_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = 'mot\xc3\xb6rhead'
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('motorhead', output)
+
+    def test_GIVEN_unicode_with_non_ascii_run_together_ae_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = u"encyclop\xe6dia"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('encyclopaedia', output)
+
+    def test_GIVEN_string_with_non_ascii_run_together_ae_WHEN_converted_THEN_is_corrected(self):
+        # Arrange
+        input = "encyclop\xc3\xa6dia"
+
+        # Act
+        output = convert_string_to_ascii(input)
+
+        # Assert
+        self.assertEqual('encyclopaedia', output)

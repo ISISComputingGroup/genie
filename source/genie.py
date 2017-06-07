@@ -1669,7 +1669,7 @@ def change(**params):
         >>> change(title="The new title")
 
         Change the RB number and the users:
-        >>> change(rb=123456, user="A. User and Ann Other")
+        >>> change(rb=123456, user="A User, Ann Other")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1685,6 +1685,8 @@ def change(**params):
                 change_users(params[k])
             elif key == 'rb':
                 change_rb(params[k])
+            else:
+                raise KeyError("Unknown parameter supplied. Type help(change) for more information")
     except Exception as e:
         _handle_exception(e)
 
@@ -1748,6 +1750,9 @@ def change_users(users):
 
     Args:
         users: a string containing the user name(s)
+
+    Example:
+        >>> change_users("Emerson, Lake, Palmer")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:

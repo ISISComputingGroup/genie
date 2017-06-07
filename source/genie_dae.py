@@ -4,6 +4,7 @@ import zlib
 import json
 from time import sleep, strftime
 from genie_change_cache import ChangeCache
+from utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
 
 DAE_PVS_LOOKUP = {
     "runstate": "DAE:RUNSTATE",
@@ -37,7 +38,8 @@ DAE_PVS_LOOKUP = {
     "rbnum_sp": "ED:RBNUMBER:SP",
     "period_sp": "DAE:PERIOD:SP",
     "users": "ED:SURNAME",
-    "users_sp": "ED:USERNAME:SP",
+    "users_table_sp": "ED:USERNAME:SP",
+    "users_dae_sp": "ED:USERNAME:DAE:SP",
     "starttime": "DAE:STARTTIME",
     "npratio": "DAE:NPRATIO",
     "timingsource": "DAE:DAETIMINGSOURCE",
@@ -167,19 +169,7 @@ class Dae(object):
         """
         msgs = self._get_pv_value(self._get_dae_pv_name("allmessages"), to_string=True)
         print msgs
-        
-    def _dehex_decompress(self, value):
-        """
-        Dehexs and decompresses the supplied value.
 
-        Args:
-            value: the value
-
-        Returns:
-            string: the decoded value
-        """
-        return zlib.decompress(value.decode("hex"))
-        
     def set_verbose(self, verbose):
         """
         Sets the verbosity of the DAE messages printed
@@ -638,7 +628,7 @@ class Dae(object):
         """
         try:
             # Data comes as compressed and hexed json
-            raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("users"), to_string=True))
+            raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("users"), to_string=True))
             names_list = json.loads(raw)
             if len(names_list) > 1:
                 last = names_list.pop(-1)
@@ -658,7 +648,14 @@ class Dae(object):
         Args:
             users: the users as a string
         """
-        self._set_pv_value(self._get_dae_pv_name("users_sp"), users)
+        # Clear out the "Users Table" by sending an empty list - must be compressed and hexed JSON
+        self._set_pv_value(self._get_dae_pv_name("users_table_sp"), compress_and_hex("[]"), True)
+        # Set the surnames PV - must be compressed and hexed JSON list
+        json_str = json.dumps([x.strip() for x in users.split(',')])
+        self._set_pv_value(self._get_dae_pv_name("users"), compress_and_hex(json_str))
+        # Set the value in the DAE - must be ascii string
+        ascii_str = convert_string_to_ascii(users)
+        self._set_pv_value(self._get_dae_pv_name("users_dae_sp"), ascii_str)
         
     def get_starttime(self):
         """
@@ -1251,7 +1248,7 @@ class Dae(object):
         """
         # TCB data comes as hex and zipped!
         value = self._get_pv_value(self._get_dae_pv_name("tcbsettings"), to_string=True)
-        xml = self._dehex_decompress(value)
+        xml = dehex_and_decompress(value)
         # Strip off any zlib checksum stuff at end of the string
         last = xml.rfind('>') + 1        
         root = ET.fromstring(xml[0:last].strip())
@@ -1309,7 +1306,7 @@ class Dae(object):
         Returns:
             list: the table choices
         """
-        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("wiringtables"), to_string=True))
+        raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("wiringtables"), to_string=True))
         return json.loads(raw)
         
     def get_spectra_tables(self):
@@ -1319,7 +1316,7 @@ class Dae(object):
         Returns:
             list: the table choices
         """
-        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("spectratables"), to_string=True))
+        raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("spectratables"), to_string=True))
         return json.loads(raw)
         
     def get_detector_tables(self):
@@ -1329,7 +1326,7 @@ class Dae(object):
         Returns:
             list: the table choices
         """
-        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("detectortables"), to_string=True))
+        raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("detectortables"), to_string=True))
         return json.loads(raw)
 
     def get_period_files(self):
@@ -1339,5 +1336,5 @@ class Dae(object):
         Returns:
             list: the table choices
         """
-        raw = self._dehex_decompress(self._get_pv_value(self._get_dae_pv_name("periodfiles"), to_string=True))
+        raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("periodfiles"), to_string=True))
         return json.loads(raw)
