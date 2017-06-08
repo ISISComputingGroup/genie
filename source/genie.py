@@ -1661,12 +1661,18 @@ def change(**params):
         title (string, optional): the new title
         period (int, optional): the new period (must be in a non-running state)
         nperiods (int, optional): the new number of software periods (must be in a non-running state)
-        user (string, optional): the new user(s)
+        user (string, optional): the new user(s) as a comma-separated list
         rb (int, optional): the new RB number
 
     Examples:
         Change the title:
         >>> change(title="The new title")
+
+        Change the user:
+        >>> change(user="Instrument Team")
+
+        Set multiple users:
+        >>> change(user="Thouless, Haldane, Kosterlitz")
 
         Change the RB number and the users:
         >>> change(rb=123456, user="A User, Ann Other")

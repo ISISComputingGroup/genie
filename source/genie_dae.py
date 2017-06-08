@@ -647,7 +647,7 @@ class Dae(object):
         Set the users for the current run.
 
         Args:
-            users: the users as a string
+            users: the users as a comma-separated string
         """
         # Clear out the "Users Table" by sending an empty list - must be compressed and hexed JSON
         self._set_pv_value(self._get_dae_pv_name("users_table_sp"), compress_and_hex("[]"), True)
