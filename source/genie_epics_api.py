@@ -46,11 +46,11 @@ class API(object):
 
         instrument_machine_prefixes = ["NDX", "NDE"]
 
-        # machine_identifier needs to be uppercase for both 'NDXALF' and 'ndxalf' to be valid
         if machine_identifier is None:
-            machine_identifier = self._environment_details.get_host_name().upper()
-        else:
-            machine_identifier = machine_identifier.upper()
+            machine_identifier = self._environment_details.get_host_name()
+
+        # machine_identifier needs to be uppercase for both 'NDXALF' and 'ndxalf' to be valid
+        machine_identifier = machine_identifier.upper()
 
         instrument = machine_identifier.upper()
         for p in [instrument_pv_prefix, test_machine_pv_prefix] + instrument_machine_prefixes:
