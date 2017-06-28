@@ -272,3 +272,13 @@ class TestSimulationSequence(unittest.TestCase):
 
         # Assert
         self.assertEquals(rb, genie.get_rb())
+
+    def test_GIVEN_changed_user_WHEN_getting_user_THEN_values_match(self):
+        # Arrange
+        usrs = "Adam, Dave, John"
+
+        # Act
+        genie.change_users(usrs)
+
+        # Assert
+        self.assertEquals(usrs, genie.get_dashboard()['user'])

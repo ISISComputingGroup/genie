@@ -1661,15 +1661,21 @@ def change(**params):
         title (string, optional): the new title
         period (int, optional): the new period (must be in a non-running state)
         nperiods (int, optional): the new number of software periods (must be in a non-running state)
-        user (string, optional): the new user(s)
+        user (string, optional): the new user(s) as a comma-separated list
         rb (int, optional): the new RB number
 
     Examples:
         Change the title:
         >>> change(title="The new title")
 
+        Change the user:
+        >>> change(user="Instrument Team")
+
+        Set multiple users:
+        >>> change(user="Thouless, Haldane, Kosterlitz")
+
         Change the RB number and the users:
-        >>> change(rb=123456, user="A. User and Ann Other")
+        >>> change(rb=123456, user="Smith, Jones")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1685,6 +1691,8 @@ def change(**params):
                 change_users(params[k])
             elif key == 'rb':
                 change_rb(params[k])
+            else:
+                raise KeyError("Unknown parameter supplied. Type help(change) for more information")
     except Exception as e:
         _handle_exception(e)
 
@@ -1748,6 +1756,9 @@ def change_users(users):
 
     Args:
         users: a string containing the user name(s)
+
+    Example:
+        >>> change_users("Emerson, Lake, Palmer")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
