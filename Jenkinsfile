@@ -28,7 +28,7 @@ pipeline {
     
     stage("Trigger Downstream") {
       steps {
-        build job: 'ibex_gui_pipeline'
+        build job: 'ibex_gui_pipeline', wait: false
       }
     }
   }
