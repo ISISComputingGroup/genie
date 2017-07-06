@@ -26,6 +26,10 @@ pipeline {
             '''
       }
     }
+	
+	stage("Trigger Downstream") {
+		build job: 'ibex_gui_pipeline'
+	}
   }
   
   post {
