@@ -22,7 +22,6 @@ pipeline {
       steps {
         bat '''
             cd package_builder
-            build_python.bat install
             '''
       }
     }
