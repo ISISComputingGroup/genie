@@ -23,6 +23,8 @@ pipeline {
         echo "Build Number: ${env.BUILD_NUMBER}"
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
+            set GIT_COMMIT=${env.GIT_COMMIT}
+            set GIT_BRANCH=${env.GIT_BRANCH}
             cd package_builder
             build_python.bat install
             """
