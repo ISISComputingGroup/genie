@@ -21,7 +21,9 @@ pipeline {
     stage("Build") {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
-        def gitcommit = bat(returnStdout: true, script: 'git rev-parse HEAD').trim()
+        script {
+            env.GIT_COMMIT = bat(returnStdout: true, script: 'git rev-parse HEAD').trim()
+        }
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set GIT_COMMIT=${env.GIT_COMMIT}
