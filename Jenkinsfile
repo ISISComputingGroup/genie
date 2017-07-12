@@ -21,11 +21,11 @@ pipeline {
     stage("Build") {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
-        bat '''
+        bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             cd package_builder
             build_python.bat install
-            '''
+            """
       }
     }
     
