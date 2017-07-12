@@ -20,7 +20,7 @@ pipeline {
     
     stage("Build") {
       steps {
-        echo currentBuild.number
+        echo "Build Number: ${env.BUILD_NUMBER}"
         bat '''
             cd package_builder
             build_python.bat install
