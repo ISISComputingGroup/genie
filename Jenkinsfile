@@ -22,7 +22,7 @@ pipeline {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
         script {
-            env.GIT_COMMIT = bat(returnStdout: true, script: 'git rev-parse HEAD').trim()
+            env.GIT_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
             echo "git commit: ${env.GIT_COMMIT}"
         }
         bat """
