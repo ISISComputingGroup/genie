@@ -27,7 +27,7 @@ pipeline {
             echo "git commit: ${env.GIT_COMMIT}"
             echo "git branch: ${env.GIT_BRANCH}"
         }
-        if (env.BRANCH_NAME.startsWith("Release") {
+        if (env.BRANCH_NAME.startsWith("Release")) {
             env.IS_RELEASE = "YES"
         }
         else {
