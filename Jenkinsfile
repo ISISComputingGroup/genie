@@ -26,13 +26,14 @@ pipeline {
             env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
             echo "git commit: ${env.GIT_COMMIT}"
             echo "git branch: ${env.GIT_BRANCH}"
+            if (env.GIT_BRANCH.startsWith("Release")) {
+                env.IS_RELEASE = "YES"
+            }
+            else {
+                env.IS_RELEASE = "NO"
+            }
         }
-        if (env.BRANCH_NAME.startsWith("Release")) {
-            env.IS_RELEASE = "YES"
-        }
-        else {
-            env.IS_RELEASE = "NO"
-        }
+        
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set GIT_COMMIT=${env.GIT_COMMIT}
