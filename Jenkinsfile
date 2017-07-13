@@ -27,10 +27,17 @@ pipeline {
             echo "git commit: ${env.GIT_COMMIT}"
             echo "git branch: ${env.GIT_BRANCH}"
         }
+        if (env.BRANCH_NAME.startsWith("Release") {
+            env.IS_RELEASE = "YES"
+        }
+        else {
+            env.IS_RELEASE = "NO"
+        }
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set GIT_COMMIT=${env.GIT_COMMIT}
             set GIT_BRANCH=${env.GIT_BRANCH}
+            set RELEASE=${env.IS_RELEASE}
             cd package_builder
             build_python.bat install
             """
