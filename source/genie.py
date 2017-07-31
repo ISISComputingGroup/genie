@@ -1466,6 +1466,7 @@ def change_tcb_file(tcbfile=None, default=False):
 def change_tcb(low, high, step, trange, log=False, regime=1):
     """
     Change the time channel boundaries.
+    If None is specified for low, high or step then the values are left unchanged.
 
     Args
         low (float): the lower limit

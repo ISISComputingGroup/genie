@@ -47,130 +47,92 @@ class ChangeCache(object):
         self.fermi_width = width
         
     def change_dae_settings(self, root):
-        changed = False
-        if self.wiring is not None:
-            self._change_xml(root, 'String', 'Wiring Table', self.wiring)
-            changed = True
-        if self.detector is not None:
-            self._change_xml(root, 'String', 'Detector Table', self.detector)
-            changed = True
-        if self.spectra is not None:
-            self._change_xml(root, 'String', 'Spectra Table', self.spectra)
-            changed = True
-        if self.mon_spect is not None:
-            self._change_xml(root, 'I32', 'Monitor Spectrum', self.mon_spect)
-            changed = True
-        if self.mon_from is not None:
-            self._change_xml(root, 'DBL', 'from', self.mon_from)
-            changed = True
-        if self.mon_to is not None:
-            self._change_xml(root, 'DBL', 'to', self.mon_to)
-            changed = True
-        if self.dae_sync is not None:
-            self._change_xml(root, 'EW', 'DAETimingSource', self.dae_sync)
-            changed = True
+        changed = self._change_xml(root, 'String', 'Wiring Table', self.wiring)
+        changed |= self._change_xml(root, 'String', 'Detector Table', self.detector)
+        changed |= self._change_xml(root, 'String', 'Spectra Table', self.spectra)
+        changed |= self._change_xml(root, 'I32', 'Monitor Spectrum', self.mon_spect)
+        changed |= self._change_xml(root, 'DBL', 'from', self.mon_from)
+        changed |= self._change_xml(root, 'DBL', 'to', self.mon_to)
+        changed |= self._change_xml(root, 'EW', 'DAETimingSource', self.dae_sync)
+
         if self.fermi_veto is not None:
             self._change_xml(root, 'EW', ' Fermi Chopper Veto', self.fermi_veto)
             self._change_xml(root, 'DBL', 'FC Delay', self.fermi_delay)
             self._change_xml(root, 'DBL', 'FC Width', self.fermi_width)
-            changed = True
+            changed |= True
             
-        changed = self._change_vetos(root, changed)
+        changed |= self._change_vetos(root)
         return changed
         
-    def _change_vetos(self, root, changed):
-        if self.smp_veto is not None:
-            self._change_xml(root, 'EW', 'SMP (Chopper) Veto', self.smp_veto)
-            changed = True
-        if self.ts2_veto is not None:
-            self._change_xml(root, 'EW', ' TS2 Pulse Veto', self.ts2_veto)
-            changed = True
-        if self.hz50_veto is not None:
-            self._change_xml(root, 'EW', ' ISIS 50Hz Veto', self.hz50_veto)
-            changed = True
-        if self.ext0_veto is not None:
-            self._change_xml(root, 'EW', 'Veto 0', self.ext0_veto)
-            changed = True
-        if self.ext1_veto is not None:
-            self._change_xml(root, 'EW', 'Veto 1', self.ext1_veto)
-            changed = True
-        if self.ext2_veto is not None:
-            self._change_xml(root, 'EW', 'Veto 2', self.ext2_veto)
-            changed = True
-        if self.ext3_veto is not None:
-            self._change_xml(root, 'EW', 'Veto 3', self.ext3_veto)
-            changed = True
+    def _change_vetos(self, root):
+        changed = self._change_xml(root, 'EW', 'SMP (Chopper) Veto', self.smp_veto)
+        changed |= self._change_xml(root, 'EW', ' TS2 Pulse Veto', self.ts2_veto)
+        changed |= self._change_xml(root, 'EW', ' ISIS 50Hz Veto', self.hz50_veto)
+        changed |= self._change_xml(root, 'EW', 'Veto 0', self.ext0_veto)
+        changed |= self._change_xml(root, 'EW', 'Veto 1', self.ext1_veto)
+        changed |= self._change_xml(root, 'EW', 'Veto 2', self.ext2_veto)
+        changed |= self._change_xml(root, 'EW', 'Veto 3', self.ext3_veto)
         return changed
         
     def change_tcb_settings(self, root):
-        changed = False
-        if self.tcb_file is not None:
-            self._change_xml(root, 'String', 'Time Channel File', self.tcb_file)
-            changed = True
-        changed = self._change_tcb_table(root, changed)
+        changed = self._change_xml(root, 'String', 'Time Channel File', self.tcb_file)
+        changed |= self._change_tcb_table(root)
         return changed
             
-    def _change_tcb_table(self, root, changed):
+    def _change_tcb_table(self, root):
+        changed = False
         for row in self.tcb_tables:
             regime = str(row[0])
             trange = str(row[1])
-            self._change_xml(root, 'DBL', 'TR%s From %s' % (regime, trange), row[2])
-            self._change_xml(root, 'DBL', 'TR%s To %s' % (regime, trange), row[3])
-            self._change_xml(root, 'DBL', 'TR%s Steps %s' % (regime, trange), row[4])
-            self._change_xml(root, 'U16', 'TR%s In Mode %s' % (regime, trange), row[5])
-            changed = True
+            changed |= self._change_xml(root, 'DBL', 'TR%s From %s' % (regime, trange), row[2])
+            changed |= self._change_xml(root, 'DBL', 'TR%s To %s' % (regime, trange), row[3])
+            changed |= self._change_xml(root, 'DBL', 'TR%s Steps %s' % (regime, trange), row[4])
+            changed |= self._change_xml(root, 'U16', 'TR%s In Mode %s' % (regime, trange), row[5])
         return changed
             
     def change_period_settings(self, root):
-        changed = False
-        if self.periods_type is not None:
-            self._change_xml(root, 'EW', 'Period Type', self.periods_type)
-            changed = True
-        if self.periods_soft_num is not None:
-            self._change_xml(root, 'I32', 'Number Of Software Periods', self.periods_soft_num)
-            changed = True
-        if self.periods_src is not None:
-            self._change_xml(root, 'EW', 'Period Setup Source', self.periods_src)
-            changed = True
-        if self.periods_seq is not None:
-            self._change_xml(root, 'DBL', 'Hardware Period Sequences', self.periods_seq)
-            changed = True
-        if self.periods_delay is not None:
-            self._change_xml(root, 'DBL', 'Output Delay (us)', self.periods_delay)
-            changed = True
-        if self.periods_file is not None:
-            self._change_xml(root, 'String', 'Period File', self.periods_file)
-            changed = True
-        if self.periods_settings is not None:
-            self._change_period_table(root, self.periods_settings)
-            changed = True
+        changed = self._change_xml(root, 'EW', 'Period Type', self.periods_type)
+        changed |= self._change_xml(root, 'I32', 'Number Of Software Periods', self.periods_soft_num)
+        changed |= self._change_xml(root, 'EW', 'Period Setup Source', self.periods_src)
+        changed |= self._change_xml(root, 'DBL', 'Hardware Period Sequences', self.periods_seq)
+        changed |= self._change_xml(root, 'DBL', 'Output Delay (us)', self.periods_delay)
+        changed |= self._change_xml(root, 'String', 'Period File', self.periods_file)
+        changed |= self._change_period_table(root)
         return changed
             
-    def _change_period_table(self, root, changed):
+    def _change_period_table(self, root):
+        changed = False
         for row in self.periods_settings:
             period = row[0]
             ptype = row[1]
             frames = row[2]
             output = row[3]
             label = row[4]
-            if ptype is not None:
-                self._change_xml(root, 'EW', 'Type %s' % period, ptype)
-                changed = True
-            if frames is not None:
-                self._change_xml(root, 'I32', 'Frames %s' % period, frames)
-                changed = True
-            if output is not None:
-                self._change_xml(root, 'U16', 'Output %s' % period, output)
-                changed = True
-            if label is not None:
-                self._change_xml(root, 'String', 'Label %s' % period, label)
-                changed = True
+            changed |= self._change_xml(root, 'EW', 'Type %s' % period, ptype)
+            changed |= self._change_xml(root, 'I32', 'Frames %s' % period, frames)
+            changed |= self._change_xml(root, 'U16', 'Output %s' % period, output)
+            changed |= self._change_xml(root, 'String', 'Label %s' % period, label)
         return changed
             
     def _change_xml(self, xml, node, name, value):
-        for top in xml.iter(node):
-            n = top.find('Name')
-            if n.text == name:
-                v = top.find('Val')
-                v.text = str(value)
-                break
+        """
+        Helper func to change the xml.
+        Will not be set if the input is None.
+
+        Args:
+            xml: The root of the xml
+            node: The node type
+            name: The name of the node
+            value: The new value to set
+
+        Returns:
+            True if the xml has been changed
+        """
+        if value is not None:
+            for top in xml.iter(node):
+                n = top.find('Name')
+                if n.text == name:
+                    v = top.find('Val')
+                    v.text = str(value)
+                    return True
+        return False
