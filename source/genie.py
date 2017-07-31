@@ -1483,6 +1483,26 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 
 
 @usercommand
+@helparglist('trange[, regime]')
+def get_tcb_settings(trange, regime=1):
+    """
+    Gets a dictionary of the time channel settings.
+
+    Args:
+        regime: the regime to read (1 to 6)
+        trange: the time range to read (1 to 5) [optional]
+
+    Returns:
+        dict: the low, high and step for the supplied range and regime
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        return __api.dae.get_tcb_settings(trange, regime)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
 @helparglist('[...]')
 def change_vetos(**params):
     """
