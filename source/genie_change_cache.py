@@ -126,7 +126,7 @@ class ChangeCache(object):
             value: The new value to set
 
         Returns:
-            True if the xml has been changed
+            bool: True if the xml has been changed
         """
         if value is not None:
             for top in xml.iter(node):
