@@ -2,6 +2,7 @@ import xml.etree.ElementTree as ET
 import os
 import zlib
 import json
+import re
 from time import sleep, strftime
 from genie_change_cache import ChangeCache
 from utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
@@ -1245,17 +1246,24 @@ class Dae(object):
         changed = self.change_cache.change_dae_settings(root)
         if changed:
             self._set_pv_value(self._get_dae_pv_name("daesettings_sp"), ET.tostring(root), wait=True)
-        
+
+    def _get_tcb_xml(self):
+        """
+        Reads the hexed and zipped TCB data.
+
+        The root of the xml.
+        """
+        value = self._get_pv_value(self._get_dae_pv_name("tcbsettings"), to_string=True)
+        xml = dehex_and_decompress(value)
+        # Strip off any zlib checksum stuff at end of the string
+        last = xml.rfind('>') + 1
+        return ET.fromstring(xml[0:last].strip())
+
     def _change_tcb_settings(self):
         """
         Changes the TCB settings.
         """
-        # TCB data comes as hex and zipped!
-        value = self._get_pv_value(self._get_dae_pv_name("tcbsettings"), to_string=True)
-        xml = dehex_and_decompress(value)
-        # Strip off any zlib checksum stuff at end of the string
-        last = xml.rfind('>') + 1        
-        root = ET.fromstring(xml[0:last].strip())
+        root = self._get_tcb_xml()
         changed = self.change_cache.change_tcb_settings(root)
         if changed:
             ans = zlib.compress(ET.tostring(root))             
@@ -1342,3 +1350,28 @@ class Dae(object):
         """
         raw = dehex_and_decompress(self._get_pv_value(self._get_dae_pv_name("periodfiles"), to_string=True))
         return json.loads(raw)
+
+    def get_tcb_settings(self, trange, regime=1):
+        """
+        Gets a dictionary of the time channel settings.
+
+        Args:
+            regime: the regime to read (1 to 6)
+            trange: the time range to read (1 to 5) [optional]
+
+        Returns:
+            dict: the low, high and step for the supplied range and regime
+        """
+        root = self._get_tcb_xml()
+        search_text = 'TR%s (\w+) %s' % (regime, trange)
+        regex = re.compile(search_text)
+        out = dict()
+
+        for top in root.iter('DBL'):
+            n = top.find('Name')
+            match = regex.search(n.text)
+            if match is not None:
+                v = top.find('Val')
+                out[match.group(1)] = v.text
+
+        return out
