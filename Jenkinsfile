@@ -40,7 +40,7 @@ pipeline {
             set GIT_BRANCH=${env.GIT_BRANCH}
             set RELEASE=${env.IS_RELEASE}
             cd package_builder
-            build_python.bat install
+            build_python.bat
             """
       }
     }
