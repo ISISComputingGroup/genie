@@ -48,7 +48,6 @@ pipeline {
     stage("Trigger Downstream") {
       steps {
         build job: 'ibex_gui_pipeline', wait: false
-        build job: 'update_genie_python_vegas', wait: false
       }
     }
   }
