@@ -7,8 +7,12 @@ pipeline {
     label {
       label "genie"
       // Use custom workspace to avoid issue with long filepaths on Win32
-      env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
-      customWorkspace "C:/genie/${env.GIT_BRANCH}"
+      try {
+        customWorkspace "C:/genie/${BRANCH_NAME}"
+      } catch(Exception ex) {
+        // master is not a branch
+        customWorkspace "C:/genie/master"
+      }
     }
   }
   
