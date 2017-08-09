@@ -7,7 +7,8 @@ pipeline {
     label {
       label "genie"
       // Use custom workspace to avoid issue with long filepaths on Win32
-      customWorkspace "C:/genie/${BRANCH_NAME}"
+      env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
+      customWorkspace "C:/genie/${env.GIT_BRANCH}"
     }
   }
   
