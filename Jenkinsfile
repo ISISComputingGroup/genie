@@ -7,12 +7,8 @@ pipeline {
     label {
       label "genie"
       // Use custom workspace to avoid issue with long filepaths on Win32
-      try {
-        customWorkspace "C:/genie/${BRANCH_NAME}"
-      } catch(Exception ex) {
-        // master is not a branch
-        customWorkspace "C:/genie/master"
-      }
+      customWorkspace "C:/genie/master"
+      
     }
   }
   
