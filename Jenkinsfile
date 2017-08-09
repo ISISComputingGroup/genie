@@ -4,7 +4,11 @@ pipeline {
 
   // agent defines where the pipeline will run.
   agent {  
-    label "genie"
+    label {
+      label "genie"
+      // Use custom workspace to avoid issue with long filepaths on Win32
+      customWorkspace "C:/genie/${BRANCH_NAME}"
+    }
   }
   
   triggers {
