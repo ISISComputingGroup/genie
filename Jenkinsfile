@@ -7,8 +7,7 @@ pipeline {
     label {
       label "genie"
       // Use custom workspace to avoid issue with long filepaths on Win32
-      customWorkspace "C:/genie/master"
-      
+      customWorkspace "C:/genie/${BRANCH_NAME}"
     }
   }
   
@@ -19,6 +18,7 @@ pipeline {
   stages {  
     stage("Checkout") {
       steps {
+        echo "Branch: ${env.BRANCH_NAME}"
         checkout scm
       }
     }
@@ -30,8 +30,8 @@ pipeline {
             env.GIT_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
             env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
             echo "git commit: ${env.GIT_COMMIT}"
-            echo "git branch: ${env.GIT_BRANCH}"
-            if (env.GIT_BRANCH.startsWith("Release")) {
+            echo "git branch: ${env.BRANCH_NAME} ${env.GIT_BRANCH}"
+            if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
                 env.IS_RELEASE = "YES"
             }
             else {
@@ -42,10 +42,10 @@ pipeline {
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set GIT_COMMIT=${env.GIT_COMMIT}
-            set GIT_BRANCH=${env.GIT_BRANCH}
+            set GIT_BRANCH=${env.BRANCH_NAME}
             set RELEASE=${env.IS_RELEASE}
             cd package_builder
-            build_python.bat
+            build_python.bat install
             """
       }
     }
