@@ -945,6 +945,44 @@ class Dae(object):
         if did_change:
             self.change_finish()
 
+    def _create_tcb_return_string(self, low, high, step, log):
+        """
+        Creates a human readable string when the tcb is changed.
+
+        Args:
+            low: the lower limit
+            high: the upper limit
+            step: the step size
+            log: whether to use LOG binning [optional]
+
+        Returns:
+            str: The human readable string
+        """
+        out = "Setting TCB "
+        binning = "LOG binning" if log else "LINEAR binning"
+
+        low_changed = low is not None
+        high_changed = high is not None
+        step_changed = step is not None
+
+        if not low_changed and not high_changed and not step_changed:
+            return "{}to {}".format(out, binning)
+
+        if low_changed and high_changed:
+            out += "range {} to {} ".format(low, high)
+        else:
+            if low_changed:
+                out += "low limit to {} ".format(low)
+            if high_changed:
+                out += "high limit to {} ".format(high)
+
+        if step_changed:
+            out += "step {} ".format(step)
+
+        out += "({})".format(binning)
+
+        return out
+
     def change_tcb(self, low, high, step, trange, log=False, regime=1):
         """
         Change the time channel boundaries.
@@ -957,15 +995,14 @@ class Dae(object):
             log: whether to use LOG binning [optional]
             regime: the time regime to set (1 to 6)[optional]
         """
+        print self._create_tcb_return_string(low, high, step, log)
         did_change = False
         if not self.in_change:
             self.change_start()
             did_change = True
         if log:
-            print "Setting TCB range", low, "to", high, "step", step, "(LOG binning)"
             self.change_cache.tcb_tables.append((regime, trange, low, high, step, 2))
         else:
-            print "Setting TCB range", low, "to", high, "step", step, "(LINEAR binning)"
             self.change_cache.tcb_tables.append((regime, trange, low, high, step, 1))
         if did_change:
             self.change_finish()
