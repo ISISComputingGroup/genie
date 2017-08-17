@@ -6,7 +6,7 @@ class Waitfor(object):
         pass
 
     def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False,
-                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None):
+                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None, exception=lambda: False):
         pass
 
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
