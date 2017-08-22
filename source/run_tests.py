@@ -24,6 +24,7 @@ import argparse
 
 from test_modules.test_utilities import TestUtilitiesSequence
 from test_modules.test_simulation import TestSimulationSequence
+from test_modules.test_genie_dae import TestGenieDAE
 from test_modules.test_genie_epics_api import TestEpicsApiSequence
 from test_modules.test_genie_epics_api import TestEpicsApiSetInstrumentName
 from test_modules.test_genie_blockserver_tests import TestGenieBlockserver
@@ -37,7 +38,8 @@ TEST_CLASSES = [
     TestEpicsApiSetInstrumentName,
     TestGenieBlockserver,
     TestScriptChecker,
-    TestGenie
+    TestGenie,
+    TestGenieDAE
 ]
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
 
