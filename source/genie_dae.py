@@ -974,7 +974,7 @@ class Dae(object):
             out += "step {} ".format(step)
 
         if not any([low_changed, high_changed, step_changed]):
-            out += " to {}".format(binning)
+            out += "to {}".format(binning)
         else:
             out += "({})".format(binning)
 
