@@ -961,25 +961,22 @@ class Dae(object):
         out = "Setting TCB "
         binning = "LOG binning" if log else "LINEAR binning"
 
-        low_changed = low is not None
-        high_changed = high is not None
-        step_changed = step is not None
-
-        if not low_changed and not high_changed and not step_changed:
-            return "{}to {}".format(out, binning)
+        low_changed, high_changed, step_changed = (c is not None for c in [low, high, step])
 
         if low_changed and high_changed:
             out += "range {} to {} ".format(low, high)
-        else:
-            if low_changed:
-                out += "low limit to {} ".format(low)
-            if high_changed:
-                out += "high limit to {} ".format(high)
+        elif low_changed:
+            out += "low limit to {} ".format(low)
+        elif high_changed:
+            out += "high limit to {} ".format(high)
 
         if step_changed:
             out += "step {} ".format(step)
 
-        out += "({})".format(binning)
+        if not any([low_changed, high_changed, step_changed]):
+            out += " to {}".format(binning)
+        else:
+            out += "({})".format(binning)
 
         return out
 
