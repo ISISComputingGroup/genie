@@ -726,13 +726,44 @@ def set_pv(name, value, wait=False, is_local=False):
         value: the new value to set
         wait (bool, optional): whether to wait until the value has been received by the hardware
         is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
+
+        If user input is a string, convert input to the bi/mbbi index values of the record
     """
+
+    if not isinstance(value, int):
+
+        found = False
+        mbbiArray = ["ZRST", "ONST", "TWST", "THST", "FRST", "FVST", "SXST", "SVST", "EIST",
+                     "NIST", "TEST", "ELST", "TVST", "TTST", "FTST", "FFST"]
+
+        ''' Check for ZNAM/ONAM fields (for bi records), then search ZRST - FFST for mbbi records '''
+        try:
+            if __api.pv_exists(name + '.ZNAM'):
+                if get_pv(name + '.ZNAM') == value:
+                    found = True
+                    intValue = 0
+                elif get_pv(name + '.ONAM') == value:
+                    found = True
+                    intValue = 1
+            elif __api.pv_exists(name + '.ZRST'):
+                for index, stringValue in enumerate(mbbiArray):
+                    if get_pv(name + '.' + stringValue) == value:
+                        found = True
+                        intValue = index
+                        break
+        except Exception:
+            pass
+
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        __api.set_pv_value(name, value, wait, is_local)
+        if found:
+            __api.set_pv_value(name, intValue, wait, is_local)
+            print name + " SET TO: " + str(value)
+        else:
+            print "Your input \'" + value + "\' was not found. Is this a valid PV value?"
+
     except Exception as e:
         _handle_exception(e)
-
 
 @usercommand
 @helparglist('verbose')
@@ -1462,26 +1493,19 @@ def change_tcb_file(tcbfile=None, default=False):
 
 
 @usercommand
-@helparglist('[low], [high], [step], [trange], [log], [regime]')
-def change_tcb(low=None, high=None, step=None, trange=1, log=False, regime=1):
+@helparglist('low, high, step, trange[, log][, regime]')
+def change_tcb(low, high, step, trange, log=False, regime=1):
     """
     Change the time channel boundaries.
     If None is specified for low, high or step then the values are left unchanged.
 
     Args
-        low (float, optional): the lower limit. Default is no change from the current value.
-        high (float, optional): the upper limit. Default is no change from the current value.
-        step (float,optional): the step size. Default is no change from the current value.
-        trange (int, optional): the time range (1 to 5). Default is 1.
-        log (bool, optional): whether to use LOG binning. Default is no.
-        regime (int, optional): the time regime to set (1 to 6). Default is 1.
-
-    Examples:
-        Changes the from, to and step of the 1st range to 0, 10 and 5 respectively.
-        >>> change_tcb(0, 10, 5)
-
-        Changes the step size of the 2nd range to 2, leaving other parameters unchanged.
-        >>> change_tcb(step=2, trange=2)
+        low (float): the lower limit
+        high (float): the upper limit
+        step (float): the step size
+        trange (int): the time range (1 to 5)
+        log (bool, optional): whether to use LOG binning
+        regime (int, optional): the time regime to set (1 to 6)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1491,24 +1515,17 @@ def change_tcb(low=None, high=None, step=None, trange=1, log=False, regime=1):
 
 
 @usercommand
-@helparglist('trange, [regime]')
+@helparglist('trange[, regime]')
 def get_tcb_settings(trange, regime=1):
     """
     Gets a dictionary of the time channel settings.
 
     Args:
-        trange (int): the time range to read (1 to 5)
-        regime (int, optional): the regime to read (1 to 6). Default is 1.
+        regime: the regime to read (1 to 6)
+        trange: the time range to read (1 to 5) [optional]
 
     Returns:
         dict: the low, high and step for the supplied range and regime
-
-    Examples:
-        Get the step size for the 2nd range in the 3rd regime:
-        >>> get_tcb_settings(2, 3)["Steps"]
-
-        Get the step size for the 2nd range in the 3rd regime:
-        >>> get_tcb_settings(2, 3)["Steps"]
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -2150,4 +2167,3 @@ def get_version():
         string: The current version number of genie python
     """
     return VERSION
-
