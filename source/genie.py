@@ -620,10 +620,10 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 
     Examples:
         Wait for a run to enter the paused state:
-        >>> waitfor_runstate("pause")
+        >>> waitfor_runstate("paused")
 
         Wait for a run to exit the paused state:
-        >>> waitfor_runstate("pause", onexit=True)
+        >>> waitfor_runstate("paused", onexit=True)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
