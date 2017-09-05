@@ -714,8 +714,55 @@ def get_pv(name, to_string=False, is_local=False):
     except Exception as e:
         _handle_exception(e)
 
+def check_user_input_type(name, value):
+    """
+    If the value is a string input, convert to the enum value of the PV record.
+    :param name: the PV name
+    :param value: the new value to set
+    :return: index value of string (-1 if input not found)
 
-@usercommand
+    """
+    int_value = value
+    is_bi_or_mbbi = False
+    value_found = False
+
+    if isinstance(value, basestring):
+        mbbi_array = ["ZRST", "ONST", "TWST", "THST", "FRST", "FVST", "SXST", "SVST", "EIST",
+                     "NIST", "TEST", "ELST", "TVST", "TTST", "FTST", "FFST"]
+        bi_array = ["ZNAM", "ONAM"]
+
+        ''' Check for ZNAM/ONAM fields (for bi records), then search ZRST - FFST (for mbbi records) '''
+        try:
+            if __api.pv_exists(name + '.ZNAM'):
+                is_bi_or_mbbi = True
+                for index, stringValue in enumerate(bi_array):
+                    if get_pv(name + '.' + stringValue) == value:
+                        int_value = index
+                        value_found = True
+                        break
+            elif __api.pv_exists(name + '.ZRST'):
+                is_bi_or_mbbi = True
+                for index, stringValue in enumerate(mbbi_array):
+                    if get_pv(name + '.' + stringValue) == value:
+                        int_value = index
+                        value_found = True
+                        break
+        except Exception as e:
+            _handle_exception(e)
+
+    ''' 
+        If the record is bi/mbbi type and no corresponding value found, return error. 
+        Otherwise pass the user input value through unchanged.
+    '''
+    if is_bi_or_mbbi:
+        if not value_found:
+            int_value = -1
+    else:
+        int_value = value
+
+    return int_value
+
+
 @helparglist('name, value[, wait][, is_local]')
 def set_pv(name, value, wait=False, is_local=False):
     """
@@ -730,40 +777,19 @@ def set_pv(name, value, wait=False, is_local=False):
         If user input is a string, convert input to the bi/mbbi index values of the record
     """
 
-    if not isinstance(value, int):
-
-        found = False
-        mbbiArray = ["ZRST", "ONST", "TWST", "THST", "FRST", "FVST", "SXST", "SVST", "EIST",
-                     "NIST", "TEST", "ELST", "TVST", "TTST", "FTST", "FFST"]
-
-        ''' Check for ZNAM/ONAM fields (for bi records), then search ZRST - FFST for mbbi records '''
-        try:
-            if __api.pv_exists(name + '.ZNAM'):
-                if get_pv(name + '.ZNAM') == value:
-                    found = True
-                    intValue = 0
-                elif get_pv(name + '.ONAM') == value:
-                    found = True
-                    intValue = 1
-            elif __api.pv_exists(name + '.ZRST'):
-                for index, stringValue in enumerate(mbbiArray):
-                    if get_pv(name + '.' + stringValue) == value:
-                        found = True
-                        intValue = index
-                        break
-        except Exception:
-            pass
-
+    int_value = check_user_input_type(name, value)
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        if found:
-            __api.set_pv_value(name, intValue, wait, is_local)
-            print name + " SET TO: " + str(value)
-        else:
-            print "Your input \'" + value + "\' was not found. Is this a valid PV value?"
 
+    try:
+        if int_value != -1:
+            __api.set_pv_value(name, int_value, wait, is_local)
+            print "{0} SET TO '{1}'".format(name, value)
+        else:
+            print "Your input '{0}' is not valid for record {1}.".format(value, name)
     except Exception as e:
         _handle_exception(e)
+        print "Your input '{0}' is not valid for record {1}.".format(value, name)
+
 
 @usercommand
 @helparglist('verbose')
@@ -776,7 +802,6 @@ def set_messages_verbosity(verbose):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.dae.set_verbose(verbose)
-
 
 @usercommand
 @helparglist('...')
