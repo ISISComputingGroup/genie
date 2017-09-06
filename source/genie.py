@@ -442,7 +442,7 @@ def cshow(block=None):
 
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
-            frames=None, uamps=None, **pars):
+            frames=None, uamps=None, early_exit=lambda: False, **pars):
     """
     Interrupts execution until certain conditions are met.
 
@@ -459,6 +459,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
         frames (int, optional): wait for a total number of good frames to be collected
         uamps (float, optional): wait for a total number of uamps to be received
+        early_exit (lambda, optional): stop waiting if the function evaluates to True
 
     Examples:
         Wait for a block to reach a specific value:
@@ -487,6 +488,9 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
         Wait for a number of frames AND a time interval to occur:
         >>> waitfor(frames=5000, hours=2, wait_all=True)
+
+        Wait for either the block to reach a value or a condition to be met
+        >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")["value"]) > 123)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -504,14 +508,14 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
-                                    frames, uamps)
+                                    frames, uamps, early_exit)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
 @helparglist('block[, value][, lowlimit][, highlimit][, maxwait]')
-def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
+def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None, early_exit=lambda: False):
     """
     Interrupts execution until block reaches specific value
 
@@ -521,18 +525,20 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
         lowlimit: waits for the block to be >= this value
         highlimit: waits for the block to be <= this value
         maxwait: wait no longer that the specified number of seconds
+        early_exit: stop waiting if the exception evaluates to True
 
     Examples:
         >>> waitfor_block("myblock", value=123)
         >>> waitfor_block("myblock", value=True, maxwait=15)
         >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
         >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
+        >>> waitfor_block("myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
-        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
+        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait, early_exit=early_exit)
     except Exception as e:
         _handle_exception(e)
 
