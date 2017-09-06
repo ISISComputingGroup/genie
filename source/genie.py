@@ -532,7 +532,7 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
         >>> waitfor_block("myblock", value=True, maxwait=15)
         >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
         >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
-        >>> waitfor_block("myblock", value=123, early_exit=lambda: cget("myblock_limit_reached") != 0)
+        >>> waitfor_block("myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
