@@ -12,7 +12,7 @@ class WaitForController(object):
         self.high = None
     
     def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False, 
-                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None, exception=lambda: False):
+                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None, early_exit=lambda: False):
         # Error checks
         timeout_msg = ''
         if maxwait is not None:
@@ -68,9 +68,9 @@ class WaitForController(object):
                     self.api.log_info_msg("WAITFOR TIMED OUT")
                     return
 
-            if exception():
-                print "Exception handler evaluated to true in waitfor - stopping wait"
-                self.api.log_info_msg("EXCEPTION HANDLER REACHED IN WAITFOR - STOPPING WAIT")
+            if early_exit():
+                print "Early exit handler evaluated to true in waitfor - stopping wait"
+                self.api.log_info_msg("EARLY EXIT HANDLER REACHED IN WAITFOR - STOPPING WAIT")
                 return
 
             res = list()

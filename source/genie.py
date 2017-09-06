@@ -442,7 +442,7 @@ def cshow(block=None):
 
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
-            frames=None, uamps=None, exception=lambda: False, **pars):
+            frames=None, uamps=None, early_exit=lambda: False, **pars):
     """
     Interrupts execution until certain conditions are met.
 
@@ -459,7 +459,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
         frames (int, optional): wait for a total number of good frames to be collected
         uamps (float, optional): wait for a total number of uamps to be received
-        exception (lambda, optional): stop waiting if the exception evaluates to True
+        early_exit (lambda, optional): stop waiting if the function evaluates to True
 
     Examples:
         Wait for a block to reach a specific value:
@@ -490,7 +490,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         >>> waitfor(frames=5000, hours=2, wait_all=True)
 
         Wait for either the block to reach a value or a condition to be met
-        >>> waitfor(myblock=123, exception=lambda: some_function(cget("another_block")) > 123)
+        >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")) > 123)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -508,7 +508,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
-                                    frames, uamps, exception)
+                                    frames, uamps, early_exit)
     except Exception as e:
         _handle_exception(e)
 
