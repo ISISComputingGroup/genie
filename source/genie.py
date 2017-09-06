@@ -490,7 +490,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         >>> waitfor(frames=5000, hours=2, wait_all=True)
 
         Wait for either the block to reach a value or a condition to be met
-        >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")) > 123)
+        >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")["value"]) > 123)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
