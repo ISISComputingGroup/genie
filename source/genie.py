@@ -13,6 +13,7 @@ from utilities import waveform_to_string, get_correct_path, get_correct_filepath
     get_correct_directory_path_existing
 import inspect
 
+
 print "genie_python version " + VERSION
 
 # Determine whether to start in simulation mode
@@ -725,13 +726,13 @@ def check_user_input_type(name, value):
     int_value = value
     is_bi_or_mbbi = False
     value_found = False
-
+    '''
     if isinstance(value, basestring):
         mbbi_array = ["ZRST", "ONST", "TWST", "THST", "FRST", "FVST", "SXST", "SVST", "EIST",
                      "NIST", "TEST", "ELST", "TVST", "TTST", "FTST", "FFST"]
         bi_array = ["ZNAM", "ONAM"]
 
-        ''' Check for ZNAM/ONAM fields (for bi records), then search ZRST - FFST (for mbbi records) '''
+        
         try:
             if __api.pv_exists(name + '.ZNAM'):
                 is_bi_or_mbbi = True
@@ -750,15 +751,19 @@ def check_user_input_type(name, value):
         except Exception as e:
             _handle_exception(e)
 
-    ''' 
+     
         If the record is bi/mbbi type and no corresponding value found, return error. 
         Otherwise pass the user input value through unchanged.
     '''
+
     if is_bi_or_mbbi:
         if not value_found:
             int_value = -1
     else:
         int_value = value
+
+
+
 
     return int_value
 
@@ -777,18 +782,12 @@ def set_pv(name, value, wait=False, is_local=False):
         If user input is a string, convert input to the bi/mbbi index values of the record
     """
 
-    int_value = check_user_input_type(name, value)
     __api.log_command(sys._getframe().f_code.co_name, locals())
-
     try:
-        if int_value != -1:
-            __api.set_pv_value(name, int_value, wait, is_local)
-            print "{0} SET TO '{1}'".format(name, value)
-        else:
-            print "Your input '{0}' is not valid for record {1}.".format(value, name)
+        __api.set_pv_value(name, value, wait, is_local)
+
     except Exception as e:
         _handle_exception(e)
-        print "Your input '{0}' is not valid for record {1}.".format(value, name)
 
 
 @usercommand

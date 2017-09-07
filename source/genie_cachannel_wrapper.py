@@ -17,12 +17,12 @@ class CaChannelWrapper(object):
     def set_pv_value(name, value, wait=False, timeout=TIMEOUT):
         """Set the PV to a value.
            When getting a PV value this call should be used, unless there is a special requirement.
-
         Args:
             name - the PV name
             value - the value to set
             wait - wait for the value to be set before returning
         """
+        valid_input = True
         if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             chan = CACHE[name]
         else:
@@ -50,7 +50,27 @@ class CaChannelWrapper(object):
                 chan.pend_event(0.1)
         else:
             # putw() flushes send buffer, but doesn't wait for a CA completion callback
-            chan.putw(value)
+
+            # If PV is mbbi/bi type AND user input is a string value,
+            # return list of enum values and interate to find a match
+            if ca.dbr_type_is_ENUM(chan.field_type()) and isinstance(value, basestring):
+                chan.array_get(ca.DBR_CTRL_ENUM)
+                channel_properties = chan.getValue()
+                valid_input = False
+                for index, enum_value in enumerate(channel_properties.get("pv_statestrings")):
+                    if enum_value == value:
+                        # Replace user input with enum index value
+                        value = index
+                        valid_input = True
+                        break
+
+            # Write value to PV, or produce error
+            if valid_input:
+                chan.putw(value)
+                print "{0} SET TO '{1}'".format(name, value)
+            else:
+                print "Input {} not found for {}. Is this a valid PV setting?".format(value, name)
+
 
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
