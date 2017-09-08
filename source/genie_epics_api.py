@@ -533,10 +533,38 @@ class API(object):
 
         Args:
             phone_num (string): the phone number to send the SMS to
-            message (string): the message to send in the SMS
+            message (string): the message to send
         """
         try:
             from smslib.sms import send_sms
             send_sms(phone_num, message)
         except Exception as e:
             raise Exception("Could not send SMS\n" + str(e))
+
+    def send_email(self, address, message):
+        """
+        Sends an email to a given address.
+
+        Args:
+            address (string): the email address to use
+            message (string): the message to send
+        """
+        try:
+            from smslib.sms import send_email
+            send_email(address, message)
+        except Exception as e:
+            raise Exception("Could not send EMAIL\n" + str(e))
+
+    def send_alert(self, inst, message):
+        """
+        Sends an alert message for a specified instrument.
+
+        Args:
+            inst (string): the instrument to generate an alert for
+            message (string): the message to send
+        """
+        try:
+            from smslib.sms import send_alert
+            send_alert(inst, message)
+        except Exception as e:
+            raise Exception("Could not send ALERT\n" + str(e))

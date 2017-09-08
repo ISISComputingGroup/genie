@@ -1055,3 +1055,9 @@ class API(object):
 
     def send_sms(self, phone_num, message):
         print "\"" + message + "\"" + "\nSent to " + phone_num
+
+    def send_email(self, address, message):
+        print "\"" + message + "\"" + "\nSent to " + address
+
+    def send_alert(self, inst, message):
+        print "\"" + message + "\"" + "\nSent to " + inst
