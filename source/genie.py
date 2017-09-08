@@ -715,58 +715,6 @@ def get_pv(name, to_string=False, is_local=False):
     except Exception as e:
         _handle_exception(e)
 
-def check_user_input_type(name, value):
-    """
-    If the value is a string input, convert to the enum value of the PV record.
-    :param name: the PV name
-    :param value: the new value to set
-    :return: index value of string (-1 if input not found)
-
-    """
-    int_value = value
-    is_bi_or_mbbi = False
-    value_found = False
-    '''
-    if isinstance(value, basestring):
-        mbbi_array = ["ZRST", "ONST", "TWST", "THST", "FRST", "FVST", "SXST", "SVST", "EIST",
-                     "NIST", "TEST", "ELST", "TVST", "TTST", "FTST", "FFST"]
-        bi_array = ["ZNAM", "ONAM"]
-
-        
-        try:
-            if __api.pv_exists(name + '.ZNAM'):
-                is_bi_or_mbbi = True
-                for index, stringValue in enumerate(bi_array):
-                    if get_pv(name + '.' + stringValue) == value:
-                        int_value = index
-                        value_found = True
-                        break
-            elif __api.pv_exists(name + '.ZRST'):
-                is_bi_or_mbbi = True
-                for index, stringValue in enumerate(mbbi_array):
-                    if get_pv(name + '.' + stringValue) == value:
-                        int_value = index
-                        value_found = True
-                        break
-        except Exception as e:
-            _handle_exception(e)
-
-     
-        If the record is bi/mbbi type and no corresponding value found, return error. 
-        Otherwise pass the user input value through unchanged.
-    '''
-
-    if is_bi_or_mbbi:
-        if not value_found:
-            int_value = -1
-    else:
-        int_value = value
-
-
-
-
-    return int_value
-
 
 @helparglist('name, value[, wait][, is_local]')
 def set_pv(name, value, wait=False, is_local=False):
@@ -785,7 +733,7 @@ def set_pv(name, value, wait=False, is_local=False):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_pv_value(name, value, wait, is_local)
-
+        print "{0} SET TO '{1}'".format(name, value)
     except Exception as e:
         _handle_exception(e)
 

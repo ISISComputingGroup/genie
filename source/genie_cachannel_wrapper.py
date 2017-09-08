@@ -22,7 +22,7 @@ class CaChannelWrapper(object):
             value - the value to set
             wait - wait for the value to be set before returning
         """
-        valid_input = True
+
         if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             chan = CACHE[name]
         else:
@@ -35,6 +35,10 @@ class CaChannelWrapper(object):
                 raise e
             CACHE[name] = chan
         chan.setTimeout(timeout)
+
+        # Validate user input and format accordingly for mbbi/bi records
+        value = check_user_input(name, value, chan)
+
         if not chan.write_access():
             raise Exception("Write access denied for PV %s" % name)
         if wait:
@@ -50,26 +54,11 @@ class CaChannelWrapper(object):
                 chan.pend_event(0.1)
         else:
             # putw() flushes send buffer, but doesn't wait for a CA completion callback
-
-            # If PV is mbbi/bi type AND user input is a string value,
-            # return list of enum values and interate to find a match
-            if ca.dbr_type_is_ENUM(chan.field_type()) and isinstance(value, basestring):
-                chan.array_get(ca.DBR_CTRL_ENUM)
-                channel_properties = chan.getValue()
-                valid_input = False
-                for index, enum_value in enumerate(channel_properties.get("pv_statestrings")):
-                    if enum_value == value:
-                        # Replace user input with enum index value
-                        value = index
-                        valid_input = True
-                        break
-
             # Write value to PV, or produce error
-            if valid_input:
+            try:
                 chan.putw(value)
-                print "{0} SET TO '{1}'".format(name, value)
-            else:
-                print "Input {} not found for {}. Is this a valid PV setting?".format(value, name)
+            except:
+                raise Exception("User input not found for '{}'. Is this a valid PV setting?".format(name))
 
 
     @staticmethod
@@ -140,3 +129,28 @@ class CaChannelWrapper(object):
             time_elapsed += interval
         if not event.is_set():
             raise UnableToConnectToPVException(ca_channel.pvname)
+
+def check_user_input(name, value, chan):
+    """ Test user input for MBBI/BI records, so that records can be set
+        by string values the user inputs.
+
+    :return: Index value of enum, if the record is mbbi/bi.
+             Otherwise, returns unchanged user input.
+    """
+    # If PV is MBBI/BI type AND user input is a string value,
+    # return list of enum values and interate to find a match
+    if ca.dbr_type_is_ENUM(chan.field_type()):
+        chan.array_get(ca.DBR_CTRL_ENUM)
+        channel_properties = chan.getValue()
+        for index, enum_value in enumerate(channel_properties.get("pv_statestrings")):
+            if enum_value == value:
+                # Replace user input with enum index value
+                value = index
+                break
+            else:
+                value = None
+    # If record accepts doubles and receives a string, return 'input not found' error
+    if ca.dbr_type_is_DOUBLE(chan.field_type()) and isinstance(value, basestring):
+        value = None
+
+    return value
