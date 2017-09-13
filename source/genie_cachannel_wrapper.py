@@ -56,7 +56,7 @@ class CaChannelWrapper(object):
             # putw() flushes send buffer, but doesn't wait for a CA completion callback
             # Write value to PV, or produce error
             chan.putw(value)
-            
+
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
         """Get the current value of the PV"""
