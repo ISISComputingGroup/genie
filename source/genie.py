@@ -13,7 +13,6 @@ from utilities import waveform_to_string, get_correct_path, get_correct_filepath
     get_correct_directory_path_existing
 import inspect
 
-
 print "genie_python version " + VERSION
 
 # Determine whether to start in simulation mode
@@ -161,7 +160,6 @@ def set_instrument(pv_prefix):
     """
     Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
-
     Args:
         pv_prefix (string): the PV prefix
     """
@@ -189,7 +187,6 @@ def reload_current_config():
 def get_blocks():
     """
     Get the names of the blocks.
-
     Returns:
         list: the blocknames
     """
@@ -205,46 +202,29 @@ def get_blocks():
 def cset(*args, **kwargs):
     """
     Sets the setpoint and runcontrol settings for blocks.
-
     Args:
         runcontrol (bool, optional): whether to set runcontrol for this block
         wait (string, optional): pause execution until setpoint is reached (one block only)
         lowlimit (float, optional): the lower limit for runcontrol or waiting
         highlimit (float, optional): the upper limit for runcontrol or waiting
-
     Note: cannot use wait and runcontrol in the same command
-
     Examples:
         Setting a value for a block:
-
         >>> cset(block1=100)
-
         Or:
-
         >>> cset("block1", 100)
-
         Setting values for more than one block:
-
         >>> cset(block1=100, block2=200, block3=300)
-
         NOTE: the order in which the values are set is random,
         e.g. block1 may or may not be set before block2 and block3
-
         Setting runcontrol values for a block:
-
         >>> cset(block1=100, runcontrol=True, lowlimit=99, highlimit=101)
-
         Changing runcontrol settings for a block without changing the setpoint:
-
         >>> cset("block1", runcontrol=False)
         >>> cset(block1=None, runcontrol=False)
-
         Wait for setpoint to be reached (one block only):
-
         >>> cset(block1=100, wait=True)
-
         Wait for limits to be reached - this does NOT change the runcontrol limits:
-
         >>> cset(block1=100, wait=True, lowlimit=99, highlimit=101)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -319,12 +299,9 @@ def cset(*args, **kwargs):
 def cget(block):
     """
     Gets the useful values associated with a block.
-
     The value will be None if the block is not "connected".
-
     Args:
         block (string): the name of the block
-
     Returns
         dict: details about about the block
     """
@@ -368,7 +345,6 @@ def _cshow_all():
 def _cshow_one(block):
     """
     Handles the cshow command for one block only.
-
     Args:
         block (list): the block values
     """
@@ -383,10 +359,8 @@ def _cshow_one(block):
 def _check_block_connected(value):
     """
     Checks whether a block is connected and if it isn't sets the value appropriately.
-
     Args:
         value (object): the block value
-
     Returns:
         True if connected otherwise False
     """
@@ -399,7 +373,6 @@ def _check_block_connected(value):
 def _print_cshow(name, value):
     """
     Prints the cshow string for one block.
-
     Args:
         name (string): the block name
         value (list): the block values
@@ -415,14 +388,11 @@ def _print_cshow(name, value):
 def cshow(block=None):
     """
     Show the current settings for one block or for all blocks.
-
     Args:
         block (string, optional): the name of the block
-
     Examples:
         Showing all block values:
         >>> cshow()
-
         Showing values for one block only (name must be quoted):
         >>> cshow("block1")
     """
@@ -443,10 +413,9 @@ def cshow(block=None):
 
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
-            frames=None, uamps=None, **pars):
+            frames=None, uamps=None, early_exit=lambda: False, **pars):
     """
     Interrupts execution until certain conditions are met.
-
     Args:
         block (string, optional): the name of the block to wait for
         value (float, optional): the block value to wait for
@@ -460,34 +429,30 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
         frames (int, optional): wait for a total number of good frames to be collected
         uamps (float, optional): wait for a total number of uamps to be received
-
+        early_exit (lambda, optional): stop waiting if the function evaluates to True
     Examples:
         Wait for a block to reach a specific value:
         >>> waitfor(myblock=123)
         >>> waitfor("myblock", 123)
         >>> waitfor("myblock", True)
         >>> waitfor("myblock", "OPEN")
-
         Wait for a block to be between limits:
         >>> waitfor("myblock", lowlimit=100, highlimit=110)
-
         Wait for a block to reach a specific value, but no longer than 60 seconds:
         >>> waitfor(myblock=123, maxwait=60)
-
         Wait for a specified time interval:
         >>> waitfor(seconds=10)
         >>> waitfor(hours=1, minutes=30, seconds=15)
         >>> waitfor(time="1:30:15")
-
         Wait for a data collection condition:
         >>> waitfor(frames=5000)
         >>> waitfor(uamps=200)
-
         Wait for either a number of frames OR a time interval to occur:
         >>> waitfor(frames=5000, hours=2)
-
         Wait for a number of frames AND a time interval to occur:
         >>> waitfor(frames=5000, hours=2, wait_all=True)
+        Wait for either the block to reach a value or a condition to be met
+        >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")["value"]) > 123)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -505,35 +470,35 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
-                                    frames, uamps)
+                                    frames, uamps, early_exit)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
 @helparglist('block[, value][, lowlimit][, highlimit][, maxwait]')
-def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None):
+def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None, early_exit=lambda: False):
     """
     Interrupts execution until block reaches specific value
-
     Args:
         block: the name of the block to wait for
         value: the target block value
         lowlimit: waits for the block to be >= this value
         highlimit: waits for the block to be <= this value
         maxwait: wait no longer that the specified number of seconds
-
+        early_exit: stop waiting if the exception evaluates to True
     Examples:
         >>> waitfor_block("myblock", value=123)
         >>> waitfor_block("myblock", value=True, maxwait=15)
         >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
         >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
+        >>> waitfor_block("myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
-        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait)
+        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait, early_exit=early_exit)
     except Exception as e:
         _handle_exception(e)
 
@@ -543,13 +508,11 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
 def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
     """
     Interrupts execution for a specified amount of time
-
     Args:
         seconds (float, optional): wait for a specified number of seconds
         minutes (float, optional): wait for a specified number of minutes
         hours (float, optional): wait for a specified number of hours
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
-
     Examples:
         >>> waitfor_time(seconds=10)
         >>> waitfor_time(hours=1, minutes=30, seconds=15)
@@ -573,10 +536,8 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
 def waitfor_frames(frames):
     """
     Interrupts execution to wait for number of total good frames to reach parameter value
-
     Args:
         frames: the number of frames to wait for
-
     Example:
         >>> waitfor_frames(4000)
     """
@@ -593,10 +554,8 @@ def waitfor_frames(frames):
 def waitfor_uamps(uamps):
     """
     Interrupts execution to wait for a specific total charge
-
     Args:
         uamps: the charge to wait for
-
     Example:
         >>> waitfor_uamps(115.5)
     """
@@ -613,18 +572,15 @@ def waitfor_uamps(uamps):
 def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
     """
     Wait for a particular instrument run state.
-
     Args:
         state (string): the state to wait for (e.g. "paused")
         maxwaitsecs (int, optional): the maximum time to wait for the state before carrying on
         onexit (bool, optional): wait for runstate to change from the specified state
-
     Examples:
         Wait for a run to enter the paused state:
-        >>> waitfor_runstate("pause")
-
+        >>> waitfor_runstate("paused")
         Wait for a run to exit the paused state:
-        >>> waitfor_runstate("pause", onexit=True)
+        >>> waitfor_runstate("paused", onexit=True)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -641,22 +597,17 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 def waitfor_move(*blocks, **kwargs):
     """
     Wait for all motion or specific motion to complete.
-
     If block names are supplied then it will only wait for those to stop moving. Otherwise, it will wait for all motion
     to stop.
-
     Args:
         blocks (string, multiple, optional): the names of specific blocks to wait for
         start_timeout (int, optional): the number of seconds to wait for the movement to begin (default = 2 seconds)
         move_timeout (int, optional): the maximum number of seconds to wait for motion to stop
-
     Examples:
         Wait for all motors to stop moving:
         >>> waitfor_move()
-
         Wait for all motors to stop moving with a timeout of 30 seconds:
         >>> waitfor_move(move_timeout=30)
-
         Wait for only slit1 and slit2 motors to stop moving:
         >>> waitfor_move("slit1", "slit2")
     """
@@ -700,12 +651,10 @@ def waitfor_move(*blocks, **kwargs):
 def get_pv(name, to_string=False, is_local=False):
     """
     Get the value for the specified PV.
-
     Args:
         name (string): the name of the PV to get the value for
         to_string (bool, optional): whether to get the value as a string
         is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
-
     Returns:
         the current PV value
     """
@@ -716,6 +665,7 @@ def get_pv(name, to_string=False, is_local=False):
         _handle_exception(e)
 
 
+@usercommand
 @helparglist('name, value[, wait][, is_local]')
 def set_pv(name, value, wait=False, is_local=False):
     """
@@ -743,12 +693,12 @@ def set_pv(name, value, wait=False, is_local=False):
 def set_messages_verbosity(verbose):
     """
     Set the global verbosity of messages.
-
     Args:
         verbose (bool): set the verbosity
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.dae.set_verbose(verbose)
+
 
 @usercommand
 @helparglist('...')
@@ -756,7 +706,6 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
           verbose=False):
     """
     Starts a data collection run.
-
     Args:
         period (int, optional): the period to begin data collection in
         meas_id (string, optional): the measurement id
@@ -784,7 +733,6 @@ def begin(period=1, meas_id=None, meas_type="", meas_subid="", sample_id="", del
 def abort(verbose=False):
     """
     Abort the current run.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -804,7 +752,6 @@ def abort(verbose=False):
 def end(verbose=False):
     """
     End the current run.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -824,7 +771,6 @@ def end(verbose=False):
 def pause(verbose=False):
     """
     Pause the current run.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -844,7 +790,6 @@ def pause(verbose=False):
 def resume(verbose=False):
     """
     Resume the current run after it has been paused.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -865,9 +810,7 @@ def recover(verbose=False):
     """
     Recovers the run if it has been aborted.
     The command should be run before the next run is started.
-
     Note: the run will be recovered in the paused state.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -886,7 +829,6 @@ def updatestore(verbose=False):
     """
     Performs an update and a store operation in a combined operation.
     This is more efficient than doing the commands separately.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -904,7 +846,6 @@ def updatestore(verbose=False):
 def update(pause_run=True, verbose=False):
     """
     Data is loaded from the DAE into the computer memory, but is not written to disk.
-
     Args:
         pause_run (bool, optional): whether to pause data collection first [optional]
         verbose (bool, optional): show the messages from the DAE
@@ -932,7 +873,6 @@ def update(pause_run=True, verbose=False):
 def store(verbose=False):
     """
     Data loaded into memory by a previous update command is now written to disk.
-
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
@@ -950,14 +890,11 @@ def store(verbose=False):
 def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
     """
     Create a snapshot of the current data.
-
     Args:
         filename (string, optional): where to write the data file(s)
         verbose (bool, optional): show the messages from the DAE
-
     Examples:
         Snapshot to a file called my_snapshot:
-
         >>> snapshot_crpt("c:\\Data\my_snapshot")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -975,10 +912,8 @@ def snapshot_crpt(filename="c:\\Data\snapshot_crpt.tmp", verbose=False):
 def get_uamps(period=False):
     """
     Get the current number of micro-amp hours.
-
     Args:
         period (bool, optional): whether to return the value for the current period only
-
     Returns:
         float: the number of uamps
     """
@@ -994,10 +929,8 @@ def get_uamps(period=False):
 def get_frames(period=False):
     """
     Gets the current number of good frames.
-
     Args:
         period (bool, optional): whether to return the value for the current period only
-
     Returns:
         int: the number of frames
     """
@@ -1013,9 +946,7 @@ def get_frames(period=False):
 def get_runstate():
     """
     Get the current status of the instrument as a string.
-
     Note: this value can take a few seconds to update after a change of state.
-
     Returns:
         string: the current run state
     """
@@ -1031,7 +962,6 @@ def get_runstate():
 def get_mevents():
     """
     Gets the total counts for all the detectors.
-
     Returns:
         float: the number of mevents
     """
@@ -1047,7 +977,6 @@ def get_mevents():
 def get_period():
     """
     Gets the current period number.
-
     Returns:
         int: the current period
     """
@@ -1063,7 +992,6 @@ def get_period():
 def get_number_periods():
     """
     Get the number of software periods.
-
     Returns:
         int: the number of periods
     """
@@ -1077,9 +1005,7 @@ def get_number_periods():
 def set_period(period):
     """
     Sets the current period number.
-
     Deprecated - use change_period.
-
     Args:
         period (int): the period to switch to
     """
@@ -1093,7 +1019,6 @@ def set_period(period):
 def get_runnumber():
     """
     Get the current run-number.
-
     Returns:
         string: the run-number
     """
@@ -1109,7 +1034,6 @@ def get_runnumber():
 def get_totalcounts():
     """
     Get the total counts for the current run.
-
     Returns:
         int: the total counts
     """
@@ -1125,7 +1049,6 @@ def get_totalcounts():
 def get_title():
     """
     Returns the current title.
-
     Returns:
         string: the title
     """
@@ -1139,9 +1062,7 @@ def get_title():
 def set_title(title):
     """
     Sets the current title.
-
     Deprecated - use change_title.
-
     Args:
         title: the new title
     """
@@ -1155,7 +1076,6 @@ def set_title(title):
 def get_rb():
     """
     Returns the current RB number.
-
     Returns:
         string: the RB number
     """
@@ -1171,7 +1091,6 @@ def get_rb():
 def get_dashboard():
     """
     Get the current experiment values.
-
     Returns:
         dict: the experiment values
     """
@@ -1206,7 +1125,6 @@ def get_dashboard():
 def _get_correct_globals():
     """
     This is a hack to find the frame in which to add the script function(s).
-
     The frame we want is the outermost one that contains a reference to cshow().
     """
     import inspect
@@ -1320,7 +1238,6 @@ def __load_module(name, directory):
 def get_script_dir():
     """
     Get the current script directory.
-
     Returns:
         string: the directory
     """
@@ -1331,9 +1248,7 @@ def get_script_dir():
 def set_script_dir(directory):
     """
     Set the directory for loading scripts from.
-
     Deprecated - use change_script_dir.
-
     Args:
         directory (string): the directory to load scripts from
     """
@@ -1345,7 +1260,6 @@ def set_script_dir(directory):
 def change_script_dir(directory):
     """
     Set the directory for loading scripts from.
-
     Args:
         directory (string): the directory to load scripts from
     """
@@ -1363,9 +1277,7 @@ def change_script_dir(directory):
 def change_start():
     """
     Start a change operation.
-
     The operation is finished when change_finish is called.
-
     Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
@@ -1382,9 +1294,7 @@ def change_start():
 def change_finish():
     """
     End a change operation.
-
     The operation is begun when change_start is called.
-
     Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
@@ -1400,7 +1310,6 @@ def change_finish():
 def change_monitor(spec, low, high):
     """
     Change the monitor to a specified spectrum and range.
-
     Args:
         spectrum (int): the spectrum number
         low (float): the low end of the integral
@@ -1418,7 +1327,6 @@ def change_monitor(spec, low, high):
 def change_tables(wiring=None, detector=None, spectra=None):
     """
     Load the wiring, detector and/or spectra tables.
-
     Args:
         wiring (string, optional): the filename of the wiring table file
         detector (string, optional): the filename of the detector table file
@@ -1436,7 +1344,6 @@ def change_tables(wiring=None, detector=None, spectra=None):
 def change_sync(source):
     """
     Change the source the DAE using for synchronisation.
-
     Args:
         source (string): the source to use ('isis', 'internal', 'smp', 'muon cerenkov', 'muon ms', 'isis (first ts1)')
     """
@@ -1452,7 +1359,6 @@ def change_sync(source):
 def change_tcb_file(tcbfile=None, default=False):
     """
     Change the time channel boundaries.
-
     Args:
         tcbfile (string, optional): the file to load
         default (bool, optional): load the default file
@@ -1465,19 +1371,23 @@ def change_tcb_file(tcbfile=None, default=False):
 
 
 @usercommand
-@helparglist('low, high, step, trange[, log][, regime]')
-def change_tcb(low, high, step, trange, log=False, regime=1):
+@helparglist('[low], [high], [step], [trange], [log], [regime]')
+def change_tcb(low=None, high=None, step=None, trange=1, log=False, regime=1):
     """
     Change the time channel boundaries.
     If None is specified for low, high or step then the values are left unchanged.
-
     Args
-        low (float): the lower limit
-        high (float): the upper limit
-        step (float): the step size
-        trange (int): the time range (1 to 5)
-        log (bool, optional): whether to use LOG binning
-        regime (int, optional): the time regime to set (1 to 6)
+        low (float, optional): the lower limit. Default is no change from the current value.
+        high (float, optional): the upper limit. Default is no change from the current value.
+        step (float,optional): the step size. Default is no change from the current value.
+        trange (int, optional): the time range (1 to 5). Default is 1.
+        log (bool, optional): whether to use LOG binning. Default is no.
+        regime (int, optional): the time regime to set (1 to 6). Default is 1.
+    Examples:
+        Changes the from, to and step of the 1st range to 0, 10 and 5 respectively.
+        >>> change_tcb(0, 10, 5)
+        Changes the step size of the 2nd range to 2, leaving other parameters unchanged.
+        >>> change_tcb(step=2, trange=2)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1487,17 +1397,20 @@ def change_tcb(low, high, step, trange, log=False, regime=1):
 
 
 @usercommand
-@helparglist('trange[, regime]')
+@helparglist('trange, [regime]')
 def get_tcb_settings(trange, regime=1):
     """
     Gets a dictionary of the time channel settings.
-
     Args:
-        regime: the regime to read (1 to 6)
-        trange: the time range to read (1 to 5) [optional]
-
+        trange (int): the time range to read (1 to 5)
+        regime (int, optional): the regime to read (1 to 6). Default is 1.
     Returns:
         dict: the low, high and step for the supplied range and regime
+    Examples:
+        Get the step size for the 2nd range in the 3rd regime:
+        >>> get_tcb_settings(2, 3)["Steps"]
+        Get the step size for the 2nd range in the 3rd regime:
+        >>> get_tcb_settings(2, 3)["Steps"]
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -1511,7 +1424,6 @@ def get_tcb_settings(trange, regime=1):
 def change_vetos(**params):
     """
     Change the DAE veto settings.
-
     Args:
         clearall (bool, optional): remove all vetos
         smp (bool, optional): set SMP veto
@@ -1521,10 +1433,8 @@ def change_vetos(**params):
         ext1  (bool, optional): set external veto 1
         ext2 (bool, optional): set external veto 2
         ext3 (bool, optional): set external veto 3
-
     Note: If clearall is specified then all vetos are turned off,
     but it is possible to turn other vetoes back on at the same time:
-
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
         >>> change_vetos(clearall=True, smp=True)
@@ -1541,7 +1451,6 @@ def change_vetos(**params):
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
     """
     Configure the fermi chopper veto.
-
     Args:
         enable (bool, optional): enable the fermi veto
         delay (float, optional): the veto delay
@@ -1559,7 +1468,6 @@ def change_fermi_veto(enable=None, delay=1.0, width=1.0):
 def enable_soft_periods(nperiods=None):
     """
     Switch the DAE to software periods mode.
-
     Args:
         nperiods (int, optional): the number of software periods
     """
@@ -1575,9 +1483,7 @@ def enable_soft_periods(nperiods=None):
 def set_number_soft_periods(number, enable=None):
     """
     Sets the number of software periods for the DAE.
-
     Deprecated - use change_number_soft_periods.
-
     Args:
         number (int): the number of periods to create
         enable (bool, optional): switch to soft period mode
@@ -1593,7 +1499,6 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
                         unused=False, frames=None, output=None, label=None):
     """
     Sets the DAE to use hardware periods.
-
     Args:
         mode (string): set the mode to internal ('int') or external ('ext')
         period_file (string, optional): the file containing the internal period settings (ignores any other settings)
@@ -1606,13 +1511,10 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
         frames (int, optional): the number of frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
-
     Note: if the period number is unspecified then the settings will be applied to all periods
-
     Examples:
         Setting external periods:
         >>> enable_hard_periods('ext')
-
         Setting internal periods from a file:
         >>> enable_hard_periods('int', 'c:\\myperiods.txt')
     """
@@ -1630,7 +1532,6 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
                                frames=None, output=None, label=None):
     """
     Configure the internal periods without switching to internal period mode.
-
     Args:
         sequences (int, optional): the number of times to repeat the period loop (0 = infinite loop)
         output_delay (int, optional): the output delay in microseconds
@@ -1641,7 +1542,6 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
         frames (int, optional): the number of frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
-
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1656,7 +1556,6 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
 def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
     """
     Define the internal hardware periods.
-
     Args:
         period (int, optional): the number of the period to set the following parameters for
         daq (bool, optional):  the specified period is a acquisition period
@@ -1665,7 +1564,6 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
         frames (int, optional): the number of frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
-
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1678,26 +1576,20 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
 def change(**params):
     """
     Change experiment parameters.
-
     Note: it is possible to change more than one item at a time.
-
     Args:
         title (string, optional): the new title
         period (int, optional): the new period (must be in a non-running state)
         nperiods (int, optional): the new number of software periods (must be in a non-running state)
         user (string, optional): the new user(s) as a comma-separated list
         rb (int, optional): the new RB number
-
     Examples:
         Change the title:
         >>> change(title="The new title")
-
         Change the user:
         >>> change(user="Instrument Team")
-
         Set multiple users:
         >>> change(user="Thouless, Haldane, Kosterlitz")
-
         Change the RB number and the users:
         >>> change(rb=123456, user="Smith, Jones")
     """
@@ -1726,7 +1618,6 @@ def change(**params):
 def change_title(title):
     """
     Sets the current title.
-
     Args:
         title: the new title
     """
@@ -1742,7 +1633,6 @@ def change_title(title):
 def change_period(period):
     """
     Changes the current period number.
-
     Args:
         period (int): the period to switch to
     """
@@ -1758,7 +1648,6 @@ def change_period(period):
 def change_number_soft_periods(number, enable=None):
     """
     Sets the number of software periods for the DAE.
-
     Args:
         number (int): the number of periods to create
         enable (bool, optional): switch to soft period mode
@@ -1777,10 +1666,8 @@ def change_number_soft_periods(number, enable=None):
 def change_users(users):
     """
     Changes the users.
-
     Args:
         users: a string containing the user name(s)
-
     Example:
         >>> change_users("Emerson, Lake, Palmer")
     """
@@ -1796,7 +1683,6 @@ def change_users(users):
 def change_rb(rb):
     """
     Changes the RB number.
-
     Args:
         rb (int): the new RB number
     """
@@ -1822,12 +1708,10 @@ def change_rb(rb):
 def get_spectrum(spectrum, period=1, dist=False):
     """
     Get the specified spectrum from the DAE.
-
     Args:
         spectrum (int): the spectrum number
         period (int, optional): the period
         dist (bool, optional): whether to get the spectrum as a distribution
-
     Returns:
         dict: dictionary of values
     """
@@ -1840,12 +1724,10 @@ def get_spectrum(spectrum, period=1, dist=False):
 def plot_spectrum(spectrum, period=1, dist=False):
     """
     Get the specified spectrum from the DAE and plot it.
-
     Args:
         spectrum (int): the spectrum number
         period (int, optional): the period. Default is 1
         dist (bool, optional): whether to get the spectrum as a distribution. Default is False
-
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.plots.remove_closed()
@@ -1859,23 +1741,18 @@ def plot_spectrum(spectrum, period=1, dist=False):
 def add_spectrum(spectrum, period=1, dist=False, figure=None):
     """
     Add a spectrum graph to an existing plot
-
     Args:
         spectrum (int): the spectrum number
         period (int, optional): the period. Default is 1
         dist (bool, optional): whether to get the spectrum as a distribution. Default is False
         figure (int, optional): specifies which figure to plot the spectrum in. Default is last active plot
-
     Examples:
         Add Spectrum 2 to last active plot window
         >>> add_spectrum(2)
-
         Add Spectrum 1 to Figure 3
         >>> add_spectrum(2, figure=3)
-
         Add Spectrum 1 with period=2 to last active plot window as distribution
         >>> add_spectrum(1, period=2, dist=True)
-
         Add Spectrum 4 to Figure 1 as distribution
         >>> add_spectrum(4, dist=True, figure=1)
     """
@@ -1900,7 +1777,6 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
 def get_sample_pars():
     """
     Get the current sample parameter values.
-
     Returns:
         dict: the sample parameters
     """
@@ -1915,9 +1791,7 @@ def get_sample_pars():
 def set_sample_par(name, value):
     """
     Set a new value for a sample parameter.
-
     Deprecated - use change_sample_par.
-
     Args:
         name (string): the name of the parameter to change
         value: the new value
@@ -1932,7 +1806,6 @@ def set_sample_par(name, value):
 def change_sample_par(name, value):
     """
     Set a new value for a sample parameter.
-
     Args:
         name (string): the name of the parameter to change
         value: the new value
@@ -1949,7 +1822,6 @@ def change_sample_par(name, value):
 def get_beamline_pars():
     """
     Get the current beamline parameter values.
-
     Returns:
         dict: the beamline parameters
     """
@@ -1964,9 +1836,7 @@ def get_beamline_pars():
 def set_beamline_par(name, value):
     """
     Set a new value for a beamline parameter
-
     Deprecated - use change_beamline_par
-
     Args:
         name (string): the name of the parameter to change
         value: the new value
@@ -1981,7 +1851,6 @@ def set_beamline_par(name, value):
 def change_beamline_par(name, value):
     """
     Set a new value for a beamline parameter
-
     Args:
         name (string): the name of the parameter to change
         value: the new value
@@ -1998,7 +1867,6 @@ def change_beamline_par(name, value):
 def send_sms(phone_num, message):
     """
     Sends an SMS message to a phone number.
-
     Args:
         phone_num (string): the phone number to send the SMS to
         message (string): the message to send in the SMS
@@ -2012,7 +1880,6 @@ def send_sms(phone_num, message):
 def get_wiring_tables():
     """
     Gets a list of possible wiring table choices.
-
     Returns:
         list: the files
     """
@@ -2028,7 +1895,6 @@ def get_wiring_tables():
 def get_spectra_tables():
     """
     Gets a list of possible spectra table choices.
-
     Returns:
         list: the files
     """
@@ -2044,7 +1910,6 @@ def get_spectra_tables():
 def get_detector_tables():
     """
     Gets a list of possible detector table choices.
-
     Returns:
         list: the files
     """
@@ -2060,7 +1925,6 @@ def get_detector_tables():
 def get_period_files():
     """
     Gets a list of possible period file choices.
-
     Returns:
         list: the files
     """
@@ -2074,13 +1938,10 @@ def get_period_files():
 def check_alarms(*blocks):
     """
     Checks whether the specified blocks are in alarm.
-
     Args:
         blocks (string, multiple): the block(s) to check
-
     Returns:
         list, list: the blocks in minor alarm and major alarm respectively
-
     Example:
         Check alarm state for block1 and block2:
         >>> check_alarms("block1", "block2")
@@ -2095,13 +1956,10 @@ def check_alarms(*blocks):
 def check_limit_violations(*blocks):
     """
     Checks whether the specified blocks have soft limit violations.
-
     Args:
         blocks (string, multiple): the block(s) to check
-
     Returns:
         list: the blocks that have soft limit violations
-
     Example:
         Check soft limit violations for block1 and block2:
         >>> check_limit_violations("block1", "block2")
@@ -2117,10 +1975,8 @@ def check_limit_violations(*blocks):
 def prefix_pv_name(name):
     """
     Prepends the instrument PV prefix on to the supplied PV name
-
     Args:
         name (string): The PV without the prefix.
-
     Returns:
         string: The PV with the instrument prefix prepended
     """
@@ -2134,7 +1990,6 @@ def prefix_pv_name(name):
 def get_version():
     """
     Tells you the version of genie_python that is used.
-
     Returns:
         string: The current version number of genie python
     """
