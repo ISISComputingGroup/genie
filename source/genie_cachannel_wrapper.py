@@ -37,7 +37,7 @@ class CaChannelWrapper(object):
         chan.setTimeout(timeout)
 
         # Validate user input and format accordingly for mbbi/bi records
-        value = check_user_input(name, value, chan)
+        value = check_for_enum_value(name, value, chan)
 
         if not chan.write_access():
             raise Exception("Write access denied for PV %s" % name)
@@ -55,12 +55,8 @@ class CaChannelWrapper(object):
         else:
             # putw() flushes send buffer, but doesn't wait for a CA completion callback
             # Write value to PV, or produce error
-            try:
-                chan.putw(value)
-            except:
-                raise Exception("User input not found for '{}'. Is this a valid PV setting?".format(name))
-
-
+            chan.putw(value)
+            
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
         """Get the current value of the PV"""
@@ -130,27 +126,27 @@ class CaChannelWrapper(object):
         if not event.is_set():
             raise UnableToConnectToPVException(ca_channel.pvname)
 
-def check_user_input(name, value, chan):
-    """ Test user input for MBBI/BI records, so that records can be set
+    @staticmethod
+    def check_for_enum_value(value, chan):
+        """
+        Test user input for MBBI/BI records, so that records can be set
         by string values the user inputs.
 
-    :return: Index value of enum, if the record is mbbi/bi.
-             Otherwise, returns unchanged user input.
-    """
-    # If PV is MBBI/BI type AND user input is a string value,
-    # return list of enum values and interate to find a match
-    if ca.dbr_type_is_ENUM(chan.field_type()):
-        chan.array_get(ca.DBR_CTRL_ENUM)
-        channel_properties = chan.getValue()
-        for index, enum_value in enumerate(channel_properties.get("pv_statestrings")):
-            if enum_value == value:
-                # Replace user input with enum index value
-                value = index
-                break
-            else:
-                value = None
-    # If record accepts doubles and receives a string, return 'input not found' error
-    if ca.dbr_type_is_DOUBLE(chan.field_type()) and isinstance(value, basestring):
-        value = None
+        Args:
+            value - The PV value.
+            chan - The channel access channel.
 
-    return value
+        Returns:
+            Index value of enum, if the record is mbbi/bi. Otherwise, returns unchanged user input.
+        """
+        # If PV is MBBI/BI type, search list of enum values and iterate to find a match
+        if ca.dbr_type_is_ENUM(chan.field_type()):
+            chan.array_get(ca.DBR_CTRL_ENUM)
+            channel_properties = chan.getValue()
+            for index, enum_value in enumerate(channel_properties.get("pv_statestrings")):
+                if enum_value == value:
+                    # Replace user input with enum index value
+                    value = index
+                    break
+
+        return value

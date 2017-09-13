@@ -678,14 +678,11 @@ def set_pv(name, value, wait=False, is_local=False):
         value: the new value to set
         wait (bool, optional): whether to wait until the value has been received by the hardware
         is_local (bool, optional): whether to automatically prepend the local inst prefix to the PV name
-
-        If user input is a string, convert input to the bi/mbbi index values of the record
     """
 
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.set_pv_value(name, value, wait, is_local)
-        print "{0} SET TO '{1}'".format(name, value)
     except Exception as e:
         _handle_exception(e)
 
