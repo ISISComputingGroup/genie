@@ -430,6 +430,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         frames (int, optional): wait for a total number of good frames to be collected
         uamps (float, optional): wait for a total number of uamps to be received
         early_exit (lambda, optional): stop waiting if the function evaluates to True
+
     Examples:
         Wait for a block to reach a specific value:
         >>> waitfor(myblock=123)
@@ -487,6 +488,7 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
         highlimit: waits for the block to be <= this value
         maxwait: wait no longer that the specified number of seconds
         early_exit: stop waiting if the exception evaluates to True
+
     Examples:
         >>> waitfor_block("myblock", value=123)
         >>> waitfor_block("myblock", value=True, maxwait=15)
