@@ -139,9 +139,6 @@ class CaChannelWrapper(object):
 
         Returns:
             True if exists, otherwise False.
-
-        Raises:
-            UnableToConnectToPVException: If cannot connect to PV.
         """
         if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             return True
