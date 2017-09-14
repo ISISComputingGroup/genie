@@ -5,9 +5,9 @@ from utilities import waveform_to_string
 from channel_access_exceptions import UnableToConnectToPVException, InvalidEnumStringException, ReadAccessException, \
     WriteAccessException
 
-TIMEOUT = 15         # default timeout for PV set/get
-EXIST_TIMEOUT = 3    # separate smaller timeout for pv_exists() and searchw() operations
-CACHE = dict()
+TIMEOUT = 15         # Default timeout for PV set/get
+EXIST_TIMEOUT = 3    # Separate smaller timeout for pv_exists() and searchw() operations
+CACHE = {}
 
 
 class CaChannelWrapper(object):
