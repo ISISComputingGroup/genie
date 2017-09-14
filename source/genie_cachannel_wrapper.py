@@ -44,6 +44,7 @@ class CaChannelWrapper(object):
         Raises:
             UnableToConnectToPVException: If cannot connect to PV.
             WriteAccessException: If write access is denied.
+            InvalidEnumStringException: If the PV is an enum and the string value supplied is not a valid enum value.
         """
         if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
             chan = CACHE[name]
