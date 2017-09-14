@@ -2024,17 +2024,17 @@ def send_sms(phone_num, message):
     __api.send_sms(phone_num, message)
 
 @usercommand
-@helparglist('inst, message')
-def send_alert(inst, message):
+@helparglist('message, inst')
+def send_alert(message, inst=None):
     """
     Sends an alert message for the specified instrument.
 
     Args:
-        inst (string): the instrument to generate the alert for
         message (string): the message to send
+        inst (string, optional): the instrument to generate the alert for. Defaults to current instrument.
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    __api.send_alert(inst, message)
+    __api.send_alert(message, inst)
 
 @usercommand
 @helparglist('address, message')
