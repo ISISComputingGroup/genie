@@ -1815,7 +1815,7 @@ def change_rb(rb):
     Changes the RB number.
 
     Args:
-        rb (int): the new RB number
+        rb (int or string): the new RB number
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
