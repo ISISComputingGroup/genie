@@ -535,36 +535,36 @@ class API(object):
         Sends an SMS message to a phone number.
 
         Args:
-            phone_num (string): the phone number to send the SMS to
-            message (string): the message to send
+            phone_num (string): The phone number to send the SMS to.
+            message (string): The message to send.
         """
         try:
             from smslib.sms import send_sms
-            self.log_info_msg("send_email returned {}".send_sms(phone_num, message))
+            self.log_info_msg("send_sms returned {}".format(send_sms(phone_num, message)))
         except Exception as e:
-            raise Exception("Could not send SMS\n" + str(e))
+            raise Exception("Could not send SMS: {}".format(e))
 
     def send_email(self, address, message):
         """
         Sends an email to a given address.
 
         Args:
-            address (string): the email address to use
-            message (string): the message to send
+            address (string): The email address to use.
+            message (string): The message to send.
         """
         try:
             from smslib.sms import send_email
             self.log_info_msg("send_email returned {}".format(send_email(address, message)))
         except Exception as e:
-            raise Exception("Could not send EMAIL\n" + str(e))
+            raise Exception("Could not send email: {}".format(e))
 
     def send_alert(self, message, inst):
         """
         Sends an alert message for a specified instrument.
 
         Args:
-            message (string): the message to send
-            inst (string): the instrument to generate an alert for
+            message (string): The message to send.
+            inst (string): The instrument to generate an alert for.
         """
         if inst is None:
             inst = self.__instrument_name
@@ -572,4 +572,4 @@ class API(object):
             from smslib.sms import send_alert
             self.log_info_msg("send_alert returned {}".format(send_alert(inst, message)))
         except Exception as e:
-            raise Exception("Could not send ALERT\n" + str(e))
+            raise Exception("Could not send alert: {}".format(e))
