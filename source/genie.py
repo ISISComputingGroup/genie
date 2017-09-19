@@ -1227,7 +1227,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
     """
     Loads a user script.
     Args:
-        name (string): the name of the file to load
+        name (string): the name of the file to load. If this is not a full path the file is assumed to be in C:\scripts\
         dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
             remove this
         check_script: When True run the script checker on the script; False otherwise (default True)
