@@ -5,6 +5,7 @@ import sys
 import glob
 import re
 import ctypes
+import datetime
 from version import VERSION
 from functools import wraps
 from collections import OrderedDict
@@ -1226,7 +1227,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
     """
     Loads a user script.
     Args:
-        name (string): the name of the file to load
+        name (string): the name of the file to load. If this is not a full path the file is assumed to be in C:\scripts\
         dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
             remove this
         check_script: When True run the script checker on the script; False otherwise (default True)
@@ -1294,6 +1295,8 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
                     msg += script + ", "
                 print msg[0:-2]
                 print "From: %s" % file_path
+                print "File last modified: %s" % \
+                      datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S")
             else:
                 raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
         except Exception as e:
