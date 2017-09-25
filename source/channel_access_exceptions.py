@@ -17,3 +17,4 @@ class ReadAccessException(Exception):
 class WriteAccessException(Exception):
     def __init__(self, pv_name):
         super(WriteAccessException, self).__init__("Write access denied for PV {}".format(pv_name))
+        
