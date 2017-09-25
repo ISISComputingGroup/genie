@@ -23,7 +23,7 @@ class CaChannelWrapper(object):
             value - the value to set
             wait - wait for the value to be set before returning
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -55,7 +55,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def get_pv_value(name, to_string=False, timeout=TIMEOUT):
         """Get the current value of the PV"""
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -90,7 +90,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def pv_exists(name, timeout=EXIST_TIMEOUT):
         """See if the PV exists"""
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             return True
         else:
             chan = CaChannel(name)
@@ -109,7 +109,7 @@ class CaChannelWrapper(object):
         try:
             ca_channel.search_and_connect(None, CaChannelWrapper.putCB, event)
         except CaChannelException as e:
-            raise UnableToConnectToPVException(ca_channel.pvname)
+            raise UnableToConnectToPVException(ca_channel.name(), e)
 
         interval = 0.1
         time_elapsed = 0.0
@@ -119,4 +119,4 @@ class CaChannelWrapper(object):
             ca_channel.pend_event(interval)
             time_elapsed += interval
         if not event.is_set():
-            raise UnableToConnectToPVException(ca_channel.pvname)
+            raise UnableToConnectToPVException(ca_channel.name(), "Connection timeout")
