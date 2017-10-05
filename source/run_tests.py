@@ -29,7 +29,8 @@ from test_modules.test_genie_epics_api import TestEpicsApiSequence
 from test_modules.test_genie_epics_api import TestEpicsApiSetInstrumentName
 from test_modules.test_genie_blockserver_tests import TestGenieBlockserver
 from test_modules.test_script_checker import TestScriptChecker
-from test_modules.test_genie import  TestGenie
+from test_modules.test_genie import TestGenie
+from test_modules.test_genie_change_cache import TestGenieChangeCache
 
 TEST_CLASSES = [
     TestUtilitiesSequence,
@@ -39,7 +40,8 @@ TEST_CLASSES = [
     TestGenieBlockserver,
     TestScriptChecker,
     TestGenie,
-    TestGenieDAE
+    TestGenieDAE,
+    TestGenieChangeCache,
 ]
 DEFAULT_DIRECTORY = os.path.join('.', 'test-reports')
 
