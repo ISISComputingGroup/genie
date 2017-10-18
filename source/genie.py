@@ -1555,6 +1555,31 @@ def change_vetos(**params):
     except Exception as e:
         _handle_exception(e)
 
+@usercommand
+@helparglist('[...]')
+def change_runtime_vetos(**params):
+    """
+    Change the DAE veto settings whilst the DAE is running.
+
+    Args:
+        fifo: set FIFO veto [optional]
+        smp: set SMP veto [optional]
+        ts2: set TS2 veto [optional]
+        hz50: set 50 hz veto [optional]
+        ext0: set external veto 0 [optional]
+        ext1: set external veto 1 [optional]
+        ext2: set external veto 2 [optional]
+        ext3: set external veto 3 [optional]
+
+    Example:
+        Turns off the FIFO veto
+        >>> change_runtime_vetos(fifo=False)
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        __api.dae.change_runtime_vetos(**params)
+    except Exception as e:
+        _handle_exception(e)
 
 @usercommand
 @helparglist('[enable], [delay], [width]')

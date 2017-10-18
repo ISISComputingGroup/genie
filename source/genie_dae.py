@@ -80,7 +80,13 @@ DAE_PVS_LOOKUP = {
     "spectratables": "DAE:SPECTRATABLES",
     "detectortables": "DAE:DETECTORTABLES",
     "periodfiles": "DAE:PERIODFILES",
+    "set_veto_true": "DAE:VETO:ENABLE:SP",
+    "set_veto_false": "DAE:VETO:DISABLE:SP"
 }
+
+# vetos and the command used to set them at runtime
+AVAILABLE_VETOS = {'smp': "SMP", 'ts2': "TS2P", 'hz50': "ISIS50HZ",
+                   'ext0': "EXT0", 'ext1': "EXT1", 'ext2': "EXT2", 'ext3': "EXT3"}
 
 
 class Dae(object):
@@ -1029,33 +1035,60 @@ class Dae(object):
         if not self.in_change:
             self.change_start()
             did_change = True
-        if 'clearall' in params:
-            if isinstance(params['clearall'], bool):
-                self.change_cache.clear_vetos()
-        if 'smp' in params:
-            if isinstance(params['smp'], bool):
-                self.change_cache.smp_veto = int(params['smp'])
-        if 'ts2' in params:
-            if isinstance(params['ts2'], bool):
-                self.change_cache.ts2_veto = int(params['ts2'])
-        if 'hz50' in params:
-            if isinstance(params['hz50'], bool):
-                self.change_cache.hz50_veto = int(params['hz50'])
-        if 'ext0' in params:
-            if isinstance(params['ext0'], bool):
-                self.change_cache.ext0_veto = int(params['ext0'])
-        if 'ext1' in params:
-            if isinstance(params['ext1'], bool):
-                self.change_cache.ext1_veto = int(params['ext1'])
-        if 'ext2' in params:
-            if isinstance(params['ext2'], bool):
-                self.change_cache.ext2_veto = int(params['ext2'])
-        if 'ext3' in params:
-            if isinstance(params['ext3'], bool):
-                self.change_cache.ext3_veto = int(params['ext3'])
+
+        params = {k.lower(): v for k, v in params.iteritems()}
+
+        clear = params.pop('clearall', None)
+        if clear is not None:
+            if isinstance(clear, bool):
+                if clear:
+                    self.change_cache.clear_vetos()
+            else:
+                raise Exception("Must set clearall to True or False")
+
+        for k, d in params.iteritems():
+            if not isinstance(d, bool):
+                raise Exception("Must set {} to True or False".format(k))
+            else:
+                if k in AVAILABLE_VETOS:
+                    setattr(self.change_cache, k + "_veto", int(d))
+                else:
+                    raise Exception("{} veto not recognised".format(k))
+
         if did_change:
             self.change_finish()
-            
+
+    def change_runtime_vetos(self, **params):
+        """
+        Change the DAE veto settings whilst the DAE is running.
+
+        Args:
+            fifo: set FIFO veto [optional]
+            smp: set SMP veto [optional]
+            ts2: set TS2 veto [optional]
+            hz50: set 50 hz veto [optional]
+            ext0: set external veto 0 [optional]
+            ext1: set external veto 1 [optional]
+            ext2: set external veto 2 [optional]
+            ext3: set external veto 3 [optional]
+
+        Example:
+            Turns off the FIFO veto
+            >>> change_runtime_vetos(fifo=False)
+        """
+        for k, d in params.iteritems():
+            k = k.lower()
+            if not isinstance(d, bool):
+                raise Exception("Must set {} to True or False".format(k))
+            else:
+                pv_name = self._get_dae_pv_name("set_veto_" + ("true" if d else "false"))
+                if k in AVAILABLE_VETOS:
+                    self._set_pv_value(pv_name, AVAILABLE_VETOS[k])
+                elif k == "fifo":
+                    self._set_pv_value(pv_name, "FIFO")
+                else:
+                    raise Exception("{} veto not recognised".format(k))
+
     def set_fermi_veto(self, enable=None, delay=1.0, width=1.0):
         """
         Configure the fermi chopper veto.
@@ -1249,7 +1282,7 @@ class Dae(object):
             for i in range(1, 9):
                 self.define_hard_period(i, daq, dwell, unused, frames, output, label)
         else:
-            if isinstance(period, int) and period > 0 and period < 9:
+            if isinstance(period, int) and 0 < period < 9:
                 p_type = None  # unchanged
                 if unused:
                     p_type = 0
