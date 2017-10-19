@@ -487,7 +487,11 @@ class Dae(object):
         Args:
             period: the number of the period to change to
         """
-        self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
+        run_state = self.get_run_state()
+        if run_state == 'SETUP' or run_state == 'PAUSED':
+            self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
+        else:
+            raise Exception('Cannot change period whilst running')
         
     def get_uamps(self, period=False):
         """
@@ -822,6 +826,8 @@ class Dae(object):
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
         """
+        if not self.in_change:
+            raise Exception("Change has already finished")
         if self.in_change:
             self.in_change = False
             self._change_dae_settings()
