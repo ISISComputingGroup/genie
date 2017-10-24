@@ -491,7 +491,7 @@ class Dae(object):
         if run_state == 'SETUP' or run_state == 'PAUSED':
             self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
         else:
-            raise Exception('Cannot change period whilst running')
+            raise ValueError('Cannot change period whilst running')
         
     def get_uamps(self, period=False):
         """
@@ -802,18 +802,18 @@ class Dae(object):
         """
         Start a change operation.
 
-        The operaiton is finished when change_finish is called.
+        The operation is finished when change_finish is called.
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
 
         Raises:
-            Exception: if the run state is not SETUP or change already started
+            ValueError: if the run state is not SETUP or change already started
         """
         # Check in setup
         if self.get_run_state() != "SETUP":
-            raise Exception('Must be in SETUP before starting change!')
+            raise ValueError('Must be in SETUP before starting change!')
         if self.in_change:
-            raise Exception("Already in change - previous cached values will be used")
+            raise ValueError("Already in change - previous cached values will be used")
         else:
             self.in_change = True
             self.change_cache = ChangeCache()
@@ -825,9 +825,12 @@ class Dae(object):
         The operation is begun when change_start is called.
         Between these two calls a sequence of other change commands can be called.
         For example: change_tables, change_tcb etc.
+
+        Raises:
+            ValueError: if the change has already finished
         """
         if not self.in_change:
-            raise Exception("Change has already finished")
+            raise ValueError("Change has already finished")
         if self.in_change:
             self.in_change = False
             self._change_dae_settings()
@@ -867,7 +870,7 @@ class Dae(object):
             high: the high end of the integral (float)
 
         Raises:
-            ValueError: if a value supplied is not correctly typed
+            TypeError: if a value supplied is not correctly typed
         """
         try:
             spec = int(spec)
