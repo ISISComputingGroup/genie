@@ -133,13 +133,13 @@ class API(object):
         return name
 
     def init_instrument(self, instrument, machine_name, globs):
+        instrument = instrument.lower().replace("-", "_")
         try:
             # Try to call init on init_default to add the path for the instrument specific python files
             init_func = getattr(API.__mod, "init")
             init_func(machine_name)
 
             # Load it
-            instrument = instrument.lower()
             API.__localmod = __import__('init_' + instrument, globals(), locals(), ['init_' + instrument], -1)
             if API.__localmod.__file__.endswith('.pyc'):
                 file_loc = API.__localmod.__file__[:-1]
@@ -153,7 +153,7 @@ class API(object):
             init_func(machine_name)
         except Exception as err:
             raise Exception("There was a problem with loading init_{0} so will use default.\nError was {1}"
-                            .format(instrument.lower(), err))
+                            .format(instrument, err))
 
     def set_pv_value(self, name, value, wait=False, is_local=False):
         """

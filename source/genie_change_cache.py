@@ -42,7 +42,7 @@ class ChangeCache(object):
         self.ext3_veto = 0
         
     def set_fermi(self, enable, delay=1.0, width=1.0):
-        self.fermi_veto = 1
+        self.fermi_veto = 1 if enable else 0
         self.fermi_delay = delay
         self.fermi_width = width
         
