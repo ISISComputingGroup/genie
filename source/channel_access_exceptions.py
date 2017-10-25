@@ -1,6 +1,6 @@
 class UnableToConnectToPVException(Exception):
-    def __init__(self, pv_name):
-        super(UnableToConnectToPVException, self).__init__("Unable to find PV {}".format(pv_name))
+    def __init__(self, pv_name, err):
+        super(UnableToConnectToPVException, self).__init__("Unable to connect to PV {0}: {1}".format(pv_name, err))
 
 
 class InvalidEnumStringException(Exception):
@@ -17,3 +17,4 @@ class ReadAccessException(Exception):
 class WriteAccessException(Exception):
     def __init__(self, pv_name):
         super(WriteAccessException, self).__init__("Write access denied for PV {}".format(pv_name))
+        
