@@ -1543,10 +1543,10 @@ def change_vetos(**params):
         ext3 (bool, optional): set external veto 3
         fifo (bool, optional): set FIFO veto
 
-    Note: If clearall is specified then all vetos (including FIFO) are turned off,
+    Note: If clearall is specified then all vetos (excluding the FIFO veto) are turned off,
     but it is possible to turn other vetoes back on at the same time.
 
-    Note: FIFO veto is automatically enabled on run begin.
+    Note: FIFO veto is automatically enabled on run begin, but can be changed whilst running.
 
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
