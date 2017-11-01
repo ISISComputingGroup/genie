@@ -86,6 +86,26 @@ class TestGenieDAE(unittest.TestCase):
 
         self.assertEqual(ans, "Setting TCB high limit to {} step {} (LOG binning)".format(new_high, new_step))
 
+    def test_GIVEN_change_not_started_WHEN_change_finished_called_THEN_exception_thrown(self):
+        self.dae.in_change = False
+
+        self.assertRaises(Exception, self.dae.change_finish)
+
+    def test_GIVEN_in_running_state_WHEN_set_period_called_THEN_exception_thrown(self):
+        self.dae.api.get_pv_value = MagicMock(return_value="RUNNING")
+
+        self.assertRaises(Exception, self.dae.set_period, 1)
+
+    def test_GIVEN_in_paused_state_WHEN_set_period_called_THEN_no_exception_thrown(self):
+        self.dae.api.get_pv_value = MagicMock(return_value="PAUSED")
+
+        self.dae.set_period(1)
+
+    def test_GIVEN_in_setup_state_WHEN_set_period_called_THEN_no_exception_thrown(self):
+        self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
+
+        self.dae.set_period(1)
+
     def check_all_vetos(self, set):
         """
         Helper function to check that all vetos are set or not.
