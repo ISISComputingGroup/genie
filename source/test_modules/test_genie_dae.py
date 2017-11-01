@@ -160,3 +160,10 @@ class TestGenieDAE(unittest.TestCase):
         func = self.api.set_pv_value
         self.assertTrue(func.called)
         func.assert_called_with("DAE:VETO:DISABLE:SP", "FIFO", False)
+
+    def test_WHEN_clearing_all_vetoes_THEN_fifo_is_unaffected(self):
+        self.dae.change_vetos(clearall=True)
+
+        func = self.api.set_pv_value
+        # clearall should not affect FIFO so none of the PVs should be set.
+        func.assert_not_called()

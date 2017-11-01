@@ -809,7 +809,7 @@ class Dae(object):
         """
         # Check in setup
         if self.get_run_state() != "SETUP":
-            raise Exception('Must be in SETUP before starting change!')
+            raise Exception('Instrument must be in SETUP when changing settings!')
         if self.in_change:
             raise Exception("Already in change - previous cached values will be used")
         else:
@@ -1029,8 +1029,10 @@ class Dae(object):
         """
         valid_vetos = ['clearall', 'smp', 'ts2', 'hz50', 'ext0', 'ext1', 'ext2', 'ext3', 'fifo']
 
+        # Change keys to be case insensitive
         params = dict((k.lower(), v) for k, v in params.iteritems())
 
+        # Check for invalid veto names and invalid (non-boolean) values
         not_bool = []
         for k, v in params.iteritems():
             if k not in valid_vetos:
@@ -1041,6 +1043,7 @@ class Dae(object):
             raise Exception("Vetoes must be set to True or False, the following vetoes were incorrect: {}"
                             .format(" ".join(not_bool)))
 
+        # Set any runtime vetoes
         params = self.__change_runtime_vetos(params)
         if len(params) == 0:
             return
@@ -1050,6 +1053,7 @@ class Dae(object):
             self.change_start()
             did_change = True
 
+        # Clearall must be done first.
         if 'clearall' in params:
             if isinstance(params['clearall'], bool) and params['clearall']:
                 self.change_cache.clear_vetos()
