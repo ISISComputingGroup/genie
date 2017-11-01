@@ -84,10 +84,6 @@ DAE_PVS_LOOKUP = {
     "set_veto_false": "DAE:VETO:DISABLE:SP"
 }
 
-# vetos and the command used to set them at runtime
-AVAILABLE_VETOS = {'smp': "SMP", 'ts2': "TS2P", 'hz50': "ISIS50HZ",
-                   'ext0': "EXT0", 'ext1': "EXT1", 'ext2': "EXT2", 'ext3': "EXT3"}
-
 
 class Dae(object):
     def __init__(self, api, prefix=""):
@@ -1009,11 +1005,11 @@ class Dae(object):
             self.change_cache.tcb_tables.append((regime, trange, low, high, step, 1))
         if did_change:
             self.change_finish()
-                
+
     def change_vetos(self, **params):
         """
         Change the DAE veto settings.
-        
+
         Args:
             clearall: remove all vetos [optional]
             smp: set SMP veto [optional]
@@ -1023,71 +1019,85 @@ class Dae(object):
             ext1: set external veto 1 [optional]
             ext2: set external veto 2 [optional]
             ext3: set external veto 3 [optional]
-        
-        If clearall is specified then all vetos are turned off, but it is possible to turn other vetoes 
+
+        If clearall is specified then all vetos are turned off, but it is possible to turn other vetoes
         back on at the same time.
 
         Example:
             Turns all vetoes off then turns the SMP veto back on
             >>> change_vetos(clearall=True, smp=True)
         """
+        valid_vetos = ['clearall', 'smp', 'ts2', 'hz50', 'ext0', 'ext1', 'ext2', 'ext3', 'fifo']
+
+        params = dict((k.lower(), v) for k, v in params.iteritems())
+
+        not_bool = []
+        for k, v in params.iteritems():
+            if k not in valid_vetos:
+                raise Exception("Invalid veto name: {}".format(k))
+            if not isinstance(v, bool):
+                not_bool.append(k)
+        if len(not_bool) > 0:
+            raise Exception("Vetos must be set to True or False, the following vetos were incorrect: {}"
+                            .format(" ".join(not_bool)))
+
+        params = self.__change_runtime_vetos(params)
+        if len(params) == 0:
+            return
+
         did_change = False
         if not self.in_change:
             self.change_start()
             did_change = True
 
-        params = {k.lower(): v for k, v in params.iteritems()}
-
-        clear = params.pop('clearall', None)
-        if clear is not None:
-            if isinstance(clear, bool):
-                if clear:
-                    self.change_cache.clear_vetos()
-            else:
-                raise Exception("Must set clearall to True or False")
-
-        for k, d in params.iteritems():
-            if not isinstance(d, bool):
-                raise Exception("Must set {} to True or False".format(k))
-            else:
-                if k in AVAILABLE_VETOS:
-                    setattr(self.change_cache, k + "_veto", int(d))
-                else:
-                    raise Exception("{} veto not recognised".format(k))
+        if 'clearall' in params:
+            if isinstance(params['clearall'], bool) and params['clearall']:
+                self.change_cache.clear_vetos()
+        if 'smp' in params:
+            if isinstance(params['smp'], bool):
+                self.change_cache.smp_veto = int(params['smp'])
+        if 'ts2' in params:
+            if isinstance(params['ts2'], bool):
+                self.change_cache.ts2_veto = int(params['ts2'])
+        if 'hz50' in params:
+            if isinstance(params['hz50'], bool):
+                self.change_cache.hz50_veto = int(params['hz50'])
+        if 'ext0' in params:
+            if isinstance(params['ext0'], bool):
+                self.change_cache.ext0_veto = int(params['ext0'])
+        if 'ext1' in params:
+            if isinstance(params['ext1'], bool):
+                self.change_cache.ext1_veto = int(params['ext1'])
+        if 'ext2' in params:
+            if isinstance(params['ext2'], bool):
+                self.change_cache.ext2_veto = int(params['ext2'])
+        if 'ext3' in params:
+            if isinstance(params['ext3'], bool):
+                self.change_cache.ext3_veto = int(params['ext3'])
 
         if did_change:
             self.change_finish()
 
-    def change_runtime_vetos(self, **params):
+    def __change_runtime_vetos(self, params):
         """
         Change the DAE veto settings whilst the DAE is running.
 
         Args:
             fifo: set FIFO veto [optional]
-            smp: set SMP veto [optional]
-            ts2: set TS2 veto [optional]
-            hz50: set 50 hz veto [optional]
-            ext0: set external veto 0 [optional]
-            ext1: set external veto 1 [optional]
-            ext2: set external veto 2 [optional]
-            ext3: set external veto 3 [optional]
-
-        Example:
-            Turns off the FIFO veto
-            >>> change_runtime_vetos(fifo=False)
         """
-        for k, d in params.iteritems():
-            k = k.lower()
-            if not isinstance(d, bool):
-                raise Exception("Must set {} to True or False".format(k))
+        if 'fifo' in params:
+            if isinstance(params['fifo'], bool):
+                self._set_pv_value(self._get_dae_pv_name("set_veto_" + ("true" if params['fifo'] else "false")), "FIFO")
+
+                # Check if in SETUP, if not SETUP warn the user that the setting will be set to True automatically
+                # when a run begins.
+                if self.get_run_state() == "SETUP" and not params['fifo']:
+                    print("FIFO veto will automatically revert to ENABLED when next run begins.\n"
+                          "Run this command again during the run to disable FIFO vetos.")
+                del params['fifo']
             else:
-                pv_name = self._get_dae_pv_name("set_veto_" + ("true" if d else "false"))
-                if k in AVAILABLE_VETOS:
-                    self._set_pv_value(pv_name, AVAILABLE_VETOS[k])
-                elif k == "fifo":
-                    self._set_pv_value(pv_name, "FIFO")
-                else:
-                    raise Exception("{} veto not recognised".format(k))
+                raise Exception("FIFO veto must be set to True or False")
+        return params
 
     def set_fermi_veto(self, enable=None, delay=1.0, width=1.0):
         """

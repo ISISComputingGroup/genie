@@ -1541,43 +1541,23 @@ def change_vetos(**params):
         ext1  (bool, optional): set external veto 1
         ext2 (bool, optional): set external veto 2
         ext3 (bool, optional): set external veto 3
+        fifo (bool, optional): set FIFO veto
 
-    Note: If clearall is specified then all vetos are turned off,
-    but it is possible to turn other vetoes back on at the same time:
+    Note: If clearall is specified then all vetos (including FIFO) are turned off,
+    but it is possible to turn other vetoes back on at the same time.
+
+    Note: FIFO veto is automatically enabled on run begin.
 
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
         >>> change_vetos(clearall=True, smp=True)
+
+        Turn off FIFO:
+        >>> change_vetos(fifo=False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_vetos(**params)
-    except Exception as e:
-        _handle_exception(e)
-
-@usercommand
-@helparglist('[...]')
-def change_runtime_vetos(**params):
-    """
-    Change the DAE veto settings whilst the DAE is running.
-
-    Args:
-        fifo: set FIFO veto [optional]
-        smp: set SMP veto [optional]
-        ts2: set TS2 veto [optional]
-        hz50: set 50 hz veto [optional]
-        ext0: set external veto 0 [optional]
-        ext1: set external veto 1 [optional]
-        ext2: set external veto 2 [optional]
-        ext3: set external veto 3 [optional]
-
-    Example:
-        Turns off the FIFO veto
-        >>> change_runtime_vetos(fifo=False)
-    """
-    __api.log_command(sys._getframe().f_code.co_name, locals())
-    try:
-        __api.dae.change_runtime_vetos(**params)
     except Exception as e:
         _handle_exception(e)
 

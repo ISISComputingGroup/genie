@@ -123,9 +123,12 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.change_vetos(smp=False)
         self.assertEqual(0, self.change_cache.smp_veto)
 
-    def test_WHEN_change_vetos_called_with_smp_not_boolean_THEN_exception_raised_and_smp_veto_not_set(self):
+    def test_WHEN_change_vetos_called_with_non_boolean_value_THEN_exception_raised_and_veto_not_set(self):
         self.assertRaises(Exception, self.dae.change_vetos, smp="test")
         self.assertEqual(None, self.change_cache.smp_veto)
+
+        self.assertRaises(Exception, self.dae.change_vetos, hz50="test")
+        self.assertEqual(None, self.change_cache.hz50_veto)
 
     def test_WHEN_change_vetos_called_with_clearall_true_THEN_all_vetos_cleared(self):
         self.set_all_vetos(1)
@@ -141,42 +144,19 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.change_vetos(clearall=False)
         self.check_all_vetos(1)
 
-    def test_WHEN_change_vetos_called_with_clearall_not_boolean_THEN_exception_thrown_and_nothing_happens(self):
-        self.set_all_vetos(1)
-        self.check_all_vetos(1)
-
-        self.assertRaises(Exception, self.dae.change_vetos, clearall="test")
-        self.check_all_vetos(1)
-
     def test_WHEN_change_vetos_called_with_unknown_veto_THEN_exception_thrown(self):
         self.assertRaises(Exception, self.dae.change_vetos, bad_veto=True)
 
     def test_WHEN_fifo_veto_enabled_at_runtime_THEN_correct_PV_set_with_correct_value(self):
-        self.dae.change_runtime_vetos(fifo=True)
+        self.dae.change_vetos(fifo=True)
 
         func = self.api.set_pv_value
         self.assertTrue(func.called)
         func.assert_called_with("DAE:VETO:ENABLE:SP", "FIFO", False)
 
     def test_WHEN_fifo_veto_disabled_at_runtime_THEN_correct_PV_set_with_correct_value(self):
-        self.dae.change_runtime_vetos(fifo=False)
+        self.dae.change_vetos(fifo=False)
 
         func = self.api.set_pv_value
         self.assertTrue(func.called)
         func.assert_called_with("DAE:VETO:DISABLE:SP", "FIFO", False)
-
-    def test_WHEN_change_runtime_vetos_called_with_fifo_not_boolean_THEN_exception_raised_and_fifo_veto_not_set(self):
-        self.assertRaises(Exception, self.dae.change_runtime_vetos, fifo="test")
-        func = self.api.set_pv_value
-        self.assertFalse(func.called)
-
-    def test_WHEN_change_runtime_vetos_called_with_multiple_vetos_THEN_all_vetos_set(self):
-        self.dae.change_runtime_vetos(fifo=False, hz50=True)
-
-        func = self.api.set_pv_value
-        self.assertTrue(func.called)
-        func.assert_has_calls([call("DAE:VETO:DISABLE:SP", "FIFO", False),
-                               call("DAE:VETO:ENABLE:SP", "ISIS50HZ", False)], any_order=True)
-
-    def test_WHEN_change_vetos_at_runtime_with_unknown_veto_THEN_exception_thrown(self):
-        self.assertRaises(Exception, self.dae.change_runtime_vetos, bad_veto=True)
