@@ -48,7 +48,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         self.api.reload_current_config()
 
         # Assert
-        self.assertEquals(self.counter, 1)
+        self.assertEqual(self.counter, 1)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_sample_WHEN_get_sample_pars_is_called_THEN_returns_a_one_element_dictionary_containing_the_PV_suffix_and_mock_value(self):
         # Arrange
@@ -61,9 +61,9 @@ class TestEpicsApiSequence(unittest.TestCase):
         val = self.api.get_sample_pars()
 
         # Assert
-        self.assertEquals(len(val), 1)
-        self.assertEquals(val.keys()[0], pv_suffix)
-        self.assertEquals(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(len(val), 1)
+        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_sample_WHEN_get_sample_pars_is_called_THEN_returns_an_empty_dictionary(self):
         # Arrange
@@ -76,7 +76,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         val = self.api.get_sample_pars()
 
         # Assert
-        self.assertEquals(len(val), 0)
+        self.assertEqual(len(val), 0)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_bl_WHEN_get_beamline_pars_is_called_THEN_returns_a_one_element_dictionary_containing_the_PV_suffix_and_mock_value(self):
         # Arrange
@@ -89,9 +89,9 @@ class TestEpicsApiSequence(unittest.TestCase):
         val = self.api.get_beamline_pars()
 
         # Assert
-        self.assertEquals(len(val), 1)
-        self.assertEquals(val.keys()[0], pv_suffix)
-        self.assertEquals(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(len(val), 1)
+        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(self):
         # Arrange
@@ -104,7 +104,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         val = self.api.get_beamline_pars()
 
         # Assert
-        self.assertEquals(len(val), 0)
+        self.assertEqual(len(val), 0)
 
 
 class TestEpicsApiSetInstrumentName(unittest.TestCase):
@@ -234,3 +234,41 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
 
         # Assert
         self.assertEqual(expected, pv_prefix)
+
+class TestEpicsApiSMS(unittest.TestCase):
+    def setUp(self):
+        self.api = API("", None)
+        API.sms = MagicMock()
+
+    def tearDown(self):
+        pass
+
+    def test_GIVEN_phone_number_THEN_send_message(self):
+        # Arrange
+        API.sms.send_sms = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_sms("123", "test")
+
+        # Assert
+        API.sms.send_sms.assert_called_once()
+
+    def test_GIVEN_email_address_THEN_send_message(self):
+        # Arrange
+        API.sms.send_email = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_email("a@b", "message")
+
+        # Assert
+        API.sms.send_email.assert_called_once()
+
+    def test_GIVEN_instrument_alert_THEN_send_message(self):
+        # Arrange
+        API.sms.send_alert = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_alert("message", "inst")
+
+        # Assert
+        API.sms.send_alert.assert_called_once()

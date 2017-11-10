@@ -10,12 +10,14 @@ from genie_wait_for_move import WaitForMoveController
 from genie_waitfor import WaitForController
 from utilities import crc8, EnvironmentDetails
 
+import smslib.sms
 
 class API(object):
     waitfor = None
     wait_for_move = None
     dae = None
     blockserver = None
+    sms = smslib.sms
     __inst_prefix = ""
     __mod = None
     __localmod = None
@@ -539,8 +541,7 @@ class API(object):
             message (string): The message to send.
         """
         try:
-            from smslib.sms import send_sms
-            self.log_info_msg("send_sms returned {}".format(send_sms(phone_num, message)))
+            self.log_info_msg("send_sms returned {}".format(API.sms.send_sms(phone_num, message)))
         except Exception as e:
             raise Exception("Could not send SMS: {}".format(e))
 
@@ -553,8 +554,7 @@ class API(object):
             message (string): The message to send.
         """
         try:
-            from smslib.sms import send_email
-            self.log_info_msg("send_email returned {}".format(send_email(address, message)))
+            self.log_info_msg("send_email returned {}".format(API.sms.send_email(address, message)))
         except Exception as e:
             raise Exception("Could not send email: {}".format(e))
 
@@ -569,7 +569,6 @@ class API(object):
         if inst is None:
             inst = self.__instrument_name
         try:
-            from smslib.sms import send_alert
-            self.log_info_msg("send_alert returned {}".format(send_alert(inst, message)))
+            self.log_info_msg("send_alert returned {}".format(API.sms.send_alert(inst, message)))
         except Exception as e:
             raise Exception("Could not send alert: {}".format(e))
