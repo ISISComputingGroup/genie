@@ -5,6 +5,7 @@ import sys
 import glob
 import re
 import ctypes
+import datetime
 from version import VERSION
 from functools import wraps
 from collections import OrderedDict
@@ -1226,7 +1227,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
     """
     Loads a user script.
     Args:
-        name (string): the name of the file to load
+        name (string): the name of the file to load. If this is not a full path the file is assumed to be in C:\scripts\
         dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
             remove this
         check_script: When True run the script checker on the script; False otherwise (default True)
@@ -1294,6 +1295,8 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
                     msg += script + ", "
                 print msg[0:-2]
                 print "From: %s" % file_path
+                print "File last modified: %s" % \
+                      datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S")
             else:
                 raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
         except Exception as e:
@@ -1538,20 +1541,25 @@ def change_vetos(**params):
         ext1  (bool, optional): set external veto 1
         ext2 (bool, optional): set external veto 2
         ext3 (bool, optional): set external veto 3
+        fifo (bool, optional): set FIFO veto
 
-    Note: If clearall is specified then all vetos are turned off,
-    but it is possible to turn other vetoes back on at the same time:
+    Note: If clearall is specified then all vetos (excluding the FIFO veto) are turned off,
+    but it is possible to turn other vetoes back on at the same time.
+
+    Note: FIFO veto is automatically enabled on run begin, but can be changed whilst running.
 
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
         >>> change_vetos(clearall=True, smp=True)
+
+        Turn off FIFO:
+        >>> change_vetos(fifo=False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.change_vetos(**params)
     except Exception as e:
         _handle_exception(e)
-
 
 @usercommand
 @helparglist('[enable], [delay], [width]')

@@ -46,7 +46,7 @@ class CaChannelWrapper(object):
             WriteAccessException: If write access is denied.
             InvalidEnumStringException: If the PV is an enum and the string value supplied is not a valid enum value.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -97,7 +97,7 @@ class CaChannelWrapper(object):
             UnableToConnectToPVException: If cannot connect to PV.
             ReadAccessException: If read access is denied.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -141,7 +141,7 @@ class CaChannelWrapper(object):
         Returns:
             True if exists, otherwise False.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.ch_state.cs_conn:
+        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
             return True
         else:
             chan = CaChannel(name)
@@ -170,8 +170,8 @@ class CaChannelWrapper(object):
         event = Event()
         try:
             ca_channel.search_and_connect(None, CaChannelWrapper.putCB, event)
-        except CaChannelException:
-            raise UnableToConnectToPVException(ca_channel.pvname)
+        except CaChannelException as e:
+            raise UnableToConnectToPVException(ca_channel.name(), e)
 
         interval = 0.1
         time_elapsed = 0.0
@@ -181,7 +181,7 @@ class CaChannelWrapper(object):
             ca_channel.pend_event(interval)
             time_elapsed += interval
         if not event.is_set():
-            raise UnableToConnectToPVException(ca_channel.pvname)
+            raise UnableToConnectToPVException(ca_channel.name(), "Connection timeout")
 
     @staticmethod
     def check_for_enum_value(value, chan, name):
