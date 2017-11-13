@@ -1823,7 +1823,7 @@ def change_rb(rb):
     Changes the RB number.
 
     Args:
-        rb (int): the new RB number
+        rb (int or string): the new RB number
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -2026,11 +2026,36 @@ def send_sms(phone_num, message):
 
     Args:
         phone_num (string): the phone number to send the SMS to
-        message (string): the message to send in the SMS
+        message (string): the message to send
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.send_sms(phone_num, message)
 
+@usercommand
+@helparglist('message, inst')
+def send_alert(message, inst=None):
+    """
+    Sends an alert message for the specified instrument.
+
+    Args:
+        message (string): the message to send
+        inst (string, optional): the instrument to generate the alert for. Defaults to current instrument.
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    __api.send_alert(message, inst)
+
+@usercommand
+@helparglist('address, message')
+def send_email(address, message):
+    """
+    Sends a message to an email address.
+
+    Args:
+        address (string): the email address to use
+        message (string): the message to send
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    __api.send_email(address, message)
 
 @usercommand
 @helparglist('')

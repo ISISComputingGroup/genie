@@ -30,8 +30,8 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         self.counter = 0
         self.mock_pv_value = "Mock PV value"
-        self.api = API("",None)
-        self.mock_wrapper.get_pv_value = MagicMock(return_value = self.mock_pv_value)
+        self.api = API("", None)
+        self.mock_wrapper.get_pv_value = MagicMock(return_value=self.mock_pv_value)
         API.blockserver = MagicMock()
 
     def tearDown(self):
@@ -43,62 +43,57 @@ class TestEpicsApiSequence(unittest.TestCase):
     def test_WHEN_reloading_current_config_THEN_command_is_delegated_to_blockserver(self):
 
         # Arrange
-        API.blockserver.reload_current_config = MagicMock(side_effect = self._increase_counter)
-
+        API.blockserver.reload_current_config = MagicMock(side_effect=self._increase_counter)
         # Act
         self.api.reload_current_config()
 
         # Assert
-        self.assertEquals(self.counter, 1)
+        self.assertEqual(self.counter, 1)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_sample_WHEN_get_sample_pars_is_called_THEN_returns_a_one_element_dictionary_containing_the_PV_suffix_and_mock_value(self):
-
         # Arrange
         pv_prefix = u'PARS:SAMPLE:'
         pv_suffix = u'AOI'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_sample_par_names = MagicMock(return_value = [pv_name])
+        self.api.blockserver.get_sample_par_names = MagicMock(return_value=[pv_name])
 
         # Act
         val = self.api.get_sample_pars()
 
         # Assert
-        self.assertEquals(len(val), 1)
-        self.assertEquals(val.keys()[0], pv_suffix)
-        self.assertEquals(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(len(val), 1)
+        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_sample_WHEN_get_sample_pars_is_called_THEN_returns_an_empty_dictionary(self):
-
         # Arrange
         pv_prefix = u'PARS:BL:'
         pv_suffix = u'BEAMSTOP:POS'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_sample_par_names = MagicMock(return_value = [pv_name])
+        self.api.blockserver.get_sample_par_names = MagicMock(return_value=[pv_name])
 
         # Act
         val = self.api.get_sample_pars()
 
         # Assert
-        self.assertEquals(len(val),0)
+        self.assertEqual(len(val), 0)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_bl_WHEN_get_beamline_pars_is_called_THEN_returns_a_one_element_dictionary_containing_the_PV_suffix_and_mock_value(self):
-
         # Arrange
         pv_prefix = u'PARS:BL:'
         pv_suffix = u'JOURNAL:BLOCKS'
         pv_name = pv_prefix + pv_suffix
-        self.api.blockserver.get_beamline_par_names = MagicMock(return_value = [pv_name])
+        self.api.blockserver.get_beamline_par_names = MagicMock(return_value=[pv_name])
 
         # Act
         val = self.api.get_beamline_pars()
 
         # Assert
-        self.assertEquals(len(val), 1)
-        self.assertEquals(val.keys()[0], pv_suffix)
-        self.assertEquals(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(len(val), 1)
+        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(self):
-
         # Arrange
         pv_prefix = u'PARS:SAMPLE:'
         pv_suffix = u'HEIGHT'
@@ -109,18 +104,17 @@ class TestEpicsApiSequence(unittest.TestCase):
         val = self.api.get_beamline_pars()
 
         # Assert
-        self.assertEquals(len(val),0)
+        self.assertEqual(len(val), 0)
 
 
 class TestEpicsApiSetInstrumentName(unittest.TestCase):
-
     def setUp(self):
         self.api = API("", None)
 
     def test_WHEN_machine_identifier_begins_ndx_THEN_instrument_is_name_without_ndx(self):
         # Act
         expected = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDX"+expected)
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDX" + expected)
 
         # Assert
         self.assertEqual(expected, instrument)
@@ -150,7 +144,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
         # Assert
         self.assertEqual(expected, instrument)
 
-    def test_WHEN_machine_identifier_begins_ndx_THEN_machine_name_is_machine_identifier(self):
+    def test_WHEN_machine_identifier_begins_ndw_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDWNAME"
         instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
@@ -158,7 +152,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
         # Assert
         self.assertEqual(expected, machine)
 
-    def test_WHEN_machine_identifier_begins_ndw_THEN_pv_prefix_begins_with_te_colon(self):
+    def test_WHEN_machine_identifier_begins_ndw_THEN_pv_prefix_begins_with_the_colon(self):
         # Act
         machine = "NDWname"
         instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
@@ -208,15 +202,6 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
         # Assert
         self.assertEqual(expected, machine)
 
-    def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_te_colon(self):
-        # Act
-        machine = "NDLTNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
-        expected = "TE:" + machine + ":"
-
-        # Assert
-        self.assertEqual(expected, pv_prefix)
-
     def test_WHEN_machine_identifier_begins_in_colon_THEN_instrument_is_name_without_prefix(self):
         # Act
         expected = "NAME"
@@ -233,10 +218,57 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
         # Assert
         self.assertEqual("NDX" + name, machine)
 
-    def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_te_colon(self):
+    def test_WHEN_machine_identifier_begins_with_instrument_prefix_THEN_pv_prefix_begins_with_the_colon(self):
         # Act
         expected = "IN:NAME:"
         instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, pv_prefix)
+
+    def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_the_colon(self):
+        # Act
+        machine = "NDLTNAME"
+        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
+        expected = "TE:" + machine + ":"
+
+        # Assert
+        self.assertEqual(expected, pv_prefix)
+
+class TestEpicsApiSMS(unittest.TestCase):
+    def setUp(self):
+        self.api = API("", None)
+        API.sms = MagicMock()
+
+    def tearDown(self):
+        pass
+
+    def test_GIVEN_phone_number_WHEN_send_sms_THEN_requests_api_send_sms(self):
+        # Arrange
+        API.sms.send_sms = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_sms("123", "test")
+
+        # Assert
+        API.sms.send_sms.assert_called_once()
+
+    def test_GIVEN_email_address_WHEN_send_email_THEN_requests_api_send_email(self):
+        # Arrange
+        API.sms.send_email = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_email("a@b", "message")
+
+        # Assert
+        API.sms.send_email.assert_called_once()
+
+    def test_GIVEN_message_WHEN_send_alert_THEN_requests_api_send_alert(self):
+        # Arrange
+        API.sms.send_alert = MagicMock(return_value="OK")
+
+        # Act
+        self.api.send_alert("message", "inst")
+
+        # Assert
+        API.sms.send_alert.assert_called_once()
