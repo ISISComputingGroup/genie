@@ -80,7 +80,19 @@ DAE_PVS_LOOKUP = {
     "spectratables": "DAE:SPECTRATABLES",
     "detectortables": "DAE:DETECTORTABLES",
     "periodfiles": "DAE:PERIODFILES",
+    "set_veto_true": "DAE:VETO:ENABLE:SP",
+    "set_veto_false": "DAE:VETO:DISABLE:SP"
 }
+
+CLEAR_VETO = 'clearall'
+SMP_VETO = 'smp'
+TS2_VETO = 'ts2'
+HZ50_VETO = 'hz50'
+EXT0_VETO = 'ext0'
+EXT1_VETO = 'ext1'
+EXT2_VETO = 'ext2'
+EXT3_VETO = 'ext3'
+FIFO_VETO = 'fifo'
 
 
 class Dae(object):
@@ -98,7 +110,7 @@ class Dae(object):
         self.change_cache = ChangeCache()
         self.verbose = False
 
-    def __prefix_pv_name(self, name):
+    def _prefix_pv_name(self, name):
         """
         Adds the prefix to the PV name.
 
@@ -122,7 +134,7 @@ class Dae(object):
         Returns:
             string: the full PV name
         """
-        return self.__prefix_pv_name(DAE_PVS_LOOKUP[name.lower()])
+        return self._prefix_pv_name(DAE_PVS_LOOKUP[name.lower()])
 
     def _get_pv_value(self, name, to_string=False):
         """
@@ -171,7 +183,7 @@ class Dae(object):
         Prints all the messages.
         """
         msgs = self._get_pv_value(self._get_dae_pv_name("allmessages"), to_string=True)
-        print msgs
+        print(msgs)
 
     def set_verbose(self, verbose):
         """
@@ -186,9 +198,9 @@ class Dae(object):
         if isinstance(verbose, bool):
             self.verbose = verbose
             if verbose:
-                print "Setting DAE messages to verbose mode"
+                print("Setting DAE messages to verbose mode")
             else:
-                print "Setting DAE messages to non-verbose mode"
+                print("Setting DAE messages to non-verbose mode")
         else:
             raise Exception("Value must be boolean")
 
@@ -229,9 +241,9 @@ class Dae(object):
             self.set_period(period)
 
         if not quiet:
-            print "** Beginning Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
-            print "*  Proposal Number: %s" % self.get_rb_number()
-            print "*  Experiment Team: %s" % self.get_users()
+            print("** Beginning Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+            print("*  Proposal Number: {}".format(self.get_rb_number()))
+            print("*  Experiment Team: {}".format(self.get_users()))
 
         # By choosing the value sent to the begin PV it can set pause and/or delayed
         options = 0
@@ -257,7 +269,7 @@ class Dae(object):
         """
         Abort the current run.
         """
-        print "** Aborting Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+        print("** Aborting Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1, wait=True)
 
     def post_abort_check(self, verbose=False):
@@ -275,7 +287,7 @@ class Dae(object):
         """
         End the current run.
         """
-        print "** Ending Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+        print("** Ending Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1, wait=True)
 
     def post_end_check(self, verbose=False):
@@ -315,7 +327,7 @@ class Dae(object):
 
         This is more efficient than doing the commands separately.
         """
-        print "** Saving Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+        print("** Saving Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1, wait=True)
 
     def post_update_store_check(self, verbose=False):
@@ -387,7 +399,7 @@ class Dae(object):
         """
         Pause the current run.
         """
-        print "** Pausing Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+        print("** Pausing Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1, wait=True)
 
     def post_pause_check(self, verbose=False):
@@ -405,7 +417,7 @@ class Dae(object):
         """
         Resume the current run after it has been paused.
         """
-        print "** Resuming Run %s at %s" % (self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
+        print("** Resuming Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1, wait=True)
 
     def post_resume_check(self, verbose=False):
@@ -812,7 +824,7 @@ class Dae(object):
         """
         # Check in setup
         if self.get_run_state() != "SETUP":
-            raise ValueError('Must be in SETUP before starting change!')
+            raise ValueError('Instrument must be in SETUP when changing settings!')
         if self.in_change:
             raise ValueError("Already in change - previous cached values will be used")
         else:
@@ -944,7 +956,7 @@ class Dae(object):
             self.change_start()
             did_change = True
         if tcb_file is not None:
-            print "Reading TCB boundaries from", tcb_file
+            print("Reading TCB boundaries from {}".format(tcb_file))
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
         else:
@@ -1002,7 +1014,7 @@ class Dae(object):
             log: whether to use LOG binning [optional]
             regime: the time regime to set (1 to 6)[optional]
         """
-        print self._create_tcb_return_string(low, high, step, log)
+        print(self._create_tcb_return_string(low, high, step, log))
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1019,7 +1031,7 @@ class Dae(object):
         Change the DAE veto settings.
 
         Args:
-            clearall: remove all vetos [optional]
+            clearall: remove all vetoes [optional]
             smp: set SMP veto [optional]
             ts2: set TS2 veto [optional]
             hz50: set 50 hz veto [optional]
@@ -1028,48 +1040,96 @@ class Dae(object):
             ext2: set external veto 2 [optional]
             ext3: set external veto 3 [optional]
 
-        If clearall is specified then all vetos are turned off, but it is possible to turn other vetoes 
+        If clearall is specified then all vetoes are turned off, but it is possible to turn other vetoes
         back on at the same time.
 
         Example:
             Turns all vetoes off then turns the SMP veto back on
             >>> change_vetos(clearall=True, smp=True)
         """
+        valid_vetoes = [CLEAR_VETO, SMP_VETO, TS2_VETO, HZ50_VETO, EXT0_VETO, EXT1_VETO, EXT2_VETO, EXT3_VETO, FIFO_VETO]
+
+        # Change keys to be case insensitive
+        params = dict((k.lower(), v) for k, v in params.iteritems())
+
+        # Check for invalid veto names and invalid (non-boolean) values
+        not_bool = []
+        for k, v in params.iteritems():
+            if k not in valid_vetoes:
+                raise Exception("Invalid veto name: {}".format(k))
+            if not isinstance(v, bool):
+                not_bool.append(k)
+        if len(not_bool) > 0:
+            raise Exception("Vetoes must be set to True or False, the following vetoes were incorrect: {}"
+                            .format(" ".join(not_bool)))
+
+        # Set any runtime vetoes
+        params = self._change_runtime_vetos(params)
+        if len(params) == 0:
+            return
+
         did_change = False
         if not self.in_change:
             self.change_start()
             did_change = True
-        if 'clearall' in params:
-            if isinstance(params['clearall'], bool):
+
+        # Clearall must be done first.
+        if CLEAR_VETO in params:
+            if isinstance(params[CLEAR_VETO], bool) and params[CLEAR_VETO]:
                 self.change_cache.clear_vetos()
-        if 'smp' in params:
-            if isinstance(params['smp'], bool):
-                self.change_cache.smp_veto = int(params['smp'])
-        if 'ts2' in params:
-            if isinstance(params['ts2'], bool):
-                self.change_cache.ts2_veto = int(params['ts2'])
-        if 'hz50' in params:
-            if isinstance(params['hz50'], bool):
-                self.change_cache.hz50_veto = int(params['hz50'])
-        if 'ext0' in params:
-            if isinstance(params['ext0'], bool):
-                self.change_cache.ext0_veto = int(params['ext0'])
-        if 'ext1' in params:
-            if isinstance(params['ext1'], bool):
-                self.change_cache.ext1_veto = int(params['ext1'])
-        if 'ext2' in params:
-            if isinstance(params['ext2'], bool):
-                self.change_cache.ext2_veto = int(params['ext2'])
-        if 'ext3' in params:
-            if isinstance(params['ext3'], bool):
-                self.change_cache.ext3_veto = int(params['ext3'])
+        if SMP_VETO in params:
+            if isinstance(params[SMP_VETO], bool):
+                self.change_cache.smp_veto = int(params[SMP_VETO])
+        if TS2_VETO in params:
+            if isinstance(params[TS2_VETO], bool):
+                self.change_cache.ts2_veto = int(params[TS2_VETO])
+        if HZ50_VETO in params:
+            if isinstance(params[HZ50_VETO], bool):
+                self.change_cache.hz50_veto = int(params[HZ50_VETO])
+        if EXT0_VETO in params:
+            if isinstance(params[EXT0_VETO], bool):
+                self.change_cache.ext0_veto = int(params[EXT0_VETO])
+        if EXT1_VETO in params:
+            if isinstance(params[EXT1_VETO], bool):
+                self.change_cache.ext1_veto = int(params[EXT1_VETO])
+        if EXT2_VETO in params:
+            if isinstance(params[EXT2_VETO], bool):
+                self.change_cache.ext2_veto = int(params[EXT2_VETO])
+        if EXT3_VETO in params:
+            if isinstance(params[EXT3_VETO], bool):
+                self.change_cache.ext3_veto = int(params[EXT3_VETO])
+
         if did_change:
             self.change_finish()
+
+    def _change_runtime_vetos(self, params):
+        """
+        Change the DAE veto settings whilst the DAE is running.
+
+        Args:
+            params (dict): The vetoes to be set.
+
+        Returns:
+            dict : The params passed in minus the ones set in this method.
+        """
+        if FIFO_VETO in params:
+            if isinstance(params[FIFO_VETO], bool):
+                self._set_pv_value(self._get_dae_pv_name("set_veto_" + ("true" if params[FIFO_VETO] else "false")), "FIFO")
+
+                # Check if in SETUP, if not SETUP warn the user that the setting will be set to True automatically
+                # when a run begins.
+                if self.get_run_state() == "SETUP" and not params[FIFO_VETO]:
+                    print("FIFO veto will automatically revert to ENABLED when next run begins.\n"
+                          "Run this command again during the run to disable FIFO vetos.")
+                del params[FIFO_VETO]
+            else:
+                raise Exception("FIFO veto must be set to True or False")
+        return params
 
     def set_fermi_veto(self, enable=None, delay=1.0, width=1.0):
         """
         Configure the fermi chopper veto.
-
+        
         Args:
             enable: enable the fermi veto
             delay: the veto delay
@@ -1090,10 +1150,10 @@ class Dae(object):
             did_change = True
         if enable:
             self.change_cache.set_fermi(1, delay, width)
-            print "SET_FERMI_VETO: requested status is ON, delay:", delay, "width:", width
+            print("SET_FERMI_VETO: requested status is ON, delay: {} width: {}".format(delay, width))
         else:
             self.change_cache.set_fermi(0)
-            print "SET_FERMI_VETO: requested status is OFF"
+            print("SET_FERMI_VETO: requested status is OFF")
         if did_change:
             self.change_finish()
 
@@ -1171,7 +1231,7 @@ class Dae(object):
         if not self.in_change:
             self.change_start()
             did_change = True
-            # Set the source to 'Use Parameters Below' by default
+        # Set the source to 'Use Parameters Below' by default
         self.change_cache.periods_src = 0
         if mode.strip().lower() == 'int':
             self.change_cache.periods_type = 1
@@ -1257,7 +1317,7 @@ class Dae(object):
             for i in range(1, 9):
                 self.define_hard_period(i, daq, dwell, unused, frames, output, label)
         else:
-            if isinstance(period, int) and period > 0 and period < 9:
+            if isinstance(period, int) and 0 < period < 9:
                 p_type = None  # unchanged
                 if unused:
                     p_type = 0
@@ -1407,7 +1467,7 @@ class Dae(object):
         root = self._get_tcb_xml()
         search_text = 'TR%s (\w+) %s' % (regime, trange)
         regex = re.compile(search_text)
-        out = dict()
+        out = {}
 
         for top in root.iter('DBL'):
             n = top.find('Name')
