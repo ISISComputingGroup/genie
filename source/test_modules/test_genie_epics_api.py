@@ -243,7 +243,7 @@ class TestEpicsApiSMS(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_GIVEN_phone_number_THEN_send_message(self):
+    def test_GIVEN_phone_number_WHEN_send_sms_THEN_requests_api_send_sms(self):
         # Arrange
         API.sms.send_sms = MagicMock(return_value="OK")
 
@@ -253,7 +253,7 @@ class TestEpicsApiSMS(unittest.TestCase):
         # Assert
         API.sms.send_sms.assert_called_once()
 
-    def test_GIVEN_email_address_THEN_send_message(self):
+    def test_GIVEN_email_address_WHEN_send_email_THEN_requests_api_send_email(self):
         # Arrange
         API.sms.send_email = MagicMock(return_value="OK")
 
@@ -263,7 +263,7 @@ class TestEpicsApiSMS(unittest.TestCase):
         # Assert
         API.sms.send_email.assert_called_once()
 
-    def test_GIVEN_instrument_alert_THEN_send_message(self):
+    def test_GIVEN_message_WHEN_send_alert_THEN_requests_api_send_alert(self):
         # Arrange
         API.sms.send_alert = MagicMock(return_value="OK")
 
