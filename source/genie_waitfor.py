@@ -50,8 +50,9 @@ class WaitForController(object):
             if not self.api.block_exists(block):
                 raise NameError('No block with the name "%s" exists' % block)
             block = self.api.correct_blockname(block)            
-            if value is not None and (not isinstance(value, float) and not isinstance(value, int)):
-                raise Exception("The value entered for the block was invalid, it should be numeric.")
+            if value is not None and (not isinstance(value, float) and not isinstance(value, int)
+                                      and not isinstance(value, basestring)):
+                raise Exception("The value entered for the block was invalid, it should be numeric or a string.")
             if lowlimit is not None and (not isinstance(lowlimit, float) and not isinstance(lowlimit, int)):
                 raise Exception("The value entered for lowlimit was invalid, it should be numeric.")
             if highlimit is not None and (not isinstance(highlimit, float) and not isinstance(highlimit, int)):
@@ -74,7 +75,7 @@ class WaitForController(object):
                 return
 
             res = list()
-            res.append(self.waiting_for_block())
+            res.append(self._block_has_waited_for_value())
             res.append(self.waiting_for_time())
             if frames is not None:
                 res.append(self.api.dae.get_good_frames() < frames)
@@ -172,13 +173,23 @@ class WaitForController(object):
             low = temp
         return (low, high)
         
-    def waiting_for_block(self):
+    def _block_has_waited_for_value(self):
+        """
+        Return True if the block is above any low lmit and below any high limit. In the case
+        of a string type it is if it is at the low limit.
+
+        :return: true of the block has the value that is being waited for; False otherwise
+        """
         if self.block is None:
             return None                
         currval = self.api.get_block_value(self.block)
         flag = True
-        if self.low is not None:
-            flag = currval >= float(self.low)
-        if self.high is not None:
-            flag = currval <= float(self.high) and flag
+        try:
+            if self.low is not None:
+                flag = currval >= float(self.low)
+            if self.high is not None:
+                flag = currval <= float(self.high) and flag
+        except ValueError:
+            #  pv is a string values so just test
+            flag = currval == self.low
         return not flag
