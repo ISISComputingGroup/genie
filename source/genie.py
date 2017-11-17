@@ -14,11 +14,11 @@ from utilities import waveform_to_string, get_correct_path, get_correct_filepath
     get_correct_directory_path_existing
 import inspect
 
-print "genie_python version " + VERSION
+print("genie_python version " + VERSION)
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
-    print "\n=========== RUNNING IN SIMULATION MODE ===========\n"
+    print("\n=========== RUNNING IN SIMULATION MODE ===========\n")
     from genie_simulate import API
 else:
     from genie_epics_api import API
@@ -38,19 +38,19 @@ try:
     # If __api does not exist or is None then we need to create it.
     if __api is None:
         raise Exception("API does not exist")
-except:
+except Exception:
     # This should only get called the first time genie is imported
     my_pv_prefix = None
     if 'MYPVPREFIX' in os.environ:
         my_pv_prefix = os.environ['MYPVPREFIX']
         __api = API(my_pv_prefix, globals())
     else:
-        print "No instrument specified - loading local instrument"
+        print("No instrument specified - loading local instrument")
         __api = API(None, globals())
 
 try:
     SCRIPT_DIR = get_correct_directory_path_existing("C:/scripts/")
-except:
+except Exception:
     SCRIPT_DIR = ""
 
 _exceptions_raised = False
@@ -61,8 +61,16 @@ _exceptions_raised = False
 try:
     import readline
 
-
     def complete(text, state):
+        """
+        Read line completion for load script so it gives nice paths
+        Args:
+            text: text to auto complete
+            state: state it was in
+
+        Returns: completed line
+
+        """
         if text.startswith('load_script("') or text.startswith("load_script('"):
             temp = text[13:]
             ans = (glob.glob(temp + '*') + [None])[state]
@@ -77,7 +85,8 @@ try:
     readline.set_completer_delims(' \t\n;')
     readline.parse_and_bind("tab: complete")
     readline.set_completer(complete)
-except:
+except Exception:
+    # if we can not do tab completion it doesn't matter
     pass
 
 
@@ -129,11 +138,11 @@ def _print_error_message(message):
         ctypes.windll.kernel32.GetConsoleScreenBufferInfo(stdout_handle, ctypes.byref(csbi))
         old_attrs = csbi.wAttributes
         ctypes.windll.kernel32.SetConsoleTextAttribute(stdout_handle, 12)
-        print "ERROR: " + message
+        print("ERROR: " + message)
         ctypes.windll.kernel32.SetConsoleTextAttribute(stdout_handle, old_attrs)
     else:
         # Non-windows
-        print '\033[91m' + "ERROR: " + message + '\033[0m'
+        print('\033[91m' + "ERROR: " + message + '\033[0m')
     # Log it
     __api.log_error_msg(message)
 
@@ -367,7 +376,7 @@ def _cshow_all():
     Handles the cshow command for all the blocks.
     """
     blks = __api.get_current_block_values()
-    for bn, bv in blks.iteritems():
+    for bn, bv in blks.items():
         _print_cshow(bn, bv)
 
 
@@ -411,11 +420,11 @@ def _print_cshow(name, value):
         value (list): the block values
     """
     if _check_block_connected(value[0]):
-        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
-            name, value[0], value[1], value[2], value[3])
+        print('%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
+            name, value[0], value[1], value[2], value[3]))
     else:
-        print '%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
-            name, "*** disconnected ***", value[1], value[2], value[3])
+        print('%s = %s (runcontrol = %s, lowlimit = %s, highlimit = %s)' % (
+            name, "*** disconnected ***", value[1], value[2], value[3]))
 
 
 def cshow(block=None):
@@ -545,7 +554,8 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
     try:
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
-        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait, early_exit=early_exit)
+        __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait,
+                                    early_exit=early_exit)
     except Exception as e:
         _handle_exception(e)
 
@@ -571,7 +581,7 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
         if all(t is None for t in (seconds, minutes, hours, time)):
             raise TypeError("Cannot execute waitfor_time - need to set at least one parameter. Type help(waitfor_time) "
                             "to see guidelines")
-        if any(t is not None and t < 0 for t in (seconds,minutes,hours)):
+        if any(t is not None and t < 0 for t in (seconds, minutes, hours)):
             raise ValueError("Cannot execute waitfor_time - Time parameters cannot be negative")
         if __api.waitfor is None:
             raise TypeError("Cannot execute waitfor_time - try calling set_instrument first")
@@ -698,7 +708,7 @@ def waitfor_move(*blocks, **kwargs):
                 if __api.block_exists(b):
                     move_blocks.append(b)
                 else:
-                    print "Block %s does not exist, so ignoring it" % b
+                    print("Block %s does not exist, so ignoring it" % b)
             __api.wait_for_move.wait_specific(move_blocks, start_timeout, move_timeout)
         else:
             # Standard waitfor_move
@@ -1094,7 +1104,7 @@ def set_period(period):
         period (int): the period to switch to
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_period is deprecated - use change_period"
+    print("set_period is deprecated - use change_period")
     change_period(period)
 
 
@@ -1156,7 +1166,7 @@ def set_title(title):
         title: the new title
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_title is deprecated - use change_title"
+    print("set_title is deprecated - use change_title")
     change_title(title)
 
 
@@ -1250,10 +1260,10 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         try:
             try:
                 full_name = get_correct_filepath_existing(name)
-            except:
+            except Exception:
                 # Try with default script directory prepended
                 full_name = get_correct_filepath_existing(os.path.join(SCRIPT_DIR, name))
-        except:
+        except Exception:
             raise Exception("Script file was not found (%s)" % get_correct_path(name))
 
         directory, filename = os.path.split(os.path.abspath(full_name))
@@ -1299,10 +1309,10 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
                 msg = "Loaded the following script(s): "
                 for script in scripts:
                     msg += script + ", "
-                print msg[0:-2]
-                print "From: %s" % file_path
-                print "File last modified: %s" % \
-                      datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S")
+                print(msg[0:-2])
+                print("From: %s" % file_path)
+                print("File last modified: %s" %
+                      datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S"))
             else:
                 raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
         except Exception as e:
@@ -1350,7 +1360,7 @@ def set_script_dir(directory):
         directory (string): the directory to load scripts from
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_script_dir is deprecated - use change_script_dir"
+    print("set_script_dir is deprecated - use change_script_dir")
     change_script_dir(directory)
 
 
@@ -1414,7 +1424,7 @@ def change_monitor(spec, low, high):
     Change the monitor to a specified spectrum and range.
 
     Args:
-        spectrum (int): the spectrum number
+        spec (int): the spectrum number
         low (float): the low end of the integral
         high (float): the high end of the integral
     """
@@ -1567,6 +1577,7 @@ def change_vetos(**params):
     except Exception as e:
         _handle_exception(e)
 
+
 @usercommand
 @helparglist('[enable], [delay], [width]')
 def change_fermi_veto(enable=None, delay=1.0, width=1.0):
@@ -1614,7 +1625,7 @@ def set_number_soft_periods(number, enable=None):
         enable (bool, optional): switch to soft period mode
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_number_soft_periods is deprecated - use change_number_soft_periods"
+    print("set_number_soft_periods is deprecated - use change_number_soft_periods")
     change_number_soft_periods(number, enable)
 
 
@@ -1921,9 +1932,9 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
         figure.add_spectrum(spectrum, period, dist)
     except Exception:
         if figure is None:
-            print "Plotting failed: Create a plot first using plot_spectrum(<number>)"
+            print("Plotting failed: Create a plot first using plot_spectrum(<number>)")
         else:
-            print "Plotting failed: Figure " + repr(figure) + " not found."
+            print("Plotting failed: Figure " + repr(figure) + " not found.")
 
 
 @usercommand
@@ -1954,7 +1965,7 @@ def set_sample_par(name, value):
         value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_sample_par is deprecated - use change_sample_par"
+    print("set_sample_par is deprecated - use change_sample_par")
     change_sample_par(name, value)
 
 
@@ -2003,7 +2014,7 @@ def set_beamline_par(name, value):
         value: the new value
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
-    print "set_beamline_par is deprecated - use change_beamline_par"
+    print("set_beamline_par is deprecated - use change_beamline_par")
     change_beamline_par(name, value)
 
 
@@ -2037,6 +2048,7 @@ def send_sms(phone_num, message):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.send_sms(phone_num, message)
 
+
 @usercommand
 @helparglist('message, inst')
 def send_alert(message, inst=None):
@@ -2050,6 +2062,7 @@ def send_alert(message, inst=None):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.send_alert(message, inst)
 
+
 @usercommand
 @helparglist('address, message')
 def send_email(address, message):
@@ -2062,6 +2075,7 @@ def send_email(address, message):
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     __api.send_email(address, message)
+
 
 @usercommand
 @helparglist('')
@@ -2168,6 +2182,7 @@ def check_limit_violations(*blocks):
     except Exception as e:
         _handle_exception(e)
 
+
 @usercommand
 @helparglist('name')
 def prefix_pv_name(name):
@@ -2185,6 +2200,7 @@ def prefix_pv_name(name):
     except Exception as e:
         _handle_exception(e)
 
+
 @usercommand
 @helparglist('')
 def get_version():
@@ -2195,4 +2211,3 @@ def get_version():
         string: The current version number of genie python
     """
     return VERSION
-

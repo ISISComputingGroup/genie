@@ -1,3 +1,7 @@
+"""
+Wrapping of channel access in genie_python
+"""
+
 import six
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
@@ -11,6 +15,10 @@ CACHE = {}
 
 
 class CaChannelWrapper(object):
+    """
+    Wrap CA Channel access to give utilities methods for access in one place
+    """
+
     @staticmethod
     def putCB(epics_args, user_args):
         """
