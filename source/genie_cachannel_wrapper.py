@@ -203,6 +203,7 @@ class CaChannelWrapper(object):
         # Use six to check string type as it works for Python 2 and 3.
         if ca.dbr_type_is_ENUM(chan.field_type()) and isinstance(value, six.string_types):
             chan.array_get(ca.DBR_CTRL_ENUM)
+            chan.pend_io()
             channel_properties = chan.getValue()
             for index, enum_value in enumerate(channel_properties["pv_statestrings"]):
                 if enum_value.lower() == value.lower():
