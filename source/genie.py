@@ -326,7 +326,13 @@ def cget(block):
         block (string): the name of the block
 
     Returns
-        dict: details about about the block
+        dict: details about about the block. Contains:
+            name - name of the block
+            value - value of the block
+            connected - True if connected; False otherwise
+            runcontrol - NO not in runcontrol, YES otherwise
+            lowlimit - run control low limit set
+            highlimit - run control high limit set
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
@@ -450,8 +456,8 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
     Args:
         block (string, optional): the name of the block to wait for
         value (float, optional): the block value to wait for
-        lowlimit (float, optional): wait for the block to be >= this value
-        highlimit (float, optional): wait for the block to be <= this value
+        lowlimit (float, optional): wait for the block to be >= this value (numeric only)
+        highlimit (float, optional): wait for the block to be <= this value (numeric only)
         maxwait (float, optional): wait no longer that the specified number of seconds
         wait_all (bool, optional): wait for all conditions to be met (e.g. a number of frames and an amount of uamps)
         seconds (float, optional): wait for a specified number of seconds
@@ -523,8 +529,8 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
     Args:
         block: the name of the block to wait for
         value: the target block value
-        lowlimit: waits for the block to be >= this value
-        highlimit: waits for the block to be <= this value
+        lowlimit: waits for the block to be >= this value (numeric only)
+        highlimit: waits for the block to be <= this value (numeric only)
         maxwait: wait no longer that the specified number of seconds
         early_exit: stop waiting if the exception evaluates to True
 
