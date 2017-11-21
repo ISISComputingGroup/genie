@@ -14,7 +14,7 @@ pipeline {
   triggers {
     pollSCM('H/2 * * * *')
   }
-  
+
   stages {  
     stage("Checkout") {
       steps {
@@ -31,6 +31,10 @@ pipeline {
             env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
             echo "git commit: ${env.GIT_COMMIT}"
             echo "git branch: ${env.BRANCH_NAME} ${env.GIT_BRANCH}"
+            # env.BRANCH_NAME is only supplied to multi-branch pipeline jobs
+            if (env.BRANCH_NAME == null) {
+                env.BRANCH_NAME = "master"
+			}
             if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
                 env.IS_RELEASE = "YES"
                 env.RELEASE_VERSION = "${env.BRANCH_NAME}".replace('Release_', '')
@@ -44,6 +48,7 @@ pipeline {
         
         bat """
             set BUILD_NUMBER=${env.BUILD_NUMBER}
+            set BRANCH_NAME=${env.BRANCH_NAME}
             set GIT_COMMIT=${env.GIT_COMMIT}
             set RELEASE_BRANCH=${env.RELEASE_VERSION}
             set RELEASE=${env.IS_RELEASE}
