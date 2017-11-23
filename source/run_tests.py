@@ -60,12 +60,12 @@ if __name__ == '__main__':
     for test_class in TEST_CLASSES:
         loaded_tests.append(unittest.TestLoader().loadTestsFromTestCase(test_class))
 
-    print "\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------"
+    print("\n\n------ BEGINNING GENIE_PYTHON UNIT TESTS ------")
 
     ret_values = list()
     for loaded_test in loaded_tests:
         ret_values.append(xmlrunner.XMLTestRunner(output=xml_dir).run(loaded_test).wasSuccessful())
 
-    print "------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n"
+    print("------ GENIE_PYTHON UNIT TESTS COMPLETE ------\n\n")
     # Return failure exit code if a test failed
     sys.exit(False in ret_values)

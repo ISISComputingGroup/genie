@@ -1,3 +1,7 @@
+"""
+Wrapping of channel access in genie_python
+"""
+
 import six
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
@@ -11,6 +15,10 @@ CACHE = {}
 
 
 class CaChannelWrapper(object):
+    """
+    Wrap CA Channel access to give utilities methods for access in one place
+    """
+
     @staticmethod
     def putCB(epics_args, user_args):
         """
@@ -203,6 +211,7 @@ class CaChannelWrapper(object):
         # Use six to check string type as it works for Python 2 and 3.
         if ca.dbr_type_is_ENUM(chan.field_type()) and isinstance(value, six.string_types):
             chan.array_get(ca.DBR_CTRL_ENUM)
+            chan.pend_io()
             channel_properties = chan.getValue()
             for index, enum_value in enumerate(channel_properties["pv_statestrings"]):
                 if enum_value.lower() == value.lower():
