@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import types
 import os
 import imp
@@ -6,22 +8,24 @@ import glob
 import re
 import ctypes
 import datetime
-from version import VERSION
+from .version import VERSION
 from functools import wraps
 from collections import OrderedDict
-from genie_script_checker import ScriptChecker
-from utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
+from .genie_script_checker import ScriptChecker
+from .utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
     get_correct_directory_path_existing
 import inspect
+import six
 
 print("genie_python version " + VERSION)
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
     print("\n=========== RUNNING IN SIMULATION MODE ===========\n")
-    from genie_simulate import API
+    from .genie_simulate import API
+
 else:
-    from genie_epics_api import API
+    from .genie_epics_api import API
 
 # Windows specific stuff
 if os.name == 'nt':
@@ -29,9 +33,9 @@ if os.name == 'nt':
     import win32api
 
 if 'SCISOFT_RPC_PORT' in os.environ:
-    from genie_scisoft_plot import GeniePlot, SpectraPlot
+    from .genie_scisoft_plot import GeniePlot, SpectraPlot
 else:
-    from genie_plot import GeniePlot, SpectraPlot
+    from .genie_plot import GeniePlot, SpectraPlot
 
 # INITIALISATION CODE - DO NOT DELETE
 try:
@@ -376,7 +380,7 @@ def _cshow_all():
     Handles the cshow command for all the blocks.
     """
     blks = __api.get_current_block_values()
-    for bn, bv in blks.items():
+    for bn, bv in six.iteritems(blks):
         _print_cshow(bn, bv)
 
 
@@ -1304,13 +1308,14 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
             if len(scripts) > 0:
                 # This is where the script file is actually loaded
-                execfile(file_path, globs)
+                exec(compile(open(file_path).read(), file_path, 'exec'), globs)
 
                 msg = "Loaded the following script(s): "
                 for script in scripts:
                     msg += script + ", "
                 print(msg[0:-2])
                 print("From: %s" % file_path)
+
                 print("File last modified: %s" %
                       datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S"))
             else:

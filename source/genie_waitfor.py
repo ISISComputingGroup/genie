@@ -1,10 +1,10 @@
 """
 Classes allowing you to wait for states
 """
-
+from __future__ import absolute_import
+from __future__ import print_function
 from time import sleep, strptime
 from datetime import timedelta, datetime
-
 import six
 
 
@@ -76,7 +76,11 @@ class WaitForController(object):
                 raise Exception("Invalid value entered for uamps")
             else:
                 print('Waiting for', str(uamps), 'uamps' + timeout_msg)
+<<<<<<< Updated upstream
 
+=======
+            
+>>>>>>> Stashed changes
         if block is not None:
             if not self.api.block_exists(block):
                 raise NameError('No block with the name "%s" exists' % block)
@@ -194,11 +198,18 @@ class WaitForController(object):
         if self.low is None and self.high is None:
             raise Exception("No limit(s) set for {0}".format(block))
         if self.low == self.high:
+<<<<<<< Updated upstream
             print('Waiting for {0}={1}{2}'.format(str(block), str(self.low), timeout_msg))
         else:
             print('Waiting for {0} (lowlimit={1}, highlimit={2}){3}'.format(str(block), str(self.low), str(self.high),
                                                                             timeout_msg))
 
+=======
+            print('Waiting for ' + str(block) + '=' + str(self.low) + timeout_msg)
+        else:
+            print('Waiting for ' + str(block) + ' (lowlimit='+ str(self.low) + ', highlimit=' + str(self.high) + ')' + timeout_msg)
+            
+>>>>>>> Stashed changes
     def _get_block_limits(self, value, lowlimit, highlimit):
         low = None
         high = None

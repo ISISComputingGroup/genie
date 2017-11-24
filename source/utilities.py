@@ -1,8 +1,13 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import json
 import zlib
 import os
 import re
 import unicodedata
+import six
+from six.moves import range
+from six.moves import zip
 
 
 class PVReadException(Exception):
@@ -17,12 +22,25 @@ class PVReadException(Exception):
 
 
 def compress_and_hex(value):
-    compr = zlib.compress(value)
-    return compr.encode('hex')
+    if six.PY2:
+        compr = zlib.compress(value)
+        return compr.encode('hex')
+
+    compr = zlib.compress(bytearray(value, 'utf-8'))
+    return codecs.encode(compr, 'hex_codec')
 
 
 def dehex_and_decompress(value):
-    return zlib.decompress(value.decode("hex"))
+    if six.PY2:
+        return zlib.decompress(value.decode('hex'))
+
+    try:
+        # If it comes as bytes then cast to string
+        value = value.decode('utf-8')
+    except AttributeError:
+        pass
+
+    return zlib.decompress(bytes.fromhex(value))
 
 
 def waveform_to_string(data):
@@ -30,7 +48,10 @@ def waveform_to_string(data):
     for i in data:
         if i == 0:
             break
-        output += str(unichr(i))
+        if six.PY2:
+            output += str(unichr(i))
+        else:
+            output += str(chr(i))
     return output
 
 
@@ -50,7 +71,7 @@ def convert_string_to_ascii(data):
         """
         mappings_in = [ ord(char) for char in u'\xd0\xd7\xd8\xde\xdf\xf0\xf8\xfe' ]
         mappings_out = u'DXOPBoop'
-        d = dict(zip(mappings_in, mappings_out))
+        d = dict(list(zip(mappings_in, mappings_out)))
         d[ord(u'\xc6')] = u'AE'
         d[ord(u'\xe6')] = u'ae'
         return d
@@ -158,7 +179,7 @@ def get_correct_directory_path_existing(path):
 
 def crc8(value):
     """
-    Generate a CRC 8 from the value (See EPICS\utils_win32\master\src\crc8.c).
+    Generate a CRC 8 from the value (See EPICS\\utils_win32\\master\\src\\crc8.c).
 
     Args:
         value: the value to generate a CRC from
@@ -267,7 +288,7 @@ class EnvironmentDetails(object):
         Returns:
             the host name of the computer
         """
-        print "pv prefix {0}".format(self._host_name)
+        print("pv prefix {0}".format(self._host_name))
         return self._host_name
 
     def get_instrument_list(self, api):
@@ -283,5 +304,5 @@ class EnvironmentDetails(object):
         try:
             return get_json_pv_value(self.INSTRUMENT_LIST_PV, api, attempts=1)
         except PVReadException as ex:
-            print "Error: {0}. Using internal instrument list.".format(ex.message)
+            print("Error: {0}. Using internal instrument list.".format(ex.message))
             return self.DEFAULT_INST_LIST

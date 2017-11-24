@@ -1,5 +1,7 @@
+from __future__ import absolute_import
 import json
-from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
+from .utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
+import six
 
 
 class BlockServer(object):
@@ -48,7 +50,7 @@ class BlockServer(object):
         raw = dehex_and_decompress(raw)
         blks = json.loads(raw)
         # Convert any char waveforms into correct format
-        for bn, bv in blks.iteritems():
+        for bn, bv in six.iteritems(blks):
             if isinstance(bv[0], list) and bv[4] == "CHAR":
                 bv[0] = waveform_to_string(bv[0])
         return blks

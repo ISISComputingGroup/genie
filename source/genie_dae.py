@@ -1,11 +1,15 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import xml.etree.ElementTree as ET
 import os
 import zlib
 import json
 import re
 from time import strftime
-from genie_change_cache import ChangeCache
-from utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
+from .genie_change_cache import ChangeCache
+from .utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
+import six
+from six.moves import range
 
 DAE_PVS_LOOKUP = {
     "runstate": "DAE:RUNSTATE",
@@ -241,9 +245,9 @@ class Dae(object):
             self.set_period(period)
 
         if not quiet:
-            print("** Beginning Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
-            print("*  Proposal Number: {}".format(self.get_rb_number()))
-            print("*  Experiment Team: {}".format(self.get_users()))
+            print(("** Beginning Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
+            print(("*  Proposal Number: {}".format(self.get_rb_number())))
+            print(("*  Experiment Team: {}".format(self.get_users())))
 
         # By choosing the value sent to the begin PV it can set pause and/or delayed
         options = 0
@@ -269,7 +273,7 @@ class Dae(object):
         """
         Abort the current run.
         """
-        print("** Aborting Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+        print(("** Aborting Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
         self._set_pv_value(self._get_dae_pv_name("abortrun"), 1, wait=True)
 
     def post_abort_check(self, verbose=False):
@@ -287,7 +291,7 @@ class Dae(object):
         """
         End the current run.
         """
-        print("** Ending Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+        print(("** Ending Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
         self._set_pv_value(self._get_dae_pv_name("endrun"), 1, wait=True)
 
     def post_end_check(self, verbose=False):
@@ -327,7 +331,7 @@ class Dae(object):
 
         This is more efficient than doing the commands separately.
         """
-        print("** Saving Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+        print(("** Saving Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1, wait=True)
 
     def post_update_store_check(self, verbose=False):
@@ -399,7 +403,7 @@ class Dae(object):
         """
         Pause the current run.
         """
-        print("** Pausing Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+        print(("** Pausing Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
         self._set_pv_value(self._get_dae_pv_name("pauserun"), 1, wait=True)
 
     def post_pause_check(self, verbose=False):
@@ -417,7 +421,7 @@ class Dae(object):
         """
         Resume the current run after it has been paused.
         """
-        print("** Resuming Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+        print(("** Resuming Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))))
         self._set_pv_value(self._get_dae_pv_name("resumerun"), 1, wait=True)
 
     def post_resume_check(self, verbose=False):
@@ -956,7 +960,7 @@ class Dae(object):
             self.change_start()
             did_change = True
         if tcb_file is not None:
-            print("Reading TCB boundaries from {}".format(tcb_file))
+            print(("Reading TCB boundaries from {}".format(tcb_file)))
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
         else:
@@ -1014,7 +1018,7 @@ class Dae(object):
             log: whether to use LOG binning [optional]
             regime: the time regime to set (1 to 6)[optional]
         """
-        print(self._create_tcb_return_string(low, high, step, log))
+        print((self._create_tcb_return_string(low, high, step, log)))
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1050,11 +1054,11 @@ class Dae(object):
         valid_vetoes = [CLEAR_VETO, SMP_VETO, TS2_VETO, HZ50_VETO, EXT0_VETO, EXT1_VETO, EXT2_VETO, EXT3_VETO, FIFO_VETO]
 
         # Change keys to be case insensitive
-        params = dict((k.lower(), v) for k, v in params.iteritems())
+        params = dict((k.lower(), v) for k, v in six.iteritems(params))
 
         # Check for invalid veto names and invalid (non-boolean) values
         not_bool = []
-        for k, v in params.iteritems():
+        for k, v in six.iteritems(params):
             if k not in valid_vetoes:
                 raise Exception("Invalid veto name: {}".format(k))
             if not isinstance(v, bool):
@@ -1150,7 +1154,7 @@ class Dae(object):
             did_change = True
         if enable:
             self.change_cache.set_fermi(1, delay, width)
-            print("SET_FERMI_VETO: requested status is ON, delay: {} width: {}".format(delay, width))
+            print(("SET_FERMI_VETO: requested status is ON, delay: {} width: {}".format(delay, width)))
         else:
             self.change_cache.set_fermi(0)
             print("SET_FERMI_VETO: requested status is OFF")

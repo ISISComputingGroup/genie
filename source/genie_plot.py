@@ -1,5 +1,9 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import matplotlib.pyplot as pyplt
 import matplotlib.dates as dates
+import six
+from six.moves import range
 
 
 class PlotController(object):
@@ -28,7 +32,7 @@ class PlotController(object):
             self.last_plots.append(self.last_plots.pop(self.last_plots.index(last_plot)))
         else:
             self.last_plots.append(last_plot)
-        print "Figure " + repr(self.get_plot_index(last_plot)) + ": new default plot window"
+        print("Figure " + repr(self.get_plot_index(last_plot)) + ": new default plot window")
 
     def get_last_plot(self):
         """
@@ -79,7 +83,7 @@ class PlotController(object):
         Returns:
 
         """
-        inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
+        inv_plots = {v: k for k, v in six.iteritems(self.plot_by_index)}
         index = inv_plots.get(plot)
         return index
 
@@ -102,7 +106,7 @@ class PlotController(object):
         Checks if any of the active plot windows have been closed in the meantime, and deletes them from the controller
         if needed.
         """
-        inv_plots = {v: k for k, v in self.plot_by_index.iteritems()}
+        inv_plots = {v: k for k, v in six.iteritems(self.plot_by_index)}
         for plot in inv_plots:
             fignum = plot.fig.number
             if not pyplt.fignum_exists(fignum):
@@ -116,7 +120,7 @@ class PlotController(object):
         """
         if self.last_changed:
             self.last_changed = False
-            print "Figure " + repr(self.get_plot_index(self.get_last_plot())) + ": new default plot window"
+            print("Figure " + repr(self.get_plot_index(self.get_last_plot())) + ": new default plot window")
 
 
 
