@@ -15,6 +15,8 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 # Add root path for access to server_commons
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import sys
 # Standard imports
@@ -22,16 +24,16 @@ import unittest
 import xmlrunner
 import argparse
 
-from test_modules.test_utilities import TestUtilitiesSequence
-from test_modules.test_simulation import TestSimulationSequence
-from test_modules.test_genie_dae import TestGenieDAE
-from test_modules.test_genie_epics_api import TestEpicsApiSequence
-from test_modules.test_genie_epics_api import TestEpicsApiSetInstrumentName
-from test_modules.test_genie_epics_api import TestEpicsApiSMS
-from test_modules.test_genie_blockserver_tests import TestGenieBlockserver
-from test_modules.test_script_checker import TestScriptChecker
-from test_modules.test_genie import TestGenie
-from test_modules.test_genie_change_cache import TestGenieChangeCache
+from .test_modules.test_utilities import TestUtilitiesSequence
+from .test_modules.test_simulation import TestSimulationSequence
+from .test_modules.test_genie_dae import TestGenieDAE
+from .test_modules.test_genie_epics_api import TestEpicsApiSequence
+from .test_modules.test_genie_epics_api import TestEpicsApiSetInstrumentName
+from .test_modules.test_genie_epics_api import TestEpicsApiSMS
+from .test_modules.test_genie_blockserver_tests import TestGenieBlockserver
+from .test_modules.test_script_checker import TestScriptChecker
+from .test_modules.test_genie import TestGenie
+from .test_modules.test_genie_change_cache import TestGenieChangeCache
 
 TEST_CLASSES = [
     TestUtilitiesSequence,

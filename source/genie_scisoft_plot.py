@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 import scisoftpy as dnp
 import matplotlib.dates as dates
 
