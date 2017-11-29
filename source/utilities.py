@@ -8,6 +8,7 @@ import unicodedata
 import six
 from six.moves import range
 from six.moves import zip
+import codecs
 
 
 class PVReadException(Exception):
@@ -40,7 +41,7 @@ def dehex_and_decompress(value):
     except AttributeError:
         pass
 
-    return zlib.decompress(bytes.fromhex(value))
+    return zlib.decompress(bytes.fromhex(value)).decode("utf-8") 
 
 
 def waveform_to_string(data):

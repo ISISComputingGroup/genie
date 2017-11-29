@@ -13,11 +13,14 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
+from __future__ import absolute_import
 import json
 import unittest
 from utilities import compress_and_hex, dehex_and_decompress, waveform_to_string, get_correct_path, crc8, \
     EnvironmentDetails, get_json_pv_value, PVReadException, convert_string_to_ascii
 from mock import Mock
+from six.moves import range
+import six
 
 
 class TestUtilitiesSequence(unittest.TestCase):
@@ -68,13 +71,17 @@ class TestUtilitiesSequence(unittest.TestCase):
     def check_waveform(self, input_value, expected_value):
         self.assertTrue(expected_value in waveform_to_string(input_value))
 
+    def create_waveform_from_list(self, input):
+        if six.PY2:
+            return "".join([unichr(i) for i in input])
+        else:
+            return "".join([chr(i) for i in input])
+        
     def test_GIVEN_short_list_of_numbers_WHEN_waveform_converted_to_string_THEN_result_contains_string_of_unicode_chars_for_numbers(self):
         # Arrange
-        test_waveform = [
-            1,2,3,4
-        ]
+        test_waveform = [1, 2, 3, 4]
 
-        expected_value = "".join([unichr(i) for i in test_waveform])
+        expected_value = self.create_waveform_from_list(test_waveform)
 
         # Act
 
@@ -83,11 +90,9 @@ class TestUtilitiesSequence(unittest.TestCase):
 
     def test_GIVEN_list_of_numbers_containing_0_WHEN_waveform_converted_to_string_THEN_result_terminates_at_character_before_0(self):
         # Arrange
-        test_waveform = [
-            1,2,3,4,0,5,6,7,8,9
-        ]
+        test_waveform = [1, 2, 3, 4, 0, 5, 6, 7, 8, 9]
 
-        expected_value = "".join([unichr(i) for i in [1,2,3,4]])
+        expected_value = self.create_waveform_from_list([1, 2, 3, 4])
 
         # Act
 
@@ -100,14 +105,15 @@ class TestUtilitiesSequence(unittest.TestCase):
         length = 1000
         test_waveform = [max(i%max_unichr,1) for i in range(1,length)]
 
-        expected_value = "".join([unichr(i) for i in test_waveform])
+        expected_value = self.create_waveform_from_list(test_waveform)
 
         # Act
 
         # Assert
         self.check_waveform(test_waveform, expected_value)
 
-    def test_GIVEN_large_integer_in_waveform_WHEN_waveform_converted_to_string_THEN_result_raises_value_error(self):
+    @unittest.skipIf(six.PY3, 'Test will pass with Python 3 because strings are unicode')
+    def test_GIVEN_large_integer_in_waveform_WHEN_waveform_converted_to_string_THEN_result_raises_unicode_error(self):
         # Arrange
         test_waveform = [128]
 
