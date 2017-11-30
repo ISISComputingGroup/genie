@@ -23,7 +23,7 @@ pipeline {
       }
     }
     
-    stage("Build for Python 3") {
+    stage("Build for Python 2") {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
         script {
