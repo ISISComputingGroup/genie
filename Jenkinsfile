@@ -57,6 +57,12 @@ pipeline {
             """
       }
     }
+	  
+   stage("Report Unit Tests") {
+      steps {
+        junit '**/test-reports/TEST-*.xml'
+      }
+   }
     
     stage("Trigger Downstream") {
       steps {
