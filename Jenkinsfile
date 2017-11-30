@@ -58,6 +58,12 @@ pipeline {
       }
     }
     
+    stage("Report Unit Tests") {
+      steps {
+        junit '**/test-reports/TEST-*.xml'
+      }
+    }
+    
     stage("Trigger Downstream") {
       steps {
         build job: 'ibex_gui_pipeline', wait: false
