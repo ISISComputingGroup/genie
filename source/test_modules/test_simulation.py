@@ -13,9 +13,10 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
+from __future__ import absolute_import
 import os
 import unittest
-from genie_simulate import API
+from genie_python.genie_simulate import API
 
 os.environ['GENIE_SIMULATE'] = '1'
 

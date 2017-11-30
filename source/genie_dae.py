@@ -6,8 +6,8 @@ import zlib
 import json
 import re
 from time import strftime
-from .genie_change_cache import ChangeCache
-from .utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
+from genie_python.genie_change_cache import ChangeCache
+from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii
 import six
 from six.moves import range
 

@@ -8,24 +8,24 @@ import glob
 import re
 import ctypes
 import datetime
-from .version import VERSION
-from functools import wraps
-from collections import OrderedDict
-from .genie_script_checker import ScriptChecker
-from .utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
-    get_correct_directory_path_existing
 import inspect
 import six
+from genie_python.version import VERSION
+from functools import wraps
+from collections import OrderedDict
+from genie_python.genie_script_checker import ScriptChecker
+from genie_python.utilities import waveform_to_string, get_correct_path, get_correct_filepath_existing, \
+    get_correct_directory_path_existing
 
-print("genie_python version " + VERSION)
+print("\ngenie_python version " + VERSION)
 
 # Determine whether to start in simulation mode
 if 'GENIE_SIMULATE' in os.environ and os.environ['GENIE_SIMULATE'] == '1':
     print("\n=========== RUNNING IN SIMULATION MODE ===========\n")
-    from .genie_simulate import API
+    from genie_python.genie_simulate import API
 
 else:
-    from .genie_epics_api import API
+    from genie_python.genie_epics_api import API
 
 # Windows specific stuff
 if os.name == 'nt':
@@ -33,9 +33,9 @@ if os.name == 'nt':
     import win32api
 
 if 'SCISOFT_RPC_PORT' in os.environ:
-    from .genie_scisoft_plot import GeniePlot, SpectraPlot
+    from genie_python.genie_scisoft_plot import GeniePlot, SpectraPlot
 else:
-    from .genie_plot import GeniePlot, SpectraPlot
+    from genie_python.genie_plot import GeniePlot, SpectraPlot
 
 # INITIALISATION CODE - DO NOT DELETE
 try:

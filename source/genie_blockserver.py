@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 import json
-from .utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
+from genie_python.utilities import compress_and_hex, dehex_and_decompress, waveform_to_string
 import six
 
 

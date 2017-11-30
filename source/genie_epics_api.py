@@ -5,16 +5,16 @@ import re
 import six
 from time import strftime, localtime
 
-from .genie_blockserver import BlockServer
-from .genie_cachannel_wrapper import CaChannelWrapper as Wrapper
-from .genie_dae import Dae
-from .genie_plot import PlotController
-from .genie_wait_for_move import WaitForMoveController
-from .genie_waitfor import WaitForController
-from .utilities import crc8, EnvironmentDetails
+from genie_python.genie_blockserver import BlockServer
+from genie_python.genie_cachannel_wrapper import CaChannelWrapper as Wrapper
+from genie_python.genie_dae import Dae
+from genie_python.genie_plot import PlotController
+from genie_python.genie_wait_for_move import WaitForMoveController
+from genie_python.genie_waitfor import WaitForController
+from genie_python.utilities import crc8, EnvironmentDetails
 
-if six.PY2:
-    import smslib.sms
+
+import smslib.sms
 
 from six.moves import range
 from six.moves import zip
@@ -24,6 +24,7 @@ class API(object):
     wait_for_move = None
     dae = None
     blockserver = None
+    sms = smslib.sms
     __inst_prefix = ""
     __mod = None
     __localmod = None
@@ -564,7 +565,7 @@ class API(object):
             message (string): The message to send.
         """
         try:
-            self.log_info_msg("send_sms returned {}".format(smslib.sms.send_sms(phone_num, message)))
+            self.log_info_msg("send_sms returned {}".format(API.sms.send_sms(phone_num, message)))
         except Exception as e:
             raise Exception("Could not send SMS: {}".format(e))
 
@@ -577,7 +578,7 @@ class API(object):
             message (string): The message to send.
         """
         try:
-            self.log_info_msg("send_email returned {}".format(smslib.sms.send_email(address, message)))
+            self.log_info_msg("send_email returned {}".format(API.sms.send_email(address, message)))
         except Exception as e:
             raise Exception("Could not send email: {}".format(e))
 
@@ -592,6 +593,6 @@ class API(object):
         if inst is None:
             inst = self.__instrument_name
         try:
-            self.log_info_msg("send_alert returned {}".format(smslib.sms.send_alert(inst, message)))
+            self.log_info_msg("send_alert returned {}".format(API.sms.send_alert(inst, message)))
         except Exception as e:
             raise Exception("Could not send alert: {}".format(e))

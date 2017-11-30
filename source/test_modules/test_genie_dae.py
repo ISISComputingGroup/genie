@@ -14,10 +14,12 @@
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
 
+from __future__ import absolute_import
 import unittest
 from mock import MagicMock, call
 from genie_dae import Dae
 from genie_change_cache import ChangeCache
+import six
 
 
 class TestGenieDAE(unittest.TestCase):
@@ -110,7 +112,7 @@ class TestGenieDAE(unittest.TestCase):
         """
         Helper function to check that all vetos are set or not.
         """
-        for k, d in self.change_cache.__dict__.iteritems():
+        for k, d in six.iteritems(self.change_cache.__dict__):
             if k.endswith('veto') and 'fermi' not in k:
                 self.assertEqual(set, d, "{} incorrect".format(k))
 
