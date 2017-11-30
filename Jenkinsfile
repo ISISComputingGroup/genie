@@ -35,15 +35,19 @@ pipeline {
             if (env.BRANCH_NAME == null) {
                 env.BRANCH_NAME = "master"
 			}
-            if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
-                env.IS_RELEASE = "YES"
-                env.RELEASE_VERSION = "${env.BRANCH_NAME}".replace('Release_', '')
-                echo "release version: ${env.RELEASE_VERSION}"
-            }
-            else {
-                env.IS_RELEASE = "NO"
-                env.RELEASE_VERSION = ""
-            }
+            // Disable deployment to kits until merged to master
+            // if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
+            //     env.IS_RELEASE = "YES"
+            //     env.RELEASE_VERSION = "${env.BRANCH_NAME}".replace('Release_', '')
+            //     echo "release version: ${env.RELEASE_VERSION}"
+            // }
+            // else {
+            //    env.IS_RELEASE = "NO"
+            //     env.RELEASE_VERSION = ""
+            // }
+            env.IS_RELEASE = "NO"
+            env.RELEASE_VERSION = ""
+            env.BRANCH_NAME = "do not build"
         }
         
         bat """
