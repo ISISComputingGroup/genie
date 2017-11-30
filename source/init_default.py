@@ -1,14 +1,11 @@
 import sys
 import os
 
-print("This is init_default!")
-
 def init(inst):
     # Check instrument specific folder exists, if so add to sys path
     path = "C:\\Instrument\\Settings\\config\\%s\\Python" % inst
     if os.path.isdir(path):
         sys.path.append(path)
-    print("hullo from init")
 
 
 def abort_precmd(**pars):
