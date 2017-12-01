@@ -24,7 +24,7 @@ import unittest
 import xmlrunner
 import argparse
 
-from genie_python.test_modules.test_utilities import TestUtilitiesSequence, TestCRC8Util, TestEnvironmentDetails,
+from genie_python.test_modules.test_utilities import TestUtilitiesSequence, TestCRC8Util, TestEnvironmentDetails,\
     TestGetJsonPVValue, TestConvertStringToAscii
 from genie_python.test_modules.test_simulation import TestSimulationSequence
 from genie_python.test_modules.test_genie_dae import TestGenieDAE
