@@ -265,6 +265,7 @@ class TestGetJsonPVValue(unittest.TestCase):
 
 
 class TestConvertStringToAscii(unittest.TestCase):
+    @unittest.skipIf(six.PY3, 'With Python 3 because strings are unicode this test is irrelevant')
     def test_GIVEN_string_with_only_ascii_WHEN_converted_THEN_no_change(self):
         # Arrange
         input = "abcdefghijklmnopqrstuvwxyz1234567890"
@@ -295,6 +296,7 @@ class TestConvertStringToAscii(unittest.TestCase):
         # Assert
         self.assertEqual('eeee', output)
 
+    @unittest.skipIf(six.PY3, 'With Python 3 because strings are unicode this test is irrelevant')
     def test_GIVEN_string_with_non_ascii_accented_e_WHEN_converted_THEN_is_corrected(self):
         # Arrange
         input = "\xc3\xa8\xc3\xa9\xc3\xaa\xc3\xab"
@@ -315,6 +317,7 @@ class TestConvertStringToAscii(unittest.TestCase):
         # Assert
         self.assertEqual('motorhead', output)
 
+    @unittest.skipIf(six.PY3, 'With Python 3 because strings are unicode this test is irrelevant')
     def test_GIVEN_string_with_non_asci_accented_o_i_WHEN_converted_THEN_is_corrected(self):
         # Arrange
         input = 'mot\xc3\xb6rhead'
@@ -335,6 +338,7 @@ class TestConvertStringToAscii(unittest.TestCase):
         # Assert
         self.assertEqual('encyclopaedia', output)
 
+    @unittest.skipIf(six.PY3, 'With Python 3 because strings are unicode this test is irrelevant')
     def test_GIVEN_string_with_non_ascii_run_together_ae_WHEN_converted_THEN_is_corrected(self):
         # Arrange
         input = "encyclop\xc3\xa6dia"

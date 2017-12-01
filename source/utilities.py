@@ -78,13 +78,17 @@ def convert_string_to_ascii(data):
         return d
     if isinstance(data, str):
         # If it is a string, it needs to be converted to unicode
-        data = data.decode('utf-8')
+        if six.PY2:
+            data = data.decode('utf-8')
     # Replace all compatibility characters with their equivalents
     normalised = unicodedata.normalize('NFKD', data)
     # Keep non-combining chars only
     extracted = u''.join([c for c in normalised if not unicodedata.combining(c)])
     # Finally translate to ascii
-    return extracted.translate(_make_ascii_mappings()).encode('ascii', 'ignore')
+    if six.PY2:
+        return extracted.translate(_make_ascii_mappings()).encode('ascii', 'ignore')
+    else:
+        return extracted.translate(_make_ascii_mappings()).encode('ascii', 'ignore').decode("utf-8") 
 
 
 def get_correct_path(path):
@@ -196,12 +200,15 @@ def crc8(value):
     maximum_crc_value = 255
     generator = 0x07
 
-    bytes = bytearray()
-    bytes.extend(value)
+    if six.PY2:
+        as_bytes = bytearray()
+        as_bytes.extend(value)
+    else:
+        as_bytes = value.encode('utf-8')
 
     crc = 0  # start with 0 so first byte can be 'xored' in
 
-    for byte in bytes:
+    for byte in as_bytes:
         crc ^= byte  # XOR-in the next input byte
 
         for i in range(8):

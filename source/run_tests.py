@@ -24,7 +24,8 @@ import unittest
 import xmlrunner
 import argparse
 
-from genie_python.test_modules.test_utilities import TestUtilitiesSequence
+from genie_python.test_modules.test_utilities import TestUtilitiesSequence, TestCRC8Util, TestEnvironmentDetails,
+    TestGetJsonPVValue, TestConvertStringToAscii
 from genie_python.test_modules.test_simulation import TestSimulationSequence
 from genie_python.test_modules.test_genie_dae import TestGenieDAE
 from genie_python.test_modules.test_genie_epics_api import TestEpicsApiSequence
@@ -37,6 +38,10 @@ from genie_python.test_modules.test_genie_change_cache import TestGenieChangeCac
 
 TEST_CLASSES = [
     TestUtilitiesSequence,
+    TestCRC8Util,
+    TestEnvironmentDetails,
+    TestGetJsonPVValue,
+    TestConvertStringToAscii,
     TestSimulationSequence,
     TestEpicsApiSequence,
     TestEpicsApiSetInstrumentName,
