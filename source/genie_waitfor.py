@@ -1,10 +1,10 @@
 """
 Classes allowing you to wait for states
 """
-
+from __future__ import absolute_import
+from __future__ import print_function
 from time import sleep, strptime
 from datetime import timedelta, datetime
-
 import six
 
 

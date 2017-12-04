@@ -1,4 +1,9 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os
+import six
+from six.moves import range
+from six.moves import zip
 
 
 class Waitfor(object):
@@ -561,7 +566,7 @@ class Dae(object):
             self.change_start()
             did_change = True
         if tcb_file is not None:
-            print "Reading TCB boundaries from", tcb_file
+            print("Reading TCB boundaries from", tcb_file)
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
         else:
@@ -588,10 +593,10 @@ class Dae(object):
             self.change_start()
             did_change = True
         if log:
-            print "Setting TCB range", low, "to", high, "step", step, "(LOG binning)"
+            print("Setting TCB range", low, "to", high, "step", step, "(LOG binning)")
             self.change_cache.tcb_tables.append((regime, trange, low, high, step, 2))
         else:
-            print "Setting TCB range", low, "to", high, "step", step, "(LINEAR binning)"
+            print("Setting TCB range", low, "to", high, "step", step, "(LINEAR binning)")
             self.change_cache.tcb_tables.append((regime, trange, low, high, step, 1))
         if did_change:
             self.change_finish()
@@ -665,10 +670,10 @@ class Dae(object):
             did_change = True
         if enable:
             self.change_cache.set_fermi(1, delay, width)
-            print "SET_FERMI_VETO: requested status is ON, delay:", delay, "width:", width
+            print("SET_FERMI_VETO: requested status is ON, delay:", delay, "width:", width)
         else:
             self.change_cache.set_fermi(0)
-            print "SET_FERMI_VETO: requested status is OFF"
+            print("SET_FERMI_VETO: requested status is OFF")
         if did_change:
             self.change_finish()
 
@@ -921,12 +926,12 @@ class API(object):
     def set_pv_value(self, name, value, wait=False, is_local=False):
         if is_local:
             name = self.prefix_pv_name(name)
-        print "set_pv_value called (name=%s value=%s wait=%s is_local=%s)" % (name, value, wait, is_local)
+        print("set_pv_value called (name=%s value=%s wait=%s is_local=%s)" % (name, value, wait, is_local))
 
     def get_pv_value(self, name, to_string=False, attempts=3, is_local=False):
         if is_local:
             name = self.prefix_pv_name(name)
-        print "get_pv_value called (name=%s value=%s attempts=%s is_local=%s)" % (name, to_string, attempts, is_local)
+        print("get_pv_value called (name=%s value=%s attempts=%s is_local=%s)" % (name, to_string, attempts, is_local))
 
     def pv_exists(self, name):
         return True
@@ -938,7 +943,7 @@ class API(object):
         return name
 
     def get_blocks(self):
-        return self.block_dict.keys()
+        return list(self.block_dict.keys())
 
     def block_exists(self, name):
         # Create an entry for it and return True
@@ -981,7 +986,7 @@ class API(object):
         return self.block_dict[name]['value']
 
     def set_multiple_blocks(self, names, values):
-        temp = zip(names, values)
+        temp = list(zip(names, values))
         for name, value in temp:
             if name in self.block_dict:
                 self.block_dict[name]['value'] = value
@@ -1046,7 +1051,7 @@ class API(object):
         """
         order_of_keys = ['value', 'runcontrol', 'lowlimit', 'highlimit']
         block_values = {}
-        for key, values in self.block_dict.iteritems():
+        for key, values in six.iteritems(self.block_dict):
             return_values = []
             for order_key in order_of_keys:
                 return_values.append(values.get(order_key, None))
@@ -1054,10 +1059,10 @@ class API(object):
         return block_values
 
     def send_sms(self, phone_num, message):
-        print('SMS "{}" sent to {}'.format(message, phone_num))
+        print(('SMS "{}" sent to {}'.format(message, phone_num)))
 
     def send_email(self, address, message):
-        print('Email "{}" sent to {}'.format(message, address))
+        print(('Email "{}" sent to {}'.format(message, address)))
 
     def send_alert(self, message, inst):
-        print('Slack message "{}" sent to {}'.format(message, inst))
+        print(('Slack message "{}" sent to {}'.format(message, inst)))

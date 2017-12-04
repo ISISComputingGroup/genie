@@ -8,6 +8,8 @@ Allows motors to complete their motion fully before proceeding."""
 # The “allstop” PV is automatically reset after the stop command has been issued to all motors,
 # “alldone” indicates when any motion has completed and “moving” gives a count of moving motors.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import time
 
 
@@ -103,7 +105,7 @@ class WaitForMoveController(object):
             except:
                 # Could not find block so don't try it again
                 self._api.log_info_msg("WAITFOR_MOVE DISCONNECTED BLOCK: %s" % b)
-                print "\nCould not connect to block %s so ignoring it" % b
+                print("\nCould not connect to block %s so ignoring it" % b)
                 self._missing_blocks.append(b)
                 moving = False
             if moving:
@@ -119,21 +121,21 @@ class WaitForMoveController(object):
         minor, major = self._api.check_alarms(filtered_blocks)
         for i in major:
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MAJOR ALARM" % i)
-            print "Block %s is in alarm: MAJOR" % i
+            print("Block %s is in alarm: MAJOR" % i)
         for i in minor:
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s IN MINOR ALARM" % i)
-            print "Block %s is in alarm state: MINOR" % i
+            print("Block %s is in alarm state: MINOR" % i)
 
         # Check soft limit violations
         violations = self._api.check_limit_violations(filtered_blocks)
         for i in violations:
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s HAS SOFT LIMIT VIOLATIONS" % i)
-            print "Block %s has soft limit violations" % i
+            print("Block %s has soft limit violations" % i)
 
         # Print missing blocks
         for i in self._missing_blocks:
             self._api.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
-            print "Block %s could not be found" % i
+            print("Block %s could not be found" % i)
 
     def _filter_out_missing_blocks(self, blocks):
         filtered_blocks = list()

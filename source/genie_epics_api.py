@@ -1,16 +1,23 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import os
 import re
+import six
 from time import strftime, localtime
 
-from genie_blockserver import BlockServer
-from genie_cachannel_wrapper import CaChannelWrapper as Wrapper
-from genie_dae import Dae
-from genie_plot import PlotController
-from genie_wait_for_move import WaitForMoveController
-from genie_waitfor import WaitForController
-from utilities import crc8, EnvironmentDetails
+from genie_python.genie_blockserver import BlockServer
+from genie_python.genie_cachannel_wrapper import CaChannelWrapper as Wrapper
+from genie_python.genie_dae import Dae
+from genie_python.genie_plot import PlotController
+from genie_python.genie_wait_for_move import WaitForMoveController
+from genie_python.genie_waitfor import WaitForController
+from genie_python.utilities import crc8, EnvironmentDetails
+
 
 import smslib.sms
+
+from six.moves import range
+from six.moves import zip
 
 class API(object):
     waitfor = None
@@ -84,18 +91,16 @@ class API(object):
             machine_identifier: should be the pv prefix but also accepts instrument name; if none defaults to computer
             host name
             globs: globals
-        """
-        API.__mod = __import__('init_default', globals(), locals(), [], -1)
-
+        """            
         instrument, machine, pv_prefix = self._get_machine_details_from_identifier(machine_identifier)
 
         # Whatever machine we're on, try to initialize and fall back if unsuccessful
         try:
             self.init_instrument(instrument, machine, globs)
         except Exception as e:
-            print e.message
+            print(e)
 
-        print "PV prefix is " + pv_prefix
+        print("PV prefix is " + pv_prefix)
         API.__inst_prefix = pv_prefix
         API.dae = Dae(self, pv_prefix)
         API.wait_for_move = WaitForMoveController(self, pv_prefix + API.__motion_suffix)
@@ -123,10 +128,10 @@ class API(object):
 
         if is_instrument:
             pv_prefix_prefix = "IN"
-            print "THIS IS %s!" % self.__instrument_name.upper()
+            print("THIS IS %s!" % self.__instrument_name.upper())
         else:
             pv_prefix_prefix = "TE"
-            print "THIS IS %s! (test machine)" % self.__instrument_name.upper()
+            print("THIS IS %s! (test machine)" % self.__instrument_name.upper())
         return "{prefix}:{instrument}:".format(prefix=pv_prefix_prefix, instrument=self.__instrument_name)
 
     def prefix_pv_name(self, name):
@@ -140,22 +145,41 @@ class API(object):
     def init_instrument(self, instrument, machine_name, globs):
         instrument = instrument.lower().replace("-", "_")
         try:
-            # Try to call init on init_default to add the path for the instrument specific python files
-            init_func = getattr(API.__mod, "init")
-            init_func(machine_name)
+            if six.PY2:
+                API.__mod = __import__('init_default', globals(), locals(), [], -1)
+                # Try to call init on init_default to add the path for the instrument specific python files
+                init_func = getattr(API.__mod, "init")
+                init_func(machine_name)
+                
+                # Load the instrument init file
+                API.__localmod = __import__('init_' + instrument, globals(), locals(), ['init_' + instrument], -1)
+            else:
+                import site
+                import importlib
+                import importlib.util          
+                
+                # Find init_default and execute init
+                init_default_loc = os.path.join(site.getsitepackages()[1], 'genie_python', 'init_default.py')
+                spec = importlib.util.spec_from_file_location('init_default', init_default_loc)
+                API.__mod = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(API.__mod)
+                API.__mod.init(machine_name)
+                
+                # Load the instrument init file
+                API.__localmod = importlib.import_module('init_{}'.format(instrument))
 
-            # Load it
-            API.__localmod = __import__('init_' + instrument, globals(), locals(), ['init_' + instrument], -1)
+            
             if API.__localmod.__file__.endswith('.pyc'):
                 file_loc = API.__localmod.__file__[:-1]
             else:
                 file_loc = API.__localmod.__file__
             # execfile - this puts any imports in the init file into the globals namespace
             # Note: Anything loose in the module like print statements will be run twice
-            execfile(file_loc, globs)
+            exec(compile(open(file_loc).read(), file_loc, 'exec'), globs)
             # Call the init command
             init_func = getattr(API.__localmod, "init")
             init_func(machine_name)
+
         except Exception as err:
             raise Exception("There was a problem with loading init_{0} so will use default.\nError was {1}"
                             .format(instrument, err))
@@ -271,7 +295,7 @@ class API(object):
             raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
 
         if not self.run_pre_post_cmd('cset_precmd', runcontrol=runcontrol, wait=wait):
-            print 'cset cancelled by pre-command'
+            print('cset cancelled by pre-command')
             return
 
         full_name = self.correct_blockname(name)
@@ -337,7 +361,7 @@ class API(object):
         """
         # With LabVIEW we could set values then press go after all values are set
         # Not sure we are going to do something similar for EPICS
-        temp = zip(names, values)
+        temp = list(zip(names, values))
         # Set the values
         for name, value in temp:
             self.set_block_value(name, value)
@@ -361,7 +385,7 @@ class API(object):
             func = getattr(API.__mod, command)
             return func(**pars)
         except Exception as msg:
-            print msg
+            print(msg)
 
     def log_info_msg(self, message):
         self.write_to_log(message, 'CMD')
@@ -517,9 +541,9 @@ class API(object):
                     field_values.append([block_name, field_value])
                 except:
                     # Could not get value
-                    print "\nCould not get " + field_description + " for block %s" % b
+                    print("\nCould not get " + field_description + " for block %s" % b)
             else:
-                print "Block %s does not exist, so ignoring it" % b
+                print("Block %s does not exist, so ignoring it" % b)
 
         return field_values
 

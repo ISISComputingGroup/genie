@@ -14,6 +14,7 @@
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
 
+from __future__ import absolute_import
 import unittest
 from mock import MagicMock, patch
 from genie_epics_api import API
@@ -62,7 +63,7 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         # Assert
         self.assertEqual(len(val), 1)
-        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(list(val.keys())[0], pv_suffix)
         self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_sample_WHEN_get_sample_pars_is_called_THEN_returns_an_empty_dictionary(self):
@@ -90,7 +91,7 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         # Assert
         self.assertEqual(len(val), 1)
-        self.assertEqual(val.keys()[0], pv_suffix)
+        self.assertEqual(list(val.keys())[0], pv_suffix)
         self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(self):
@@ -235,6 +236,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
         # Assert
         self.assertEqual(expected, pv_prefix)
 
+        
 class TestEpicsApiSMS(unittest.TestCase):
     def setUp(self):
         self.api = API("", None)

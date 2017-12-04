@@ -1,12 +1,12 @@
 """
 Wrapping of channel access in genie_python
 """
-
+from __future__ import absolute_import
 import six
 from CaChannel import ca, CaChannel, CaChannelException
 from threading import Event
-from utilities import waveform_to_string
-from channel_access_exceptions import UnableToConnectToPVException, InvalidEnumStringException, ReadAccessException, \
+from .utilities import waveform_to_string
+from .channel_access_exceptions import UnableToConnectToPVException, InvalidEnumStringException, ReadAccessException, \
     WriteAccessException
 
 TIMEOUT = 15         # Default timeout for PV set/get
@@ -54,7 +54,7 @@ class CaChannelWrapper(object):
             WriteAccessException: If write access is denied.
             InvalidEnumStringException: If the PV is an enum and the string value supplied is not a valid enum value.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
+        if name in list(CACHE.keys()) and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -105,7 +105,7 @@ class CaChannelWrapper(object):
             UnableToConnectToPVException: If cannot connect to PV.
             ReadAccessException: If read access is denied.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
+        if name in list(CACHE.keys()) and CACHE[name].state() == ca.cs_conn:
             chan = CACHE[name]
         else:
             chan = CaChannel(name)
@@ -149,7 +149,7 @@ class CaChannelWrapper(object):
         Returns:
             True if exists, otherwise False.
         """
-        if name in CACHE.keys() and CACHE[name].state() == ca.cs_conn:
+        if name in list(CACHE.keys()) and CACHE[name].state() == ca.cs_conn:
             return True
         else:
             chan = CaChannel(name)

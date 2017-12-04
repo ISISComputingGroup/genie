@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 import re
 import ast
 
@@ -56,7 +58,7 @@ class ScriptChecker(object):
         Returns: error messages list; empty list if there are no errors
         """
 
-        with file(name, mode="r") as f:
+        with open(name, mode="r") as f:
             return self.check_script_lines(f, warnings_as_error)
 
     def _find_regex(self, variable):
@@ -130,7 +132,7 @@ class ScriptChecker(object):
         if warning_as_error:
             return warnings
         for warning in warnings:
-            print "Warning: " + warning
+            print("Warning: " + warning)
         return []
 
     def _check_genie_commands_has_brackets(self, line, line_no):
