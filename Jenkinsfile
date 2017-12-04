@@ -62,7 +62,7 @@ pipeline {
       }
     }
 	  
-   stage("Report Unit Tests") {
+   stage("Report Unit Tests python 2") {
       steps {
         junit '**/test-reports/TEST-*.xml'
       }
@@ -107,7 +107,7 @@ pipeline {
       }
     }
     
-    stage("Report Unit Tests") {
+    stage("Report Unit Tests python 3") {
       steps {
         junit '**/test-reports/TEST-*.xml'
       }
