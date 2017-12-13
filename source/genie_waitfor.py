@@ -6,7 +6,6 @@ from __future__ import print_function
 from time import sleep, strptime
 from datetime import timedelta, datetime
 import six
-import warnings
 
 
 class WaitForController(object):

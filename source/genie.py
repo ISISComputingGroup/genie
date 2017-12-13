@@ -10,7 +10,6 @@ import ctypes
 import datetime
 import inspect
 import six
-import warnings
 from genie_python.version import VERSION
 from functools import wraps
 from collections import OrderedDict
