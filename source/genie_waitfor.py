@@ -6,6 +6,7 @@ from __future__ import print_function
 from time import sleep, strptime
 from datetime import timedelta, datetime
 import six
+import warnings
 
 
 class WaitForController(object):
@@ -210,6 +211,7 @@ class WaitForController(object):
             high = highlimit
         # Check low and high are round the correct way
         if low is not None and high is not None and low > high:
+            print("WARNNG: You have set the lowlimit({}) above the highlimit({}), these will now be swapped".format(lowlimit, highlimit))
             temp = high
             high = low
             low = temp
