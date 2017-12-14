@@ -213,6 +213,8 @@ class WaitForController(object):
             temp = high
             high = low
             low = temp
+            print("WARNING: The highlimit and lowlimit have been swapped to lowlimit({}) and highlimit({})"
+                  .format(low, high))
         return low, high
 
     def _block_has_waited_for_value(self):
