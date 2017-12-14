@@ -210,10 +210,11 @@ class WaitForController(object):
             high = highlimit
         # Check low and high are round the correct way
         if low is not None and high is not None and low > high:
-            print("WARNNG: You have set the lowlimit({}) above the highlimit({}), these will now be swapped".format(lowlimit, highlimit))
             temp = high
             high = low
             low = temp
+            print("WARNING: The highlimit and lowlimit have been swapped to lowlimit({}) and highlimit({})"
+                  .format(low, high))
         return low, high
 
     def _block_has_waited_for_value(self):
