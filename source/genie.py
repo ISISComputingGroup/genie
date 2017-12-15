@@ -464,7 +464,7 @@ def cshow(block=None):
 
 def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             wait_all=False, seconds=None, minutes=None, hours=None, time=None,
-            frames=None, uamps=None, early_exit=lambda: False, **pars):
+            frames=None, raw_frames=None, uamps=None, early_exit=lambda: False, **pars):
     """
     Interrupts execution until certain conditions are met.
 
@@ -480,6 +480,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         hours (float, optional): wait for a specified number of hours
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
         frames (int, optional): wait for a total number of good frames to be collected
+        raw_frames (int, optional): wait for a total number of raw frames to be collected
         uamps (float, optional): wait for a total number of uamps to be received
         early_exit (lambda, optional): stop waiting if the function evaluates to True
 
@@ -538,7 +539,7 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
-                                    frames, uamps, early_exit)
+                                    frames, raw_frames, uamps, early_exit)
     except Exception as e:
         _handle_exception(e)
 
@@ -623,6 +624,27 @@ def waitfor_frames(frames):
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
         __api.waitfor.start_waiting(frames=frames)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('raw_frames')
+def waitfor_raw_frames(raw_frames):
+    """
+    Interrupts execution to wait for number of total raw frames to reach parameter value
+
+    Args:
+        raw frames: the number of raw frames to wait for
+
+    Example:
+
+        >>> waitfor_raw_frames(4000)
+    """
+    try:
+        if __api.waitfor is None:
+            raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
+        __api.waitfor.start_waiting(raw_frames=raw_frames)
     except Exception as e:
         _handle_exception(e)
 
@@ -1047,6 +1069,25 @@ def get_frames(period=False):
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         return __api.dae.get_good_frames(period)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('[period]')
+def get_raw_frames(period=False):
+    """
+    Gets the current number of raw frames.
+
+    Args:
+        period (bool, optional): whether to return the value for the current period only
+
+    Returns:
+        int: the number of raw frames
+    """
+    __api.log_command(sys._getframe().f_code.co_name, locals())
+    try:
+        return __api.dae.get_raw_frames(period)
     except Exception as e:
         _handle_exception(e)
 
@@ -1662,7 +1703,7 @@ def set_number_soft_periods(number, enable=None):
 @usercommand
 @helparglist('mode[, ...]')
 def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=None, period=None, daq=False, dwell=False,
-                        unused=False, frames=None, output=None, label=None):
+                        unused=False, frames=None, raw_frames=None, output=None, label=None):
     """
     Sets the DAE to use hardware periods.
 
@@ -1676,6 +1717,7 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
         dwell (bool, optional): the specified period is a dwell period
         unused (bool, optional): the specified period is a unused period
         frames (int, optional): the number of frames to count for the specified period
+        raw_frames (int, optional): the number of raw frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
 
@@ -1693,7 +1735,7 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
         __api.dae.configure_hard_periods(mode, period_file, sequences, output_delay, period, daq, dwell, unused, frames,
-                                         output, label)
+                                         raw_frames, output, label)
     except Exception as e:
         _handle_exception(e)
 
@@ -1701,7 +1743,7 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 @usercommand
 @helparglist('[...]')
 def configure_internal_periods(sequences=None, output_delay=None, period=None, daq=False, dwell=False, unused=False,
-                               frames=None, output=None, label=None):
+                               frames=None, raw_frames=None, output=None, label=None):
     """
     Configure the internal periods without switching to internal period mode.
 
@@ -1713,6 +1755,7 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
         dwell (bool, optional): the specified period is a dwell period
         unused (bool, optional): the specified period is a unused period
         frames (int, optional): the number of frames to count for the specified period
+        raw_frames (int, optional): the number of raw frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
 
@@ -1720,14 +1763,16 @@ def configure_internal_periods(sequences=None, output_delay=None, period=None, d
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        __api.dae.configure_internal_periods(sequences, output_delay, period, daq, dwell, unused, frames, output, label)
+        __api.dae.configure_internal_periods(sequences, output_delay, period, daq, dwell, unused, frames, raw_frames,
+                                             output, label)
     except Exception as e:
         _handle_exception(e)
 
 
 @usercommand
 @helparglist('[...]')
-def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, output=None, label=None):
+def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames=None, raw_frames=None,
+                       output=None, label=None):
     """
     Define the internal hardware periods.
 
@@ -1737,6 +1782,7 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
         dwell (bool, optional): the specified period is a dwell period
         unused (bool, optional): the specified period is a unused period
         frames (int, optional): the number of frames to count for the specified period
+        raw_frames (int, optional): the number of raw frames to count for the specified period
         output (int, optional): the binary output the specified period
         label (string, optional): the label for the period the specified period
 
@@ -1744,7 +1790,7 @@ def define_hard_period(period=None, daq=False, dwell=False, unused=False, frames
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
     try:
-        configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
+        configure_internal_periods(None, None, period, daq, dwell, unused, frames, raw_frames,  output, label)
     except Exception as e:
         _handle_exception(e)
 
