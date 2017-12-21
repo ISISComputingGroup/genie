@@ -19,7 +19,6 @@ import unittest
 import genie
 import sys
 
-
 class TestGenie(unittest.TestCase):
     def setUp(self):
         genie._exceptions_raised = True
@@ -100,3 +99,25 @@ class TestGenie(unittest.TestCase):
 
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
+
+    def test_WHEN_raw_frames_negative_THEN_waitfor_raw_frames_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_raw_frames(raw_frames=-1)
+
+    def test_WHEN_raw_frames_is_0_THEN_waitfor_raw_frames_returns(self):
+        genie.waitfor_raw_frames(raw_frames=0)
+
+    def test_WHEN_frames_negative_THEN_waitfor_frames_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_frames(frames=-1)
+
+    def test_WHEN_frames_is_0_THEN_waitfor_frames_returns(self):
+        genie.waitfor_frames(frames=0)
+
+
+    def test_WHEN_raw_frames_is_0_THEN_waitfor_returns(self):
+        genie.waitfor(raw_frames=0)
+
+
+    def test_WHEN_frames_is_0_THEN_waitfor_returns(self):
+        genie.waitfor(frames=0)

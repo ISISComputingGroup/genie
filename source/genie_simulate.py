@@ -11,7 +11,7 @@ class Waitfor(object):
         pass
 
     def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False,
-                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None, early_exit=lambda: False):
+                      seconds=None, minutes=None, hours=None, time=None, frames=None, raw_frames=None, uamps=None, early_exit=lambda: False):
         pass
 
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
