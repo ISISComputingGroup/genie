@@ -196,6 +196,13 @@ def reload_current_config():
     except Exception as e:
         _handle_exception(e)
 
+def check_lowlimit_against_highlimit(lowlimit, highlimit):
+    """
+    Check the lowlimit is below the highlimit, and warns if this is the case
+    """
+    if lowlimit is not None and highlimit is not None and lowlimit > highlimit:
+        print("WARNING: You have set the lowlimit({}) above the highlimit({})".format(lowlimit, highlimit))
+
 
 @usercommand
 @helparglist('')
@@ -301,6 +308,8 @@ def cset(*args, **kwargs):
                     values.append(kwargs[k])
                 else:
                     raise Exception('No block with the name "%s" exists' % k)
+            #Warn if highlimit and lowlimit are round correct way
+            check_lowlimit_against_highlimit(lowlimit, highlimit)
 
         if block is not None and len(blocks) > 0:
             raise Exception('Incorrect syntax, please type: help(cset) for more information on the syntax')
@@ -537,6 +546,8 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
         # Check that wait_for object exists
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        # Warn if highlimit and lowlimit are round correct way
+        check_lowlimit_against_highlimit(lowlimit, highlimit)
         # Start_waiting checks the block exists
         __api.waitfor.start_waiting(block, value, lowlimit, highlimit, maxwait, wait_all, seconds, minutes, hours, time,
                                     frames, raw_frames, uamps, early_exit)
@@ -570,6 +581,8 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
     try:
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
+        # Warn if highlimit and lowlimit are round correct way
+        check_lowlimit_against_highlimit(lowlimit, highlimit)
         __api.waitfor.start_waiting(block=block, value=value, lowlimit=lowlimit, highlimit=highlimit, maxwait=maxwait,
                                     early_exit=early_exit)
     except Exception as e:
