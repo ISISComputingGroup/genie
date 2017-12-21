@@ -621,6 +621,10 @@ def waitfor_frames(frames):
         >>> waitfor_frames(4000)
     """
     try:
+        if frames is None:
+            raise TypeError("Cannot execute waitfor_frames - need to set frames parameter. Type help(waitfor_frames")
+        if frames < 0:
+            raise ValueError("Cannot execute waitfor_frames - frames parameter cannot be negative")
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
         __api.waitfor.start_waiting(frames=frames)
@@ -642,6 +646,10 @@ def waitfor_raw_frames(raw_frames):
         >>> waitfor_raw_frames(4000)
     """
     try:
+        if raw_frames is None:
+            raise TypeError("Cannot execute waitfor_raw_frames - need to set raw_frames parameter. Type help(waitfor_raw_frames")
+        if raw_frames < 0:
+            raise ValueError("Cannot execute waitfor_raw_frames - raw_frames parameter cannot be negative")
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
         __api.waitfor.start_waiting(raw_frames=raw_frames)

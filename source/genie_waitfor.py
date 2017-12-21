@@ -68,12 +68,12 @@ class WaitForController(object):
             except Exception:
                 raise Exception("Time string entered was invalid. It should be of the form HH:MM:SS")
         if frames is not None:
-            if not isinstance(frames, int):
+            if not isinstance(frames, (int, long)):
                 raise Exception("Invalid value entered for frames")
             else:
                 print('Waiting for', str(frames), 'frames' + timeout_msg)
         if raw_frames is not None:
-            if not isinstance(raw_frames, int):
+            if not isinstance(raw_frames, (int, long)):
                 raise Exception("Invalid value entered for raw_frames")
             else:
                 print('Waiting for', str(raw_frames), 'raw_frames' + timeout_msg)
