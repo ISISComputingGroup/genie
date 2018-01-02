@@ -85,6 +85,10 @@ class TestGenie(unittest.TestCase):
         with self.assertRaises(ValueError):
             genie.waitfor_time(minutes=-1)
 
+    def test_WHEN_input_None_THEN_waitfor_time_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_time(None)
+
     def test_WHEN_hours_negative_THEN_waitfor_time_raises_error(self):
         with self.assertRaises(ValueError):
             genie.waitfor_time(hours=-1)
@@ -100,3 +104,7 @@ class TestGenie(unittest.TestCase):
 
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
+
+    def test_WHEN_input_None_THEN_waitfor_uamps_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_uamps(None)
