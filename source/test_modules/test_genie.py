@@ -17,7 +17,6 @@ from __future__ import absolute_import
 import os
 import unittest
 import genie
-import sys
 
 
 class TestGenie(unittest.TestCase):
@@ -105,6 +104,5 @@ class TestGenie(unittest.TestCase):
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
 
-    def test_WHEN_input_None_THEN_waitfor_uamps_raises_error(self):
-        with self.assertRaises(ValueError):
-            genie.waitfor_uamps(None)
+    def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
+        genie.waitfor_uamps(None)
