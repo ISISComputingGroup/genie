@@ -106,21 +106,22 @@ class WaitForController(object):
                 return
 
             res = list()
-            res.append(self._block_has_waited_for_value())
-            res.append(self._waiting_for_time())
+            if self.block is not None:
+                res.append(self._block_has_waited_for_value())
+            if self.start_time is not None and self.time_delta is not None:
+                res.append(self._waiting_for_time())
             if frames is not None:
                 res.append(self.api.dae.get_good_frames() < frames)
             if uamps is not None:
                 res.append(self.api.dae.get_uamps() < uamps)
-            if wait_all:
-                if True not in res:
-                    self.api.log_info_msg("WAITFOR EXITED NORMALLY")
-                    return
-            else:
-                # Only need to wait for one of the settings to become false
-                if False in res:
-                    self.api.log_info_msg("WAITFOR EXITED NORMALLY")
-                    return
+
+            if len(res) == 0:
+                self.api.log_error_msg("NO VALID WAITFOR CONDITIONS PROVIDED")
+                return
+            elif (wait_all and True not in res) or (not wait_all and False in res):
+                self.api.log_info_msg("WAITFOR EXITED NORMALLY")
+                return
+
             sleep(0.5)
 
     def wait_for_runstate(self, state, maxwaitsecs=3600, onexit=False):
@@ -166,14 +167,10 @@ class WaitForController(object):
             self.start_time = None
 
     def _waiting_for_time(self):
-        if self.start_time is None or self.time_delta is None:
-            # Not initiated so not waiting
-            return None
+        if datetime.utcnow() - self.start_time >= self.time_delta:
+            return False
         else:
-            if datetime.utcnow() - self.start_time >= self.time_delta:
-                return False
-            else:
-                return True
+            return True
 
     def _get_time_delta(self, seconds, minutes, hours):
         """
@@ -224,8 +221,6 @@ class WaitForController(object):
 
         :return: true of the block has the value that is being waited for; False otherwise
         """
-        if self.block is None:
-            return None
         currval = self.api.get_block_value(self.block)
         flag = True
         try:
