@@ -16,7 +16,9 @@
 from __future__ import absolute_import
 import os
 import unittest
-import genie
+from source import genie
+from source import genie_simulate
+from source.genie_waitfor import WaitForController
 
 
 class TestGenie(unittest.TestCase):
@@ -102,3 +104,11 @@ class TestGenie(unittest.TestCase):
 
     def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
         genie.waitfor_uamps(None)
+
+    def test_WHEN_input_is_long_THEN_waitfor_does_not_throw_exception(self):
+
+        # If start_waiting does not accept a long it raises a value error.
+        # If it accepts the value it tries to call a method on the API, which is provided as None because it would
+        # otherwise need to wait for the period of time. As such, it raises an attribute error due to API being None.
+        with self.assertRaises(AttributeError):
+            WaitForController(None).start_waiting(frames=2**31)

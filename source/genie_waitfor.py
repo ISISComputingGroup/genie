@@ -47,16 +47,16 @@ class WaitForController(object):
         # Error checks
         timeout_msg = ''
         if maxwait is not None:
-            if not isinstance(maxwait, float) and not isinstance(maxwait, int, long):
+            if not isinstance(maxwait, float) and not isinstance(maxwait, six.integer_types):
                 raise Exception("The value entered for maxwait was invalid, it should be numeric.")
             else:
                 maxwait = timedelta(seconds=maxwait)
                 timeout_msg = ' [timeout=' + str(maxwait.total_seconds()) + ']'
-        if seconds is not None and not (isinstance(seconds, int,long) or isinstance(seconds, float)):
+        if seconds is not None and not (isinstance(seconds, six.integer_types) or isinstance(seconds, float)):
             raise Exception("Invalid value entered for seconds")
-        if minutes is not None and not isinstance(minutes, int,long):
+        if minutes is not None and not isinstance(minutes, six.integer_types):
             raise Exception("Invalid value entered for minutes")
-        if hours is not None and not isinstance(hours, int,long):
+        if hours is not None and not isinstance(hours, six.integer_types):
             raise Exception("Invalid value entered for hours")
         if time is not None:
             try:
@@ -67,12 +67,12 @@ class WaitForController(object):
             except Exception:
                 raise Exception("Time string entered was invalid. It should be of the form HH:MM:SS")
         if frames is not None:
-            if not isinstance(frames, int,long):
+            if not isinstance(frames, six.integer_types):
                 raise Exception("Invalid value entered for frames")
             else:
                 print('Waiting for', str(frames), 'frames' + timeout_msg)
         if uamps is not None:
-            if not (isinstance(uamps, int,long) or isinstance(uamps, float)):
+            if not (isinstance(uamps, six.integer_types) or isinstance(uamps, float)):
                 raise Exception("Invalid value entered for uamps")
             else:
                 print('Waiting for', str(uamps), 'uamps' + timeout_msg)
@@ -81,12 +81,12 @@ class WaitForController(object):
             if not self.api.block_exists(block):
                 raise NameError('No block with the name "%s" exists' % block)
             block = self.api.correct_blockname(block)
-            if value is not None and (not isinstance(value, float) and not isinstance(value, int,long)
+            if value is not None and (not isinstance(value, float) and not isinstance(value, six.integer_types)
                                       and not isinstance(value, six.string_types)):
                 raise Exception("The value entered for the block was invalid, it should be numeric or a string.")
-            if lowlimit is not None and (not isinstance(lowlimit, float) and not isinstance(lowlimit, int,long)):
+            if lowlimit is not None and (not isinstance(lowlimit, float) and not isinstance(lowlimit, six.integer_types)):
                 raise Exception("The value entered for lowlimit was invalid, it should be numeric.")
-            if highlimit is not None and (not isinstance(highlimit, float) and not isinstance(highlimit, int,long)):
+            if highlimit is not None and (not isinstance(highlimit, float) and not isinstance(highlimit, six.integer_types)):
                 raise Exception("The value entered for highlimit was invalid, it should be numeric.")
 
         self._init_wait_time(seconds, minutes, hours, timeout_msg)
