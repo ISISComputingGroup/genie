@@ -19,6 +19,7 @@ import unittest
 from source import genie
 from source import genie_simulate
 from source.genie_waitfor import WaitForController
+from mock import MagicMock
 
 
 class TestGenie(unittest.TestCase):
@@ -105,10 +106,16 @@ class TestGenie(unittest.TestCase):
     def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
         genie.waitfor_uamps(None)
 
-    def test_WHEN_input_is_long_THEN_waitfor_does_not_throw_exception(self):
+    def test_WHEN_frames_counts_up_THEN_waitfor_waits_until_given_correct_frames(self):
+        self.api = MagicMock()
+        self.api.dae.get_good_frames = MagicMock(side_effect=[5,2147483648,2147483650])
+        controller = WaitForController(self.api)
+        controller.start_waiting(frames=2 ** 31)
+        self.assertEqual(self.api.dae.get_good_frames.call_count, 2)
 
-        # If start_waiting does not accept a long it raises a value error.
-        # If it accepts the value it tries to call a method on the API, which is provided as None because it would
-        # otherwise need to wait for the period of time. As such, it raises an attribute error due to API being None.
-        with self.assertRaises(AttributeError):
-            WaitForController(None).start_waiting(frames=2**31)
+    def test_WHEN_frames_counts_over_given_frames_THEN_waitfor_exits_if_higher(self):
+        self.api = MagicMock()
+        self.api.dae.get_good_frames = MagicMock(side_effect=[5,2147483600,2147483700,2147483900])
+        controller = WaitForController(self.api)
+        controller.start_waiting(frames=2 ** 31)
+        self.assertEqual(self.api.dae.get_good_frames.call_count, 3)
