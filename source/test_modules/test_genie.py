@@ -16,7 +16,10 @@
 from __future__ import absolute_import
 import os
 import unittest
+from contextlib import contextmanager
+
 import genie
+from mock import MagicMock
 
 
 class TestGenie(unittest.TestCase):
@@ -102,3 +105,18 @@ class TestGenie(unittest.TestCase):
 
     def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
         genie.waitfor_uamps(None)
+
+    @contextmanager
+    def _mock_get_blocks(self, blocks):
+        oldapi = getattr(genie, "__api")  # Have to use getattr and setattr because of the name mangling
+        setattr(genie, "__api", MagicMock(get_blocks=lambda: blocks))
+        yield
+        setattr(genie, "__api", oldapi)
+
+    def test_WHEN_waitfor_is_given_a_valid_block_as_a_keyword_argument_THEN_no_exception_raised(self):
+        with self._mock_get_blocks(["blockname"]):
+            genie.waitfor(blockname=5)
+
+    def test_WHEN_waitfor_is_given_a_non_existent_block_as_a_keyword_argument_THEN_exception_raised(self):
+        with self._mock_get_blocks([]), self.assertRaises(ValueError):
+            genie.waitfor(blockname=5)
