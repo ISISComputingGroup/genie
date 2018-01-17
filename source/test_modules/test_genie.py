@@ -106,16 +106,34 @@ class TestGenie(unittest.TestCase):
     def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
         genie.waitfor_uamps(None)
 
-    def test_WHEN_frames_counts_up_THEN_waitfor_waits_until_given_correct_frames(self):
+    def test_GIVEN_frames_less_than_2_power_31_WHEN_reported_frames_increasing_THEN_waitfor_frames_waits_until_reported_frames_equals_requested_frames(self):
+        frames = 5000
         self.api = MagicMock()
-        self.api.dae.get_good_frames = MagicMock(side_effect=[5,2147483648,2147483650])
+        self.api.dae.get_good_frames = MagicMock(side_effect=[frames - 1, frames, frames + 1])
         controller = WaitForController(self.api)
-        controller.start_waiting(frames=2 ** 31)
+        controller.start_waiting(frames=frames)
         self.assertEqual(self.api.dae.get_good_frames.call_count, 2)
 
-    def test_WHEN_frames_counts_over_given_frames_THEN_waitfor_exits_if_higher(self):
+    def test_GIVEN_frames_greater_than_2_power_31_WHEN_reported_frames_increasing_THEN_waitfor_frames_waits_until_reported_frames_equals_requested_frames(self):
+        frames = 2 ** 31
         self.api = MagicMock()
-        self.api.dae.get_good_frames = MagicMock(side_effect=[5,2147483600,2147483700,2147483900])
+        self.api.dae.get_good_frames = MagicMock(side_effect=[frames - 1, frames, frames + 1])
         controller = WaitForController(self.api)
-        controller.start_waiting(frames=2 ** 31)
+        controller.start_waiting(frames=frames)
+        self.assertEqual(self.api.dae.get_good_frames.call_count, 2)
+
+    def test_GIVEN_frames_less_than_2_power_31_WHEN_reported_frames_increasing_skips_requested_THEN_waitfor_frames_waits_until_next_reported_frames_equals_above_requested_frames(self):
+        frames = 5000
+        self.api = MagicMock()
+        self.api.dae.get_good_frames = MagicMock(side_effect=[frames - 2, frames - 1, frames + 1, frames + 2])
+        controller = WaitForController(self.api)
+        controller.start_waiting(frames=frames)
+        self.assertEqual(self.api.dae.get_good_frames.call_count, 3)
+
+    def test_GIVEN_frames_greater_than_2_power_31_WHEN_reported_frames_increasing_skips_requested_THEN_waitfor_frames_waits_until_next_reported_frames_equals_above_requested_frames(self):
+        frames = 2 ** 31
+        self.api = MagicMock()
+        self.api.dae.get_good_frames = MagicMock(side_effect=[frames - 2, frames - 1, frames + 1, frames + 2])
+        controller = WaitForController(self.api)
+        controller.start_waiting(frames=frames)
         self.assertEqual(self.api.dae.get_good_frames.call_count, 3)
