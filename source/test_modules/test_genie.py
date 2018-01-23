@@ -16,9 +16,9 @@
 from __future__ import absolute_import
 import os
 import unittest
-from source import genie
-from source import genie_simulate
-from source.genie_waitfor import WaitForController
+from genie_python import genie
+from genie_python import genie_simulate
+from genie_python.genie_waitfor import WaitForController
 from mock import MagicMock
 from contextlib import contextmanager
 
