@@ -141,4 +141,3 @@ class TestGenie(unittest.TestCase):
     def test_WHEN_waitfor_is_given_a_non_existent_block_as_a_keyword_argument_THEN_exception_raised(self):
         with self._mock_get_blocks([]), self.assertRaises(ValueError):
             genie.waitfor(blockname=5)
->>>>>>> master
