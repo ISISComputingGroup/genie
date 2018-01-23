@@ -16,14 +16,11 @@
 from __future__ import absolute_import
 import os
 import unittest
-<<<<<<< HEAD
 from source import genie
 from source import genie_simulate
 from source.genie_waitfor import WaitForController
 from mock import MagicMock
-=======
 from contextlib import contextmanager
->>>>>>> master
 
 import genie
 from mock import MagicMock
