@@ -543,6 +543,8 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
                         raise Exception('Can set waitfor for only one block at a time')
                     block = k
                     value = pars[k]
+                else:
+                    raise ValueError("Block named '{}' did not exist.".format(k))
         # Check that wait_for object exists
         if __api.waitfor is None:
             raise Exception("Cannot execute waitfor - try calling set_instrument first")
