@@ -16,11 +16,17 @@
 from __future__ import absolute_import
 import os
 import unittest
+<<<<<<< HEAD
 from source import genie
 from source import genie_simulate
 from source.genie_waitfor import WaitForController
 from mock import MagicMock
+=======
+from contextlib import contextmanager
+>>>>>>> master
 
+import genie
+from mock import MagicMock
 
 class TestGenie(unittest.TestCase):
     def setUp(self):
@@ -103,6 +109,28 @@ class TestGenie(unittest.TestCase):
     def test_WHEN_time_is_0_string_THEN_waitfor_time_returns(self):
         genie.waitfor_time(time="00:00:00")
 
+    def test_WHEN_raw_frames_negative_THEN_waitfor_raw_frames_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_raw_frames(raw_frames=-1)
+
+    def test_WHEN_raw_frames_is_0_THEN_waitfor_raw_frames_returns(self):
+        genie.waitfor_raw_frames(raw_frames=0)
+
+    def test_WHEN_frames_negative_THEN_waitfor_frames_raises_error(self):
+        with self.assertRaises(ValueError):
+            genie.waitfor_frames(frames=-1)
+
+    def test_WHEN_frames_is_0_THEN_waitfor_frames_returns(self):
+        genie.waitfor_frames(frames=0)
+
+
+    def test_WHEN_raw_frames_is_0_THEN_waitfor_returns(self):
+        genie.waitfor(raw_frames=0)
+
+
+    def test_WHEN_frames_is_0_THEN_waitfor_returns(self):
+        genie.waitfor(frames=0)
+
     def test_WHEN_input_None_THEN_waitfor_uamps_returns(self):
         genie.waitfor_uamps(None)
 
@@ -137,3 +165,18 @@ class TestGenie(unittest.TestCase):
         controller = WaitForController(self.api)
         controller.start_waiting(frames=frames)
         self.assertEqual(self.api.dae.get_good_frames.call_count, 3)
+
+    @contextmanager
+    def _mock_get_blocks(self, blocks):
+        oldapi = getattr(genie, "__api")  # Have to use getattr and setattr because of the name mangling
+        setattr(genie, "__api", MagicMock(get_blocks=lambda: blocks))
+        yield
+        setattr(genie, "__api", oldapi)
+
+    def test_WHEN_waitfor_is_given_a_valid_block_as_a_keyword_argument_THEN_no_exception_raised(self):
+        with self._mock_get_blocks(["blockname"]):
+            genie.waitfor(blockname=5)
+
+    def test_WHEN_waitfor_is_given_a_non_existent_block_as_a_keyword_argument_THEN_exception_raised(self):
+        with self._mock_get_blocks([]), self.assertRaises(ValueError):
+            genie.waitfor(blockname=5)

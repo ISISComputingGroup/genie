@@ -21,7 +21,7 @@ class WaitForController(object):
         self.high = None
 
     def start_waiting(self, block=None, value=None, lowlimit=None, highlimit=None, maxwait=None, wait_all=False,
-                      seconds=None, minutes=None, hours=None, time=None, frames=None, uamps=None,
+                      seconds=None, minutes=None, hours=None, time=None, frames=None, raw_frames=None, uamps=None,
                       early_exit=lambda: False):
         """
         Wait until a condition is reached. If wait_all is False then wait for one of the conditions if True wait until
@@ -38,6 +38,7 @@ class WaitForController(object):
             hours: number of hours to wait
             time: total time to wait (overrides seconds minutes and hours)
             frames: number of frames to wait
+            raw_frames: number of raw frames to wait
             uamps: number of micro amps to wait
             early_exit: function to check if wait should exit early. Function should return true to exit wait.
 
@@ -71,6 +72,11 @@ class WaitForController(object):
                 raise Exception("Invalid value entered for frames")
             else:
                 print('Waiting for', str(frames), 'frames' + timeout_msg)
+        if raw_frames is not None:
+            if not isinstance(raw_frames, (int, long)):
+                raise Exception("Invalid value entered for raw_frames")
+            else:
+                print('Waiting for', str(raw_frames), 'raw_frames' + timeout_msg)
         if uamps is not None:
             if not (isinstance(uamps, six.integer_types) or isinstance(uamps, float)):
                 raise Exception("Invalid value entered for uamps")
@@ -112,6 +118,8 @@ class WaitForController(object):
                 res.append(self._waiting_for_time())
             if frames is not None:
                 res.append(self.api.dae.get_good_frames() < frames)
+            if raw_frames is not None:
+                res.append(self.api.dae.get_raw_frames() < raw_frames)
             if uamps is not None:
                 res.append(self.api.dae.get_uamps() < uamps)
 
