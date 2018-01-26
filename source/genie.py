@@ -1402,7 +1402,8 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
                 print("File last modified: %s" %
                       datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime("%Y-%m-%d %H:%M:%S"))
             else:
-                raise Exception("No runnable scripts found in %s - is the file empty?" % file_path)
+                raise Exception("No scripts found in {} - please ensure all your code is contained within functions."
+                                .format(file_path))
         except Exception as e:
             if directory in sys.path:
                 sys.path.remove(directory)
