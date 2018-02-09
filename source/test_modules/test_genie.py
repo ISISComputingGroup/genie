@@ -14,16 +14,18 @@
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
 from __future__ import absolute_import
+
+import functools
 import os
 import unittest
-from genie_python import genie
-from genie_python import genie_simulate
-from genie_python.genie_waitfor import WaitForController
-from mock import MagicMock
-from contextlib import contextmanager
+from unittest import skipIf
 
-import genie
+import six
+from genie_python import genie
+from genie_python.genie_waitfor import WaitForController
+from contextlib import contextmanager
 from mock import MagicMock
+
 
 class TestGenie(unittest.TestCase):
     def setUp(self):
@@ -57,6 +59,17 @@ class TestGenie(unittest.TestCase):
 
         # Assert
         self.assertTrue(genie.valid())
+
+    @skipIf(not six.PY2, "This test will only work on python 2")
+    def test_GIVEN_valid_python_2_script_WHEN_load_script_THEN_can_call_script(self):
+        # Arrange
+        script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "valid_python_2.py")
+
+        # Act
+        genie.load_script(script)
+
+        # Assert
+        self.assertTrue(genie.valid_py2())
 
     def test_GIVEN_valid_script_WHEN_load_script_THEN_can_import_from_script_directory(self):
         # Arrange
