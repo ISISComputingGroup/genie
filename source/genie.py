@@ -449,11 +449,11 @@ def cshow(block=None):
 
     Examples:
         Showing all block values:
-        
+
         >>> cshow()
 
         Showing values for one block only (name must be quoted):
-        
+
         >>> cshow("block1")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -495,41 +495,41 @@ def waitfor(block=None, value=None, lowlimit=None, highlimit=None, maxwait=None,
 
     Examples:
         Wait for a block to reach a specific value:
-        
-        >>> waitfor(myblock=123)       
-        >>> waitfor("myblock", 123)      
-        >>> waitfor("myblock", True)     
+
+        >>> waitfor(myblock=123)
+        >>> waitfor("myblock", 123)
+        >>> waitfor("myblock", True)
         >>> waitfor("myblock", "OPEN")
-        
+
         Wait for a block to be between limits:
-        
+
         >>> waitfor("myblock", lowlimit=100, highlimit=110)
 
         Wait for a block to reach a specific value, but no longer than 60 seconds:
-        
+
         >>> waitfor(myblock=123, maxwait=60)
 
         Wait for a specified time interval:
-        
-        >>> waitfor(seconds=10)       
-        >>> waitfor(hours=1, minutes=30, seconds=15)      
+
+        >>> waitfor(seconds=10)
+        >>> waitfor(hours=1, minutes=30, seconds=15)
         >>> waitfor(time="1:30:15")
 
         Wait for a data collection condition:
-        
-        >>> waitfor(frames=5000)       
+
+        >>> waitfor(frames=5000)
         >>> waitfor(uamps=200)
 
         Wait for either a number of frames OR a time interval to occur:
-        
+
         >>> waitfor(frames=5000, hours=2)
 
         Wait for a number of frames AND a time interval to occur:
-        
+
         >>> waitfor(frames=5000, hours=2, wait_all=True)
 
         Wait for either the block to reach a value or a condition to be met:
-        
+
         >>> waitfor(myblock=123, early_exit=lambda: some_function(cget("another_block")["value"]) > 123)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -572,11 +572,11 @@ def waitfor_block(block, value=None, lowlimit=None, highlimit=None, maxwait=None
         early_exit: stop waiting if the exception evaluates to True
 
     Examples:
-    
-        >>> waitfor_block("myblock", value=123)       
-        >>> waitfor_block("myblock", value=True, maxwait=15)      
-        >>> waitfor_block("myblock", lowlimit=100, highlimit=110)       
-        >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)       
+
+        >>> waitfor_block("myblock", value=123)
+        >>> waitfor_block("myblock", value=True, maxwait=15)
+        >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
+        >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
         >>> waitfor_block("myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -604,9 +604,9 @@ def waitfor_time(seconds=None, minutes=None, hours=None, time=None):
         time (string, optional): a quicker way of setting hours, minutes and seconds (must be of format "HH:MM:SS")
 
     Examples:
-    
-        >>> waitfor_time(seconds=10)       
-        >>> waitfor_time(hours=1, minutes=30, seconds=15)       
+
+        >>> waitfor_time(seconds=10)
+        >>> waitfor_time(hours=1, minutes=30, seconds=15)
         >>> waitfor_time(time="1:30:15")
     """
     try:
@@ -632,7 +632,7 @@ def waitfor_frames(frames):
         frames (int): the number of frames to wait for
 
     Example:
-    
+
         >>> waitfor_frames(4000)
     """
     try:
@@ -682,7 +682,7 @@ def waitfor_uamps(uamps):
         uamps: the charge to wait for
 
     Example:
-    
+
         >>> waitfor_uamps(115.5)
     """
     try:
@@ -706,11 +706,11 @@ def waitfor_runstate(state, maxwaitsecs=3600, onexit=False):
 
     Examples:
         Wait for a run to enter the paused state:
-        
+
         >>> waitfor_runstate("paused")
 
         Wait for a run to exit the paused state:
-        
+
         >>> waitfor_runstate("paused", onexit=True)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -739,15 +739,15 @@ def waitfor_move(*blocks, **kwargs):
 
     Examples:
         Wait for all motors to stop moving:
-        
+
         >>> waitfor_move()
 
         Wait for all motors to stop moving with a timeout of 30 seconds:
-        
+
         >>> waitfor_move(move_timeout=30)
 
         Wait for only slit1 and slit2 motors to stop moving:
-        
+
         >>> waitfor_move("slit1", "slit2")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1376,12 +1376,13 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
             # Read the file to get the name of the functions
             funcs = []
             file_path = os.path.join(directory, filename)
-            f = open(file_path, "r")
-            for l in f.readlines():
-                m = re.match("^def\s+(.+)\(", l)
-                if m is not None:
-                    funcs.append(m.group(1))
-            f.close()
+
+            with open(file_path) as f:
+                for l in f.readlines():
+                    m = re.match("^def\s+(.+)\(", l)
+                    if m is not None:
+                        funcs.append(m.group(1))
+
             scripts = []
             for att in dir(mod):
                 if isinstance(mod.__dict__.get(att), types.FunctionType):
@@ -1391,7 +1392,11 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
             if len(scripts) > 0:
                 # This is where the script file is actually loaded
-                exec(compile(open(file_path).read(), file_path, 'exec'), globs)
+                with open(file_path) as f:
+                    file_contents = f.read()
+
+                code = compile(file_contents, file_path, 'exec', dont_inherit=True)
+                exec(code, globs)
 
                 msg = "Loaded the following script(s): "
                 for script in scripts:
@@ -1407,7 +1412,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         except Exception as e:
             if directory in sys.path:
                 sys.path.remove(directory)
-            raise e
+            raise
     except Exception as e:
         _handle_exception(e)
 
@@ -1592,11 +1597,11 @@ def change_tcb(low=None, high=None, step=None, trange=1, log=False, regime=1):
 
     Examples:
         Changes the from, to and step of the 1st range to 0, 10 and 5 respectively.
-        
+
         >>> change_tcb(0, 10, 5)
 
         Changes the step size of the 2nd range to 2, leaving other parameters unchanged.
-        
+
         >>> change_tcb(step=2, trange=2)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1621,11 +1626,11 @@ def get_tcb_settings(trange, regime=1):
 
     Examples:
         Get the step size for the 2nd range in the 3rd regime:
-        
+
         >>> get_tcb_settings(2, 3)["Steps"]
 
         Get the step size for the 2nd range in the 3rd regime:
-        
+
         >>> get_tcb_settings(2, 3)["Steps"]
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1659,11 +1664,11 @@ def change_vetos(**params):
 
     Examples:
         Turns all vetoes off then turns the SMP veto back on:
-        
+
         >>> change_vetos(clearall=True, smp=True)
 
         Turn off FIFO:
-        
+
         >>> change_vetos(fifo=False)
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1748,11 +1753,11 @@ def enable_hard_periods(mode, period_file=None, sequences=None, output_delay=Non
 
     Examples:
         Setting external periods:
-        
+
         >>> enable_hard_periods('ext')
 
         Setting internal periods from a file:
-        
+
         >>> enable_hard_periods('int', 'c:\\myperiods.txt')
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1829,19 +1834,19 @@ def change(**params):
 
     Examples:
         Change the title:
-        
+
         >>> change(title="The new title")
 
         Change the user:
-        
+
         >>> change(user="Instrument Team")
 
         Set multiple users:
-        
+
         >>> change(user="Thouless, Haldane, Kosterlitz")
 
         Change the RB number and the users:
-        
+
         >>> change(rb=123456, user="Smith, Jones")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -1925,7 +1930,7 @@ def change_users(users):
         users: a string containing the user name(s)
 
     Example:
-        
+
         >>> change_users("Emerson, Lake, Palmer")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -2012,19 +2017,19 @@ def add_spectrum(spectrum, period=1, dist=False, figure=None):
 
     Examples:
         Add Spectrum 2 to last active plot window
-        
+
         >>> add_spectrum(2)
 
         Add Spectrum 1 to Figure 3
-        
+
         >>> add_spectrum(2, figure=3)
 
         Add Spectrum 1 with period=2 to last active plot window as distribution
-        
+
         >>> add_spectrum(1, period=2, dist=True)
 
         Add Spectrum 4 to Figure 1 as distribution
-        
+
         >>> add_spectrum(4, dist=True, figure=1)
     """
     __api.plots.remove_closed()
@@ -2259,7 +2264,7 @@ def check_alarms(*blocks):
 
     Example:
         Check alarm state for block1 and block2:
-        
+
         >>> check_alarms("block1", "block2")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
@@ -2281,7 +2286,7 @@ def check_limit_violations(*blocks):
 
     Example:
         Check soft limit violations for block1 and block2:
-        
+
         >>> check_limit_violations("block1", "block2")
     """
     __api.log_command(sys._getframe().f_code.co_name, locals())
