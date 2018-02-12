@@ -4,3 +4,5 @@
 *.egg-info 
 .idea/
 source/test-reports/
+docs/_build/
+docs/doxygen/
