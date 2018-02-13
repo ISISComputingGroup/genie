@@ -1329,10 +1329,10 @@ def _get_correct_globals():
 def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
     """
     Loads a user script.
+
     Args:
         name (string): the name of the file to load. If this is not a full path the file is assumed to be in C:\scripts\
-        dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can
-            remove this
+        dummy (object): This is a dummy parameter just so the GUI does not complain once the GUI is updated we can remove this
         check_script: When True run the script checker on the script; False otherwise (default True)
         warnings_as_error: When true throw an exception on a warning; False otherwise (default False)
     """
@@ -1376,12 +1376,13 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
             # Read the file to get the name of the functions
             funcs = []
             file_path = os.path.join(directory, filename)
-            f = open(file_path, "r")
-            for l in f.readlines():
-                m = re.match("^def\s+(.+)\(", l)
-                if m is not None:
-                    funcs.append(m.group(1))
-            f.close()
+
+            with open(file_path) as f:
+                for l in f.readlines():
+                    m = re.match("^def\s+(.+)\(", l)
+                    if m is not None:
+                        funcs.append(m.group(1))
+
             scripts = []
             for att in dir(mod):
                 if isinstance(mod.__dict__.get(att), types.FunctionType):
@@ -1391,7 +1392,12 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
 
             if len(scripts) > 0:
                 # This is where the script file is actually loaded
-                exec(compile(open(file_path).read(), file_path, 'exec'), globs)
+                with open(file_path) as f:
+                    file_contents = f.read()
+
+                # dont_inherit=True so that __future__ statements in this file are not propagated to user scripts
+                code = compile(file_contents, file_path, 'exec', dont_inherit=True)
+                exec(code, globs)
 
                 msg = "Loaded the following script(s): "
                 for script in scripts:
@@ -1407,7 +1413,7 @@ def load_script(name, dummy=None, check_script=True, warnings_as_error=False):
         except Exception as e:
             if directory in sys.path:
                 sys.path.remove(directory)
-            raise e
+            raise
     except Exception as e:
         _handle_exception(e)
 
