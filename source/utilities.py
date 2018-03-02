@@ -56,14 +56,6 @@ def waveform_to_string(data):
     return output
 
 
-def remove_control_characters(s):
-    # Char literals from https://msdn.microsoft.com/en-us/library/h21280bw.aspx
-    control_characters = {"\a": "a", "\b": "b", "\f": "f", "\n": "n", "\r": "r", "\t": "t", "\v": "v"}
-    for control_character, raw_character in control_characters.items():
-        s = s.replace(control_character, "\\{}".format(raw_character))
-    return s
-
-
 def convert_string_to_ascii(data):
     """
     Converts a string to be ascii.

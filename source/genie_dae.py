@@ -7,8 +7,7 @@ import json
 import re
 from time import strftime
 from genie_python.genie_change_cache import ChangeCache
-from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, \
-    remove_control_characters
+from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, get_correct_path
 import six
 from six.moves import range
 
@@ -870,11 +869,11 @@ class Dae(object):
             self.change_start()
             did_change = True
         if wiring is not None:
-            self.change_cache.wiring = remove_control_characters(wiring)
+            self.change_cache.wiring = get_correct_path(wiring)
         if detector is not None:
-            self.change_cache.detector = remove_control_characters(detector)
+            self.change_cache.detector = get_correct_path(detector)
         if spectra is not None:
-            self.change_cache.spectra = remove_control_characters(spectra)
+            self.change_cache.spectra = get_correct_path(spectra)
         if did_change:
             self.change_finish()
 
@@ -961,7 +960,7 @@ class Dae(object):
             self.change_start()
             did_change = True
         if tcb_file is not None:
-            tcb_file = remove_control_characters(tcb_file)
+            tcb_file = get_correct_path(tcb_file)
             print(("Reading TCB boundaries from {}".format(tcb_file)))
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
@@ -1242,7 +1241,7 @@ class Dae(object):
         if mode.strip().lower() == 'int':
             self.change_cache.periods_type = 1
             if period_file is not None:
-                period_file = remove_control_characters(period_file)
+                period_file = get_correct_path(period_file)
                 if not os.path.exists(period_file):
                     raise Exception('Period file could not be found')
                 self.change_cache.periods_src = 1
