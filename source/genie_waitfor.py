@@ -53,11 +53,11 @@ class WaitForController(object):
             else:
                 maxwait = timedelta(seconds=maxwait)
                 timeout_msg = ' [timeout=' + str(maxwait.total_seconds()) + ']'
-        if seconds is not None and not (isinstance(seconds, six.integer_types) or isinstance(seconds, float)):
+        if seconds is not None and not isinstance(seconds, six.integer_types + (float,)):
             raise Exception("Invalid value entered for seconds")
-        if minutes is not None and not isinstance(minutes, six.integer_types):
+        if minutes is not None and not isinstance(minutes, six.integer_types + (float,)):
             raise Exception("Invalid value entered for minutes")
-        if hours is not None and not isinstance(hours, six.integer_types):
+        if hours is not None and not isinstance(hours, six.integer_types + (float,)):
             raise Exception("Invalid value entered for hours")
         if time is not None:
             try:
