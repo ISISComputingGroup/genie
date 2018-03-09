@@ -9,6 +9,7 @@ from contextlib import contextmanager
 from stat import S_IWUSR, S_IREAD
 from time import strftime
 import psutil
+import decorator
 
 from genie_python.genie_change_cache import ChangeCache
 from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, get_correct_path
@@ -91,6 +92,11 @@ DAE_PVS_LOOKUP = {
     "set_veto_true": "DAE:VETO:ENABLE:SP",
     "set_veto_false": "DAE:VETO:DISABLE:SP"
 }
+
+DAE_CONFIG_FILE_PATHS = [
+    "C:\Labview modules\dae\icp_config.xml",
+    "C:\Instrument\Apps\EPICS\ICP_Binaries\icp_config.xml",
+]
 
 CLEAR_VETO = 'clearall'
 SMP_VETO = 'smp'
@@ -1490,31 +1496,34 @@ class Dae(object):
 
     @contextmanager
     def _temporarily_kill_icp(self):
+        """
+        Context manager to temporarily kill ICP.
+        """
         self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STOP"), 1)
         try:
             for p in psutil.process_iter():
                 if p.name().lower() == "isisicp.exe":
                     p.kill()
-                    break
-            # else:
-            #     raise IOError("Could not find ISISICP process to kill")
             yield
         finally:
             self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:START"), 1)
 
     def set_simulation_mode(self, mode):
-        possible_filepaths = [
-            "C:\Labview modules\dae\icp_config.xml",
-            "C:\Instrument\Apps\EPICS\ICP_Binaries\icp_config.xml",
-        ]
+        """
+        Sets the DAE simulation mode by writing to ICP_config.xml and restarting the DAE IOC and ISISICP
+        :param mode (bool) True to simulate the DAE, False otherwise
+        """
 
-        existing_filepaths = [p for p in possible_filepaths if os.path.exists(p)]
+        if self.get_run_state() not in ["SETUP", "PROCESSING"]:
+            raise ValueError("Cannot set simulation mode - must be in SETUP or PROCESSING")
 
-        if not len(existing_filepaths) > 0:
+        existent_config_files = [p for p in DAE_CONFIG_FILE_PATHS if os.path.exists(p)]
+
+        if not len(existent_config_files) > 0:
             raise IOError("Could not find ICP configuration file")
 
         with self._temporarily_kill_icp():
-            for path in existing_filepaths:
+            for path in existent_config_files:
                 xml = ET.parse(path).getroot()
                 xml.find(r"I32/[Name='Simulate']/Val").text = "1" if mode else "0"
 
