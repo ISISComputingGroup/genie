@@ -2325,3 +2325,12 @@ def get_version():
         string: The current version number of genie python
     """
     return VERSION
+
+
+@usercommand
+@helparglist('mode')
+def set_dae_simulation_mode(mode):
+    try:
+        return __api.dae.set_simulation_mode(mode)
+    except Exception as e:
+        _handle_exception(e)

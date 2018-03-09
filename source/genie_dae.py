@@ -5,7 +5,11 @@ import os
 import zlib
 import json
 import re
+from contextlib import contextmanager
+from stat import S_IWUSR, S_IREAD
 from time import strftime
+import psutil
+
 from genie_python.genie_change_cache import ChangeCache
 from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, get_correct_path
 import six
@@ -1483,3 +1487,38 @@ class Dae(object):
                 out[match.group(1)] = v.text
 
         return out
+
+    @contextmanager
+    def _temporarily_kill_icp(self):
+        self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STOP"), 1)
+        try:
+            for p in psutil.process_iter():
+                if p.name().lower() == "isisicp.exe":
+                    p.kill()
+                    break
+            # else:
+            #     raise IOError("Could not find ISISICP process to kill")
+            yield
+        finally:
+            self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:START"), 1)
+
+    def set_simulation_mode(self, mode):
+        possible_filepaths = [
+            "C:\Labview modules\dae\icp_config.xml",
+            "C:\Instrument\Apps\EPICS\ICP_Binaries\icp_config.xml",
+        ]
+
+        existing_filepaths = [p for p in possible_filepaths if os.path.exists(p)]
+
+        if not len(existing_filepaths) > 0:
+            raise IOError("Could not find ICP configuration file")
+
+        with self._temporarily_kill_icp():
+            for path in existing_filepaths:
+                xml = ET.parse(path).getroot()
+                xml.find(r"I32/[Name='Simulate']/Val").text = "1" if mode else "0"
+
+                os.chmod(path, S_IWUSR | S_IREAD)
+
+                with open(path, "w") as f:
+                    f.write(ET.tostring(xml))
