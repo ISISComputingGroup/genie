@@ -9,7 +9,6 @@ from contextlib import contextmanager
 from stat import S_IWUSR, S_IREAD
 from time import strftime
 import psutil
-import decorator
 
 from genie_python.genie_change_cache import ChangeCache
 from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, get_correct_path
@@ -90,7 +89,8 @@ DAE_PVS_LOOKUP = {
     "detectortables": "DAE:DETECTORTABLES",
     "periodfiles": "DAE:PERIODFILES",
     "set_veto_true": "DAE:VETO:ENABLE:SP",
-    "set_veto_false": "DAE:VETO:DISABLE:SP"
+    "set_veto_false": "DAE:VETO:DISABLE:SP",
+    "simulation_mode": "DAE:SIM_MODE"
 }
 
 DAE_CONFIG_FILE_PATHS = [
@@ -1511,7 +1511,8 @@ class Dae(object):
     def set_simulation_mode(self, mode):
         """
         Sets the DAE simulation mode by writing to ICP_config.xml and restarting the DAE IOC and ISISICP
-        :param mode (bool) True to simulate the DAE, False otherwise
+        Args:
+            mode (bool): True to simulate the DAE, False otherwise
         """
 
         if self.get_run_state() not in ["SETUP", "PROCESSING"]:
@@ -1531,3 +1532,11 @@ class Dae(object):
 
                 with open(path, "w") as f:
                     f.write(ET.tostring(xml))
+
+    def get_simulation_mode(self):
+        """
+        Gets the DAE simulation mode.
+        Returns:
+            True if the DAE is in simulation mode, False otherwise.
+        """
+        return self._get_pv_value(self._prefix_pv_name(DAE_PVS_LOOKUP["simulation_mode"])) == "Yes"
