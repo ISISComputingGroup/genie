@@ -53,7 +53,7 @@ class WaitForController(object):
                 raise Exception("The value entered for maxwait was invalid, it should be numeric.")
             else:
                 maxwait = timedelta(seconds=maxwait)
-                timeout_msg = ' [timeout=' + str(maxwait.total_seconds()) + ']'
+                timeout_msg = '[timeout={}]'.format(maxwait.total_seconds())
         if seconds is not None and not (isinstance(seconds, six.integer_types) or isinstance(seconds, float)):
             raise Exception("Invalid value entered for seconds")
         if minutes is not None and not isinstance(minutes, six.integer_types):
@@ -72,21 +72,21 @@ class WaitForController(object):
             if not isinstance(frames, six.integer_types):
                 raise Exception("Invalid value entered for frames")
             else:
-                print('Waiting for', str(frames), 'frames' + timeout_msg)
+                print('Waiting for {} frames {}'.format(frames, timeout_msg))
         if raw_frames is not None:
             if not isinstance(raw_frames, (int, long)):
                 raise Exception("Invalid value entered for raw_frames")
             else:
-                print('Waiting for', str(raw_frames), 'raw_frames' + timeout_msg)
+                print('Waiting for {} raw frames {}'.format(raw_frames, timeout_msg))
         if uamps is not None:
             if not (isinstance(uamps, six.integer_types) or isinstance(uamps, float)):
                 raise Exception("Invalid value entered for uamps")
             else:
-                print('Waiting for', str(uamps), 'uamps' + timeout_msg)
+                print('Waiting for {} uamps {}'.format(uamps, timeout_msg))
 
         if block is not None:
             if not self.api.block_exists(block):
-                raise NameError('No block with the name "%s" exists' % block)
+                raise NameError('No block with the name "{}" exists'.format(block))
             block = self.api.correct_blockname(block)
             if value is not None and (not isinstance(value, float) and not isinstance(value, six.integer_types)
                                       and not isinstance(value, six.string_types)):
@@ -103,7 +103,7 @@ class WaitForController(object):
         while True:
             if maxwait is not None:
                 if datetime.utcnow() - start_time >= maxwait:
-                    print("Waitfor timed out after %s" % maxwait)
+                    print("Waitfor timed out after {} seconds".format(maxwait))
                     self.api.log_info_msg("WAITFOR TIMED OUT")
                     return
 
@@ -146,10 +146,6 @@ class WaitForController(object):
         """
         time_delta = self._get_time_delta(maxwaitsecs, 0, 0)
         state = state.upper().strip()
-#        if onexit:
-#            print "Waiting for state to exit:", state, "(Timeout after %d seconds)" % maxwaitsecs
-#        else:
-#            print "Waiting for state:", state, "(Timeout after %d seconds)" % maxwaitsecs
         start_time = datetime.utcnow()
         while True:
             sleep(0.3)
@@ -171,7 +167,7 @@ class WaitForController(object):
         self.time_delta = self._get_time_delta(seconds, minutes, hours)
         if self.time_delta is not None:
             self.start_time = datetime.utcnow()
-            print('Waiting for', str(self.time_delta.total_seconds()), 'seconds' + timeout_msg)
+            print('Waiting for {} seconds {}'.format(self.time_delta.total_seconds(), timeout_msg))
         else:
             self.start_time = None
 
