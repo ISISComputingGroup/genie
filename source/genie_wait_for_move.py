@@ -11,6 +11,7 @@ Allows motors to complete their motion fully before proceeding."""
 from __future__ import absolute_import
 from __future__ import print_function
 import time
+from genie_python.utilities import sleep
 
 
 class WaitForMoveController(object):
@@ -51,7 +52,7 @@ class WaitForMoveController(object):
     def _do_wait(self, start_timeout, move_timeout, check_for_move):
         # Pause very briefly to avoid any "double move" that may occur when multiple motors are moved
         # and one of the motors is sent to its current position
-        time.sleep(0.01)
+        sleep(0.01)
 
         self._missing_blocks = list()
 
@@ -62,7 +63,7 @@ class WaitForMoveController(object):
 
         start = time.time()
         while check_for_move():
-            time.sleep(self._polling_delay)
+            sleep(self._polling_delay)
             if move_timeout is not None and time.time() - start >= move_timeout:
                 self._api.log_info_msg("WAITFOR_MOVE TIMED OUT")
                 return
@@ -84,7 +85,7 @@ class WaitForMoveController(object):
         start = time.time()
 
         while not check_for_move():
-            time.sleep(self._polling_delay)
+            sleep(self._polling_delay)
             if time.time() - start >= timeout:
                 self._api.log_info_msg("WAITFOR_MOVE START TIMED OUT")
                 return
@@ -114,7 +115,7 @@ class WaitForMoveController(object):
         return False
 
     def _flag_error_conditions(self, blocks):
-        time.sleep(0.5)
+        sleep(0.5)
         filtered_blocks = self._filter_out_missing_blocks(blocks)
 
         # Check alarms

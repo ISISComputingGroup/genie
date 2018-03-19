@@ -10,6 +10,12 @@ from six.moves import range
 from six.moves import zip
 import codecs
 
+# Check if we have the NICOS sleep available already
+try:
+    from nicos.commands.basic import sleep
+except ImportError:
+    from time import sleep
+
 
 class PVReadException(Exception):
     """

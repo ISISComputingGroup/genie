@@ -3,9 +3,10 @@ Classes allowing you to wait for states
 """
 from __future__ import absolute_import
 from __future__ import print_function
-from time import sleep, strptime
+from time import strptime
 from datetime import timedelta, datetime
 import six
+from genie_python.utilities import sleep
 
 
 class WaitForController(object):
@@ -215,9 +216,7 @@ class WaitForController(object):
             high = highlimit
         # Check low and high are round the correct way
         if low is not None and high is not None and low > high:
-            temp = high
-            high = low
-            low = temp
+            low, high = high, low
             print("WARNING: The highlimit and lowlimit have been swapped to lowlimit({}) and highlimit({})"
                   .format(low, high))
         return low, high
