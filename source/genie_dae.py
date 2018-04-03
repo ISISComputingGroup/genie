@@ -1527,7 +1527,11 @@ class Dae(object):
         with self._temporarily_kill_icp():
             for path in existent_config_files:
                 xml = ET.parse(path).getroot()
-                xml.find(r"I32/[Name='Simulate']/Val").text = "1" if mode else "0"
+
+                node = xml.find(r"I32/[Name='Simulate']/Val")
+                if node is None:
+                    raise ValueError("No 'simulate' tag in ISISICP config file.")
+                node.text = "1" if mode else "0"
 
                 os.chmod(path, S_IWUSR | S_IREAD)
 
