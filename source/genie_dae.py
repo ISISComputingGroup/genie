@@ -1507,6 +1507,7 @@ class Dae(object):
             yield
         finally:
             self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:START"), 1)
+            self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:AUTORESTART"), 1)
 
     def set_simulation_mode(self, mode):
         """
