@@ -7,7 +7,7 @@ import json
 import re
 from contextlib import contextmanager
 from stat import S_IWUSR, S_IREAD
-from time import strftime
+from time import strftime, sleep
 import psutil
 
 from genie_python.genie_change_cache import ChangeCache
@@ -1507,7 +1507,18 @@ class Dae(object):
             yield
         finally:
             self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:START"), 1)
-            self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:AUTORESTART"), 1)
+
+            max_number_of_seconds_to_wait_for_ioc_to_start = 20
+            for _ in range(max_number_of_seconds_to_wait_for_ioc_to_start):
+                if self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STATUS")) == "Running":
+                    break
+                else:
+                    sleep(1)
+            else:
+                raise IOError("Could not restart ISISDAE!")
+
+            if self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:AUTORESTART")) != "On":
+                self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:TOGGLE"), 1)
 
     def set_simulation_mode(self, mode):
         """
