@@ -2325,3 +2325,31 @@ def get_version():
         string: The current version number of genie python
     """
     return VERSION
+
+
+@usercommand
+@helparglist('mode')
+def set_dae_simulation_mode(mode):
+    """
+    Sets the DAE into simulation mode.
+    Args:
+         mode: True to set the DAE into simulated mode, False to set the DAE into non-simulated (hardware) mode
+    """
+    try:
+        return __api.dae.set_simulation_mode(mode)
+    except Exception as e:
+        _handle_exception(e)
+
+
+@usercommand
+@helparglist('')
+def get_dae_simulation_mode():
+    """
+    Gets the DAE simulation mode.
+    Returns:
+        True if the DAE is in simulation mode, False otherwise.
+    """
+    try:
+        return __api.dae.get_simulation_mode()
+    except Exception as e:
+        _handle_exception(e)
