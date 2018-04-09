@@ -9,7 +9,7 @@ docs/doxygen/
 # Installed Python files
 Doc/
 DLLs/
-EPICS-UTILS
+EPICS_UTILS
 LICENSE.txt
 NEWS.txt
 Scripts/
@@ -18,6 +18,12 @@ include/
 libs/
 tcl/
 share/
+README.txt
+python.*
+python27.*
+pythonw.*
+
+# Test files
 build_scripts/test_reports
 
 # Ignore Lib except genie_python source
