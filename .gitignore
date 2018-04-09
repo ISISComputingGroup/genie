@@ -24,7 +24,7 @@ python27.*
 pythonw.*
 
 # Test files
-build_scripts/test_reports
+build_scripts/test-reports
 
 # Ignore Lib except genie_python source
 Lib/*
