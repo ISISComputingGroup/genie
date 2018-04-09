@@ -27,5 +27,5 @@ pythonw.*
 build_scripts/test-reports
 
 # Ignore Lib except genie_python source
-Lib/*
+Lib/
 !Lib/site-packages/genie_python
