@@ -23,8 +23,12 @@ python.*
 python27.*
 pythonw.*
 
+# Ignore our own scripts
+genie_python*
+get_isis_ip.bat
+
 # Test files
-build_scripts/test-reports
+package_builder/test-reports
 
 # Ignore Lib except genie_python source
 Lib/
