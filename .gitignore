@@ -3,6 +3,23 @@
 *~ 
 *.egg-info 
 .idea/
-source/test-reports/
 docs/_build/
 docs/doxygen/
+
+# Installed Python files
+Doc/
+DLLs/
+EPICS-UTILS
+LICENSE.txt
+NEWS.txt
+Scripts/
+Tools/
+include/
+libs/
+tcl/
+share/
+build_scripts/test_reports
+
+# Ignore Lib except genie_python source
+Lib/*
+!Lib/site-packages/genie_python
