@@ -22,6 +22,9 @@ README.txt
 python.*
 python27.*
 pythonw.*
+VERSION.txt
+BUILD_NUMBER.txt
+ipython_config.py
 
 # Ignore our own scripts
 genie_python*
