@@ -26,6 +26,16 @@ VERSION.txt
 BUILD_NUMBER.txt
 ipython_config.py
 
+# Installed Python 3 files
+Logs/
+etc/
+man/
+*.dll
+*.pdb
+*.exe
+*._pth
+qt.conf
+
 # Ignore our own scripts
 genie_python*
 get_isis_ip.bat
