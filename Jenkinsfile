@@ -96,7 +96,7 @@ pipeline {
             set RELEASE_BRANCH=${env.RELEASE_VERSION}
             set RELEASE=${env.IS_RELEASE}
             cd package_builder
-            build_python_3.bat
+            jenkins_build_python.bat 3
             """
       }
     }
