@@ -3,6 +3,46 @@
 *~ 
 *.egg-info 
 .idea/
-source/test-reports/
 docs/_build/
 docs/doxygen/
+
+# Installed Python files
+Doc/
+DLLs/
+EPICS_UTILS
+LICENSE.txt
+NEWS.txt
+Scripts/
+Tools/
+include/
+libs/
+tcl/
+share/
+README.txt
+python.*
+python27.*
+pythonw.*
+VERSION.txt
+BUILD_NUMBER.txt
+ipython_config.py
+
+# Installed Python 3 files
+Logs/
+etc/
+man/
+*.dll
+*.pdb
+*.exe
+*._pth
+qt.conf
+
+# Ignore our own scripts
+genie_python*
+get_isis_ip.bat
+
+# Test files
+package_builder/test-reports
+
+# Ignore Lib except genie_python source
+Lib/
+!Lib/site-packages/genie_python
