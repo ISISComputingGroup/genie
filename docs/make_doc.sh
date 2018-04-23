@@ -7,7 +7,7 @@ mkdir ../smslib/sms
 touch ../smslib/__init__.py
 touch ../smslib/sms/__init__.py
 
-env PYTHONPATH=.. make -W html
+env PYTHONPATH=.. make html
 
 ( cd ..; test -h genie_python  && rm -f genie_python )
 rm -fr ../smslib
