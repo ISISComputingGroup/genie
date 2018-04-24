@@ -5,7 +5,11 @@ import os
 import zlib
 import json
 import re
-from time import strftime
+from contextlib import contextmanager
+from stat import S_IWUSR, S_IREAD
+from time import strftime, sleep
+import psutil
+
 from genie_python.genie_change_cache import ChangeCache
 from genie_python.utilities import dehex_and_decompress, compress_and_hex, convert_string_to_ascii, get_correct_path
 import six
@@ -85,8 +89,14 @@ DAE_PVS_LOOKUP = {
     "detectortables": "DAE:DETECTORTABLES",
     "periodfiles": "DAE:PERIODFILES",
     "set_veto_true": "DAE:VETO:ENABLE:SP",
-    "set_veto_false": "DAE:VETO:DISABLE:SP"
+    "set_veto_false": "DAE:VETO:DISABLE:SP",
+    "simulation_mode": "DAE:SIM_MODE"
 }
+
+DAE_CONFIG_FILE_PATHS = [
+    "C:\Labview modules\dae\icp_config.xml",
+    "C:\Instrument\Apps\EPICS\ICP_Binaries\icp_config.xml",
+]
 
 CLEAR_VETO = 'clearall'
 SMP_VETO = 'smp'
@@ -1483,3 +1493,66 @@ class Dae(object):
                 out[match.group(1)] = v.text
 
         return out
+
+    @contextmanager
+    def _temporarily_kill_icp(self):
+        """
+        Context manager to temporarily kill ICP.
+        """
+        self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STOP"), 1)
+        try:
+            for p in psutil.process_iter():
+                if p.name().lower() == "isisicp.exe":
+                    p.kill()
+            yield
+        finally:
+            self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:START"), 1)
+
+            max_number_of_seconds_to_wait_for_ioc_to_start = 20
+            for _ in range(max_number_of_seconds_to_wait_for_ioc_to_start):
+                if self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STATUS")) == "Running":
+                    break
+                else:
+                    sleep(1)
+            else:
+                raise IOError("Could not restart ISISDAE!")
+
+            if self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:AUTORESTART")) != "On":
+                self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:TOGGLE"), 1)
+
+    def set_simulation_mode(self, mode):
+        """
+        Sets the DAE simulation mode by writing to ICP_config.xml and restarting the DAE IOC and ISISICP
+        Args:
+            mode (bool): True to simulate the DAE, False otherwise
+        """
+
+        if self.get_run_state() not in ["SETUP", "PROCESSING"]:
+            raise ValueError("Cannot set simulation mode - must be in SETUP or PROCESSING")
+
+        existent_config_files = [p for p in DAE_CONFIG_FILE_PATHS if os.path.exists(p)]
+
+        if not len(existent_config_files) > 0:
+            raise IOError("Could not find ICP configuration file")
+
+        with self._temporarily_kill_icp():
+            for path in existent_config_files:
+                xml = ET.parse(path).getroot()
+
+                node = xml.find(r"I32/[Name='Simulate']/Val")
+                if node is None:
+                    raise ValueError("No 'simulate' tag in ISISICP config file.")
+                node.text = "1" if mode else "0"
+
+                os.chmod(path, S_IWUSR | S_IREAD)
+
+                with open(path, "w") as f:
+                    f.write(ET.tostring(xml))
+
+    def get_simulation_mode(self):
+        """
+        Gets the DAE simulation mode.
+        Returns:
+            True if the DAE is in simulation mode, False otherwise.
+        """
+        return self._get_pv_value(self._prefix_pv_name(DAE_PVS_LOOKUP["simulation_mode"])) == "Yes"

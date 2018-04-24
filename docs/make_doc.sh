@@ -1,7 +1,7 @@
 #!/bin/sh
 set -o errexit
 
-( cd ..; test -e genie_python || ln -s source genie_python )
+( cd ..; test -e genie_python || ln -s Lib/site-packages/genie_python genie_python )
 mkdir ../smslib
 mkdir ../smslib/sms
 touch ../smslib/__init__.py
