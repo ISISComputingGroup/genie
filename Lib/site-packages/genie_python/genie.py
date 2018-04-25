@@ -308,7 +308,7 @@ def cset(*args, **kwargs):
                     values.append(kwargs[k])
                 else:
                     raise Exception('No block with the name "%s" exists' % k)
-            #Warn if highlimit and lowlimit are round correct way
+            # Warn if highlimit and lowlimit are round the incorrect way
             check_lowlimit_against_highlimit(lowlimit, highlimit)
 
         if block is not None and len(blocks) > 0:
