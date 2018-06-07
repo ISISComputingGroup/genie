@@ -37,12 +37,19 @@ man/
 qt.conf
 
 # Ignore our own scripts
-genie_python*
+# don't use  genie_python*  as it also matches directory in site-packages
+genie_python.bat
+genie_python.ico
+genie_python_simulate.bat
 get_isis_ip.bat
 
 # Test files
 package_builder/test-reports
 
 # Ignore Lib except genie_python source
-Lib/
-!Lib/site-packages/genie_python
+# Needs to be done this slightly convoluted way as you cannot 
+# unexclude a directory if the parent directory is excluded 
+Lib/*
+!Lib/site-packages/
+Lib/site-packages/*
+!Lib/site-packages/genie_python/
