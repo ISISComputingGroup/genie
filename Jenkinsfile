@@ -48,6 +48,7 @@ pipeline {
         }
         
         bat """
+            git clean -fqdx
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set BRANCH_NAME=${env.BRANCH_NAME}
             set GIT_COMMIT=${env.GIT_COMMIT}
@@ -90,6 +91,7 @@ pipeline {
         }
         
         bat """
+            git clean -fqdx
             set BUILD_NUMBER=${env.BUILD_NUMBER}
             set BRANCH_NAME=${env.BRANCH_NAME}
             set GIT_COMMIT=${env.GIT_COMMIT}
