@@ -15,5 +15,7 @@ Commands
 .. automodule:: genie
    :members:
 
+.. automodule:: genie_advanced
+   :members:
 
 
