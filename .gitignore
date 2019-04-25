@@ -1,10 +1,11 @@
-*.py[co] 
-*.swp 
-*~ 
-*.egg-info 
+*.py[co]
+*.swp
+*~
+*.egg-info
 .idea/
 docs/_build/
 docs/doxygen/
+.vs/
 
 # Installed Python files
 Doc/
@@ -47,8 +48,8 @@ get_isis_ip.bat
 package_builder/test-reports
 
 # Ignore Lib except genie_python source
-# Needs to be done this slightly convoluted way as you cannot 
-# unexclude a directory if the parent directory is excluded 
+# Needs to be done this slightly convoluted way as you cannot
+# unexclude a directory if the parent directory is excluded
 Lib/*
 !Lib/site-packages/
 Lib/site-packages/*
