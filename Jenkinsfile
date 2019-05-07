@@ -6,8 +6,6 @@ pipeline {
   agent {  
     label {
       label "genie"
-      // Use custom workspace to avoid issue with long filepaths on Win32
-      customWorkspace "C:/genie/${env.BRANCH_NAME}"
     }
   }
   
