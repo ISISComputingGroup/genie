@@ -45,7 +45,7 @@ genie_python_simulate.bat
 get_isis_ip.bat
 
 # Test files
-package_builder/test-reports
+**/test-reports
 
 # Ignore Lib except genie_python source
 # Needs to be done this slightly convoluted way as you cannot
