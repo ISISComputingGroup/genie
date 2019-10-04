@@ -54,3 +54,5 @@ Lib/*
 !Lib/site-packages/
 Lib/site-packages/*
 !Lib/site-packages/genie_python/
+
+*.zip
