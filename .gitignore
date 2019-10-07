@@ -56,3 +56,4 @@ Lib/site-packages/*
 !Lib/site-packages/genie_python/
 
 *.zip
+package_builder/get-pip.py
