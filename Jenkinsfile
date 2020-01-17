@@ -100,7 +100,11 @@ pipeline {
             """
       }
     }
-    
+    stage("Report Unit Tests python 3") {
+      steps {
+        junit '**/test-reports/TEST-*.xml'
+      }
+   }
     stage("Trigger Downstream") {
       steps {
         build job: 'ibex_gui_pipeline', wait: false
