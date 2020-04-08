@@ -57,3 +57,7 @@ Lib/site-packages/*
 
 *.zip
 package_builder/get-pip.py
+
+package_builder/python_deps/*
+package_builder/smslib/build/*
+package_builder/CaChannel-3.1.2.tar.gz
