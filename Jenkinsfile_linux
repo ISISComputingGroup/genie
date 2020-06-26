@@ -74,7 +74,7 @@ pipeline {
             export RELEASE_BRANCH=${env.RELEASE_VERSION}
             export RELEASE=${env.IS_RELEASE}
             cd package_builder
-            jenkins_build_python.sh 3
+            sh jenkins_build_python.sh 3
             """
       }
     }
