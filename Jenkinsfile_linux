@@ -5,7 +5,7 @@ pipeline {
   // agent defines where the pipeline will run.
   agent {  
     label {
-      label "s7cloud"
+      label "sl7cloud"
     }
   }
   
