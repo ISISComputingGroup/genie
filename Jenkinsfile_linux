@@ -89,4 +89,10 @@ pipeline {
       }
     }
   }  
+ post {
+    always {
+      archiveArtifacts artifacts: 'package_builder/genie_python.tar,gz', caseSensitive: false
+    }
+  }
 }
+
