@@ -13,6 +13,27 @@ pipeline {
     pollSCM('H/2 * * * *')
   }
 
+  // The options directive is for configuration that applies to the whole job.
+  options {
+    buildDiscarder(logRotator(numToKeepStr:'5', daysToKeepStr: '7'))
+    timeout(time: 60, unit: 'MINUTES')
+    disableConcurrentBuilds()
+    timestamps()
+    office365ConnectorWebhooks([[
+                    name: "Office 365",
+                    notifyBackToNormal: true,
+                    startNotification: false,
+                    notifyFailure: true,
+                    notifySuccess: false,
+                    notifyNotBuilt: false,
+                    notifyAborted: false,
+                    notifyRepeatedFailure: true,
+                    notifyUnstable: true,
+                    url: "${env.MSTEAMS_URL}"
+            ]]
+    )
+  }
+
   stages {  
     stage("Checkout") {
       steps {
@@ -32,7 +53,7 @@ pipeline {
             // env.BRANCH_NAME is only supplied to multi-branch pipeline jobs
             if (env.BRANCH_NAME == null) {
                 env.BRANCH_NAME = "master"
-			}
+            }
 
             if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
                 env.IS_RELEASE = "YES"
@@ -57,7 +78,7 @@ pipeline {
             """
       }
     }
-	  
+      
    stage("Report Unit Tests python 2") {
       steps {
         junit '**/test-reports/TEST-*.xml'
@@ -75,7 +96,7 @@ pipeline {
             // env.BRANCH_NAME is only supplied to multi-branch pipeline jobs
             if (env.BRANCH_NAME == null) {
                 env.BRANCH_NAME = "master"
-			}
+            }
 
             if (env.BRANCH_NAME != null && env.BRANCH_NAME.startsWith("Release")) {
                 env.IS_RELEASE = "YES"
@@ -100,30 +121,15 @@ pipeline {
             """
       }
     }
-    
     stage("Report Unit Tests python 3") {
       steps {
         junit '**/test-reports/TEST-*.xml'
       }
-    }
-    
+   }
     stage("Trigger Downstream") {
       steps {
         build job: 'ibex_gui_pipeline', wait: false
       }
     }
-  }
-  
-  post {
-    failure {
-      step([$class: 'Mailer', notifyEveryUnstableBuild: true, recipients: 'icp-buildserver@lists.isis.rl.ac.uk', sendToIndividuals: true])
-    }
-  }
-  
-  // The options directive is for configuration that applies to the whole job.
-  options {
-    buildDiscarder(logRotator(numToKeepStr:'5', daysToKeepStr: '7'))
-    timeout(time: 60, unit: 'MINUTES')
-    disableConcurrentBuilds()
-  }
+  }  
 }
