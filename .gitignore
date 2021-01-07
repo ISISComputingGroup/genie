@@ -63,3 +63,8 @@ package_builder/smslib/build/*
 package_builder/CaChannel-3.1.2.tar.gz
 *.log
 *.msi
+package_builder/build-genie-python/
+package_builder/epics-base/
+package_builder/genie_python
+package_builder/genie_python.tar.gz
+
