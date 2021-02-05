@@ -78,6 +78,12 @@ pipeline {
             """
       }
     }
+      
+   stage("Report Unit Tests python 2") {
+      steps {
+        junit '**/test-reports/TEST-*.xml'
+      }
+   }
     
     stage("Build for Python 3") {
       steps {
