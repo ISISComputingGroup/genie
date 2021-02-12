@@ -88,11 +88,5 @@ pipeline {
         build job: 'ibex_gui_linux_pipeline', wait: false
       }
     }
-  }  
-// post {
-//    always {
-//      archiveArtifacts artifacts: 'package_builder/genie_python.tar.gz', caseSensitive: false
-//    }
-//  }
+  }
 }
-
