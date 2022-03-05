@@ -91,7 +91,7 @@ pipeline {
   }
   post {
     always {
-       archiveArtifacts artifacts: 'docs/_build/html', caseSensitive: false
+       archiveArtifacts artifacts: 'docs/_build/html/**/*', caseSensitive: false
     }
   }
 }
