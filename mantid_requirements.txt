@@ -1,0 +1,13 @@
+#
+# additional requirements needed to run genie python in a mantid python session
+#
+pylint==2.13.9
+mysql-connector-python
+CaChannel
+graypy
+mock
+# these are also needed by genie python but look to be already in Mantid
+#pywin32;platform_system=="Windows"
+#future
+#six
+#psutil
