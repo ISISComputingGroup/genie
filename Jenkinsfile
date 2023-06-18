@@ -88,5 +88,14 @@ pipeline {
         build job: 'ibex_gui_pipeline', wait: false
       }
     }
-  }  
+  }
+  post {
+    cleanup {
+            echo "***"
+            echo "*** Any Office365connector Matched status FAILURE message below means"
+            echo "*** an earlier Jenkins step failed not the Office365connector itself"
+            echo "*** Search log file for  ERROR  to locate true cause"
+            echo "***"
+    }
+  }
 }
