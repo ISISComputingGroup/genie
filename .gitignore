@@ -39,10 +39,13 @@ qt.conf
 
 # Ignore our own scripts
 # don't use  genie_python*  as it also matches directory in site-packages
-genie_python.bat
-genie_python.ico
-genie_python_simulate.bat
-get_isis_ip.bat
+/genie_python.bat
+/genie_python3.bat
+/genie_python_main.bat
+/genie_python.ico
+/genie_python_simulate.bat
+/get_isis_ip.bat
+/add_genie_python_to_mantid.bat
 
 # Test files
 **/test-reports
@@ -60,6 +63,7 @@ package_builder/get-pip.py
 
 package_builder/python_deps/*
 package_builder/smslib/build/*
+package_builder/smslib/sms.c
 package_builder/CaChannel-3.1.2.tar.gz
 *.log
 *.msi
