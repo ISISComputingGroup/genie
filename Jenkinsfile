@@ -43,8 +43,8 @@ pipeline {
             checkout scm
           }
         }
-	    }
-	  }
+      }
+   }
     
     stage("Build for Python 3") {
       steps {
