@@ -101,12 +101,14 @@ pipeline {
             echo "*** Search log file for  ERROR  to locate true cause"
             echo "***"
     }
-    logParser ([
-            projectRulePath: 'parse_rules',
-            parsingRulesPath: '',
-            showGraphs: true, 
-            unstableOnWarning: true,
-            useProjectRule: true,
-        ])
+    always {
+        logParser ([
+                projectRulePath: 'parse_rules',
+                parsingRulesPath: '',
+                showGraphs: true, 
+                unstableOnWarning: true,
+                useProjectRule: true,
+            ])
+    }
   }
 }
