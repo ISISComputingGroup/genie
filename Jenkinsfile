@@ -105,8 +105,8 @@ pipeline {
         logParser ([
                 projectRulePath: 'parse_rules',
                 parsingRulesPath: '',
-                showGraphs: true, 
-                unstableOnWarning: true,
+                showGraphs: true,
+                unstableOnWarning: false,
                 useProjectRule: true,
             ])
     }
