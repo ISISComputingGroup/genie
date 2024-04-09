@@ -16,7 +16,7 @@ pipeline {
   // The options directive is for configuration that applies to the whole job.
   options {
     buildDiscarder(logRotator(numToKeepStr:'5', daysToKeepStr: '7'))
-    timeout(time: 60, unit: 'MINUTES')
+    timeout(time: 90, unit: 'MINUTES')
     disableConcurrentBuilds()
     timestamps()
     office365ConnectorWebhooks([[
@@ -100,6 +100,15 @@ pipeline {
             echo "*** an earlier Jenkins step failed not the Office365connector itself"
             echo "*** Search log file for  ERROR  to locate true cause"
             echo "***"
+    }
+    always {
+        logParser ([
+                projectRulePath: 'parse_rules',
+                parsingRulesPath: '',
+                showGraphs: true,
+                unstableOnWarning: false,
+                useProjectRule: true,
+            ])
     }
   }
 }
