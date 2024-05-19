@@ -21,7 +21,6 @@ pipeline {
   // The options directive is for configuration that applies to the whole job.
   options {
     buildDiscarder(logRotator(numToKeepStr:'5', daysToKeepStr: '7'))
-    timeout(time: 120, unit: 'MINUTES')
     disableConcurrentBuilds()
     timestamps()
     office365ConnectorWebhooks([[
@@ -55,6 +54,7 @@ pipeline {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
         lock(resource: PLOCK, inversePrecedence: false) {
+        timeout(time: 120, unit: 'MINUTES') {
         script {
             env.GIT_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
             env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
@@ -85,6 +85,7 @@ pipeline {
             cd package_builder
             jenkins_build_python.bat 3
             """
+        }
         }
       }
     }
