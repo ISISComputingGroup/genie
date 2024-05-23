@@ -9,5 +9,4 @@ mock
 # these are also needed by genie python but look to be already in Mantid
 #pywin32;platform_system=="Windows"
 #future
-#six
 #psutil
