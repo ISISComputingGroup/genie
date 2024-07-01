@@ -9,6 +9,11 @@ pipeline {
     }
   }
   
+  environment {
+      NODE = "${env.NODE_NAME}"
+      PLOCK = "python_${NODE}"
+  }
+  
   triggers {
     pollSCM('H/2 * * * *')
   }
@@ -16,7 +21,6 @@ pipeline {
   // The options directive is for configuration that applies to the whole job.
   options {
     buildDiscarder(logRotator(numToKeepStr:'5', daysToKeepStr: '7'))
-    timeout(time: 90, unit: 'MINUTES')
     disableConcurrentBuilds()
     timestamps()
     office365ConnectorWebhooks([[
@@ -49,6 +53,8 @@ pipeline {
     stage("Build for Python 3") {
       steps {
         echo "Build Number: ${env.BUILD_NUMBER}"
+        lock(resource: PLOCK, inversePrecedence: false) {
+        timeout(time: 120, unit: 'MINUTES') {
         script {
             env.GIT_COMMIT = bat(returnStdout: true, script: '@git rev-parse HEAD').trim()
             env.GIT_BRANCH = bat(returnStdout: true, script: '@git rev-parse --abbrev-ref HEAD').trim()
@@ -69,7 +75,6 @@ pipeline {
                 env.RELEASE_VERSION = ""
             }
         }
-        
         bat """
             git clean -fqdx
             set BUILD_NUMBER=${env.BUILD_NUMBER}
@@ -80,6 +85,8 @@ pipeline {
             cd package_builder
             jenkins_build_python.bat 3
             """
+        }
+        }
       }
     }
     stage("Report Unit Tests python 3") {
