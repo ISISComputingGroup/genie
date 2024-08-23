@@ -2,6 +2,7 @@ name: Linter
 on: [pull_request]
 jobs:
   call-workflow:
-    uses: ISISComputingGroup/reusable-workflows/.github/workflows/linters.yml@main
+    uses: ISISComputingGroup/reusable-workflows/.github/workflows/linters.yml@SpecifyDependencies
     with:
       compare-branch: origin/master
+      requirements-path: "package_builder/requirements.txt"
