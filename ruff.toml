@@ -49,6 +49,7 @@ ignore = [
     "N999",  # Ignore this because the repo itself would need to be renamed
     "ANN101",  # ignore this until its removed in future versions
     "ANN102",  # ignore this until its removed in future versions
+    "ANN401", # explicit ANY type is allowed
 ]
 [lint.per-file-ignores]
 "{**/tests/**,/tests/**,**/*tests.py,tests/**,*tests.py,*test.py,**/*test.py,common_tests/**,**/test_modules**}" = [
