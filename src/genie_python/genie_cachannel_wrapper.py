@@ -11,7 +11,16 @@ from threading import Event
 from typing import TYPE_CHECKING, Optional, Tuple, TypeVar
 
 from CaChannel import CaChannel, CaChannelException, ca
-from CaChannel._ca import AlarmCondition, AlarmSeverity, dbf_type_to_DBR_STS, dbf_type_to_DBR_TIME
+
+try:
+    from CaChannel._ca import (
+        AlarmCondition,
+        AlarmSeverity,
+        dbf_type_to_DBR_STS,
+        dbf_type_to_DBR_TIME,
+    )
+except ImportError:
+    from caffi.ca import AlarmCondition, AlarmSeverity, dbf_type_to_DBR_STS, dbf_type_to_DBR_TIME
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue
@@ -112,7 +121,13 @@ class CaChannelWrapper(object):
         # callbacks CaChannel itself delays creation of the context, so if we just installed the
         # handlers now we would get a default non-preemptive CA context created.
         chan.poll()
-        chan.replace_printf_handler(CaChannelWrapper.printfHandler)
+        try:
+            chan.replace_printf_handler(CaChannelWrapper.printfHandler)
+        except AttributeError:
+            # If we can't replace the printf handler, ignore that error - it is not crucial.
+            # It probably means we are using default CaChannel, as opposed to ISIS' special build.
+            # Cope with both cases.
+            pass
         chan.add_exception_event(CaChannelWrapper.CAExceptionHandler)
 
     # noinspection PyPep8Naming

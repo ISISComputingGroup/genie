@@ -10,8 +10,6 @@ from builtins import object
 from datetime import timedelta
 from functools import wraps
 
-from future.utils import python_2_unicode_compatible
-
 try:
     from nicos import session
 
@@ -47,7 +45,6 @@ def cleanup_subprocs_on_process_exit():
             raise OSError(f"cleanup_subprocs_on_process_exit() failed: {err}")
 
 
-@python_2_unicode_compatible
 class PVReadException(Exception):
     """
     Exception to throw when there is a problem reading a PV.
