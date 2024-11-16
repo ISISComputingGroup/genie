@@ -28,9 +28,6 @@ classifiers = [
 dependencies = [
   # EPICS Channel access lib
   "CaChannel",
-  # Caffi provides some EPICS CA definitions if CaChannel is falling back to using caffi backend
-  # (not used if CaChannel._ca is available)
-  "caffi",
   # Send log messages to graylog
   "graypy",
   # genie_python will install ipython completers
