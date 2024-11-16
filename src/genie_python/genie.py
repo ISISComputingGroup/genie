@@ -1079,10 +1079,9 @@ def get_time_since_begin(get_timedelta: bool = False) -> float | datetime.timede
             otherwise return seconds (defaults to false)
 
     Returns
-        integer: the time since start in seconds if get_datetime is False
-        timedelta: the time since begin as a datetime.timedelta object
-            (Year-Month-Day  Hour:Minute:Second)
-        if get_datetime is True
+        integer: the time since start in seconds if get_datetime is False,
+            or timedelta, the time since begin as a datetime.timedelta object
+            (Year-Month-Day  Hour:Minute:Second) if get_datetime is True
     """
 
     return _genie_api.dae.get_time_since_begin(get_timedelta)
@@ -2392,6 +2391,7 @@ def get_version() -> str:
 def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -> None:
     """
     Sets the DAE into simulation mode.
+
     Args:
          mode: True to set the DAE into simulated mode, False to set the DAE into
             non-simulated (hardware) mode
