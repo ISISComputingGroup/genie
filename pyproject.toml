@@ -43,8 +43,10 @@ dependencies = [
   "p4p",
   # Used to find process by name to kill it
   "psutil",
-  # For checking user scripts on g.load_script()
+  # For linting user scripts on g.load_script()
   "pylint",
+  # For type-checking user scripts on g.load_script()
+  "pyright",
   # For setting windows job-object flags
   "pywin32;platform_system=='Windows'",
 ]
@@ -75,7 +77,8 @@ dev = [
   "mock",
   "parameterized",
   "pyhamcrest",
-  "pyright",
+  "pytest",
+  "pytest-cov",
   "ruff>=0.6",
 ]
 
@@ -83,6 +86,25 @@ dev = [
 "Homepage" = "https://github.com/isiscomputinggroup/genie"
 "Bug Reports" = "https://github.com/isiscomputinggroup/genie/issues"
 "Source" = "https://github.com/isiscomputinggroup/genie"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+addopts = "--cov --cov-report=html -vv"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:",
+  "@abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "coverage_html_report"
 
 [tool.pyright]
 include = ["src", "tests"]

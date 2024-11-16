@@ -282,7 +282,7 @@ class TestGetJsonPVValue(unittest.TestCase):
         api = Mock()
         api.get_pv_value = Mock(return_value=compressed_list)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             PVReadException, "Can not unmarshal.*", get_json_pv_value, "name", api
         )
 
@@ -301,7 +301,7 @@ class TestGetJsonPVValue(unittest.TestCase):
         api = Mock()
         api.get_pv_value = Mock(return_value=(invalid_string))
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             PVReadException, "Can not decompress.*", get_json_pv_value, "name", api
         )
 
@@ -309,7 +309,7 @@ class TestGetJsonPVValue(unittest.TestCase):
         api = Mock()
         api.get_pv_value = Mock(side_effect=Exception())
 
-        self.assertRaisesRegexp(PVReadException, "Can not read.*", get_json_pv_value, "name", api)
+        self.assertRaisesRegex(PVReadException, "Can not read.*", get_json_pv_value, "name", api)
 
     def test_GIVEN_unicode_with_only_ascii_WHEN_converted_THEN_no_change(self):
         # Arrange

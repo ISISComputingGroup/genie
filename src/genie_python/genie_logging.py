@@ -1,5 +1,6 @@
 """Logging module for genie"""
 
+import getpass
 import logging
 import logging.config
 
@@ -93,7 +94,7 @@ class LoggingConfigurer:
             if os.name == "nt":
                 return os.path.join("C:", os.sep, "Instrument", "Var", "logs", "genie_python")
             else:
-                return os.path.join("/tmp/{}/genie_python".format(os.getlogin()))
+                return os.path.join("/tmp/{}/genie_python".format(getpass.getuser()))
 
     @staticmethod
     def get_log_file_path():

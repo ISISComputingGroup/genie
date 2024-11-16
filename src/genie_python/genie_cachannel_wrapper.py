@@ -4,6 +4,7 @@ Wrapping of channel access in genie_python
 
 from __future__ import absolute_import, print_function
 
+import os
 import threading
 from builtins import object
 from collections.abc import Callable
@@ -229,6 +230,7 @@ class CaChannelWrapper(object):
         Raises:
             UnableToConnectToPVException if it was unable to connect to the channel
         """
+
         try:
             lock = CACHE_LOCK.lock
         except AttributeError:
@@ -363,6 +365,11 @@ class CaChannelWrapper(object):
         Raises:
             UnableToConnectToPVException: If cannot connect to PV.
         """
+        if os.getenv("GITHUB_ACTIONS"):
+            # genie_python does some PV accesses on import. To avoid them timing out and making CI
+            # builds really slow, shortcut every PV to "non-existent" here.
+            raise UnableToConnectToPVException("", "In CI")
+
         event = Event()
         try:
             ca_channel.search_and_connect(None, CaChannelWrapper.putCB, event)

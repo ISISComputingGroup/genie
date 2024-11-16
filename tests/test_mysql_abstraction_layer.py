@@ -16,6 +16,7 @@
 
 import unittest
 from typing import List
+from unittest.mock import patch
 
 from hamcrest import assert_that, equal_to
 from mock import Mock
@@ -103,9 +104,10 @@ class TestConnectionLayer(unittest.TestCase):
         ]
     )
     def test_GIVEN_close_error_WHEN_execute_command_THEN_connection_is_closed(self, raise_it):
-        sql = mysql_abstraction_layer.SQLAbstraction(
-            dbid="exp_data", user="report", password="$report"
-        )
+        with patch("genie_python.mysql_abstraction_layer.SQLAbstraction._start_connection_pool"):
+            sql = mysql_abstraction_layer.SQLAbstraction(
+                dbid="exp_data", user="report", password="$report"
+            )
         sql._get_connection = Mock(return_value=SQLConnectorStub(raise_it))
         exception_raised = False
         try:
@@ -127,9 +129,10 @@ class TestConnectionLayer(unittest.TestCase):
     def test_GIVEN_close_error_WHEN_query_returning_cursor_THEN_connection_is_closed(
         self, raise_it
     ):
-        sql = mysql_abstraction_layer.SQLAbstraction(
-            dbid="exp_data", user="report", password="$report"
-        )
+        with patch("genie_python.mysql_abstraction_layer.SQLAbstraction._start_connection_pool"):
+            sql = mysql_abstraction_layer.SQLAbstraction(
+                dbid="exp_data", user="report", password="$report"
+            )
         sql._get_connection = Mock(return_value=SQLConnectorStub(raise_it))
         exception_raised = False
         try:

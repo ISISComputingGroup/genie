@@ -536,6 +536,7 @@ class TestChangeScriptDir(unittest.TestCase):
     def setUp(self):
         self.default_dir = r"C:/scripts/"
         genie.change_script_dir(self.default_dir)
+        genie_python.genie_api_setup._exceptions_raised = True
 
     @patch("genie_python.utilities._correct_path_casing_existing")
     def test_GIVEN_defaults_set_WHEN_get_path_THEN_path_is_default(self, correct_casing):
@@ -624,7 +625,8 @@ class TestChangeScriptDir(unittest.TestCase):
     ):
         self.setup_mocks(r"c:/scripts", correct_casing, make_dirs_mock)
 
-        genie.change_script_dir(r"D:/scripts/test")
+        with self.assertRaises(OSError):
+            genie.change_script_dir(r"D:/scripts/test")
         result = genie.get_script_dir()
 
         assert_that(result, is_(r"C:/scripts/"))

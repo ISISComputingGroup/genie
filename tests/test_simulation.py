@@ -216,21 +216,21 @@ class TestSimulationSequence(unittest.TestCase):
 
     def test_GIVEN_one_block_WHEN_cset_runcontrol_and_wait__true_THEN_exception(self):
         create_dummy_blocks(["a"])
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             Exception, "Cannot enable or disable runcontrol at the same time as setting a wait"
         ):
             genie.cset(a=1, runcontrol=True, wait=True)
 
     def test_GIVEN_multiple_blocks_WHEN_cset_runcontrol_THEN_exception(self):
         create_dummy_blocks(["a", "b"])
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             Exception, "Runcontrol and wait can only be changed for one block at a time"
         ):
             genie.cset(a=1, b=2, runcontrol=True)
 
     def test_GIVEN_multiple_blocks_WHEN_cset_wait_THEN_exception(self):
         create_dummy_blocks(["a", "b"])
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             Exception, "Runcontrol and wait can only be changed for one block at a time"
         ):
             genie.cset(a=1, b=2, wait=True)
@@ -240,7 +240,7 @@ class TestSimulationSequence(unittest.TestCase):
         period = genie.get_number_periods()
 
         # Assert
-        with self.assertRaisesRegexp(
+        with self.assertRaisesRegex(
             Exception, "Cannot set period as it is higher than the number of periods"
         ):
             genie.change_period(period + 1)
