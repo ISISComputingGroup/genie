@@ -277,9 +277,7 @@ class _FigureManager(core.FigureManagerWebAgg):
             with IBEX_BACKEND_LOCK:
                 WebAggApplication.initialize(port=_web_backend_port)
                 worker_thread = threading.Thread(
-                    target=WebAggApplication.start,
-                    daemon=True,
-                    name="ibex_websocket_backend"
+                    target=WebAggApplication.start, daemon=True, name="ibex_websocket_backend"
                 )
                 worker_thread.start()
 

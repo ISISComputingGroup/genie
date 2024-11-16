@@ -3,8 +3,6 @@ from __future__ import absolute_import, print_function
 from builtins import object, str
 from functools import wraps
 
-import matplotlib.pyplot as pyplt
-
 
 def _plotting_func(func):
     """
@@ -16,6 +14,8 @@ def _plotting_func(func):
 
     @wraps(func)
     def wrapper(*args, **kwargs):
+        import matplotlib.pyplot as pyplt
+
         was_interactive = pyplt.isinteractive()
         pyplt.ioff()
         result = func(*args, **kwargs)
@@ -29,6 +29,8 @@ def _plotting_func(func):
 class SpectraPlot(object):
     @_plotting_func
     def __init__(self, api, spectrum, period, dist):
+        import matplotlib.pyplot as pyplt
+
         self.api = api
         self.spectra = []
         self.fig = pyplt.figure()

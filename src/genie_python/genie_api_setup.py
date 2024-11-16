@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 import ctypes
+import functools
 import glob
 import inspect
 import os
@@ -363,6 +364,7 @@ def log_command_and_handle_exception(f: Callable[P, T]) -> Callable[P, T]:
     accidentally put into a genie function
     """
 
+    @functools.wraps(f)
     def decorator(*args: P.args, **kwargs: P.kwargs) -> T:
         log_args = {"kwargs": kwargs}
         arg_names = getfullargspec(f).args
@@ -380,6 +382,7 @@ def log_command_and_handle_exception(f: Callable[P, T]) -> Callable[P, T]:
         except Exception as e:
             command_exception = traceback.format_exc()
             _handle_exception(e)
+            return None  # type: ignore
         finally:
             end = time.time()
             time_taken = end - start

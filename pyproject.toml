@@ -1,0 +1,126 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "genie_python"
+dynamic = ["version"]
+description = "Instrument control & scripting for the ISIS Neutron & Muon source"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+
+authors = [
+  {name = "ISIS Experiment Controls", email = "ISISExperimentControls@stfc.ac.uk" }
+]
+maintainers = [
+  {name = "ISIS Experiment Controls", email = "ISISExperimentControls@stfc.ac.uk" }
+]
+
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: BSD License",
+  "Programming Language :: Python :: 3.11",
+]
+
+dependencies = [
+  # EPICS Channel access lib
+  "CaChannel",
+  # Caffi provides some EPICS CA definitions if CaChannel is falling back to using caffi backend
+  # (not used if CaChannel._ca is available)
+  "caffi",
+  # Send log messages to graylog
+  "graypy",
+  # genie_python will install ipython completers
+  "ipython",
+  # Getting user details from database
+  "mysql-connector-python",
+  # Array support for CA calls
+  "numpy",
+  # EPICS PV access lib
+  "p4p",
+  # Used to find process by name to kill it
+  "psutil",
+  # For linting user scripts on g.load_script()
+  "pylint",
+  # For type-checking user scripts on g.load_script()
+  "pyright",
+  # For setting windows job-object flags
+  "pywin32;platform_system=='Windows'",
+]
+
+[project.optional-dependencies]
+
+# Make plotting an optional dependency as:
+# - It fixes a *specific* matplotlib version
+# - It depends on a couple of heavyweight libs (py4j and tornado) that aren't necessary otherwise
+plot = [
+  # When updating, check plotting works in GUI. Must keep pinned to a specific, tested version.
+  "matplotlib==3.9.2",
+  # Python <-> Java communication, to spawn matplotlib plots in GUI
+  "py4j",
+  # Tornado webserver used by custom backend
+  "tornado",
+]
+
+doc = [
+  "sphinx",
+  "sphinx_rtd_theme",
+  "myst_parser",
+  "sphinx-autobuild",
+]
+
+dev = [
+  "genie_python[plot,doc]",
+  "mock",
+  "parameterized",
+  "pyhamcrest",
+  "pytest",
+  "pytest-cov",
+  "ruff>=0.6",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/isiscomputinggroup/genie"
+"Bug Reports" = "https://github.com/isiscomputinggroup/genie/issues"
+"Source" = "https://github.com/isiscomputinggroup/genie"
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+addopts = "--cov --cov-report=html -vv"
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "if TYPE_CHECKING:",
+  "if typing.TYPE_CHECKING:",
+  "@abstractmethod",
+]
+
+[tool.coverage.html]
+directory = "coverage_html_report"
+
+[tool.pyright]
+include = ["src", "tests"]
+reportConstantRedefinition = true
+reportDeprecated = true
+reportInconsistentConstructor = true
+reportMissingParameterType = true
+reportMissingTypeArgument = true
+reportUnnecessaryCast = true
+reportUnnecessaryComparison = true
+reportUnnecessaryContains = true
+reportUnnecessaryIsInstance = true
+reportUntypedBaseClass = true
+reportUntypedClassDecorator = true
+reportUntypedFunctionDecorator = true
+
+[tool.setuptools_scm]
+
+[tool.build_sphinx]
