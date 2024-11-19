@@ -26,52 +26,13 @@ import astroid
 
 from genie_python.genie_epics_api import API
 from genie_python.genie_script_checker import ScriptChecker
-
-
-def write_to_file(message, suffix="", dir=""):
-    """
-    write to temporary file for test check_script
-    :param message: message to write to file
-    :return: returns temporary file
-    """
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir=dir)
-    for line in message:
-        temp_file.write(line.encode("utf-8"))
-    temp_file.close()
-    return temp_file
+from genie_python.testing_utils.script_checker import (
+    CreateTempScriptAndReturnErrors,
+    write_to_temp_file,
+)
 
 
 class TestScriptChecker(unittest.TestCase):
-    class _CreateTempScriptAndReturnErrors:
-        def __init__(
-            self,
-            script_checker,
-            script,
-            warnings_as_error=True,
-            no_pyright=False,
-            no_pylint=False,
-            dir="",
-        ):
-            self.script = script
-            self.dir = dir
-            self.warnings_as_error = warnings_as_error
-            self.no_pyright = no_pyright
-            self.no_pylint = no_pylint
-            self.script_checker = script_checker
-
-        def __enter__(self):
-            self.temp_script_file = write_to_file(self.script, dir=self.dir)
-            return self.script_checker.checker.check_script(
-                self.temp_script_file.name,
-                self.script_checker.machine,
-                warnings_as_error=self.warnings_as_error,
-                no_pyright=self.no_pyright,
-                no_pylint=self.no_pylint,
-            )
-
-        def __exit__(self, exc_type, exc_value, exc_traceback):
-            os.unlink(self.temp_script_file.name)
-
     def setUp(self):
         self.checker = ScriptChecker()
         self.api = API("", None)
@@ -86,7 +47,7 @@ class TestScriptChecker(unittest.TestCase):
 
     def assertSymbolsDefined(self, script_lines, expected_symbols):
         dir_path = tempfile.mkdtemp()
-        write_to_file(script_lines, suffix=".py", dir=dir_path)
+        write_to_temp_file(script_lines, suffix=".py", dir=dir_path)
         result = self.checker.get_inst_attributes(dir_path)
         shutil.rmtree(dir_path)
         self.assertEqual(result, expected_symbols)
@@ -98,7 +59,7 @@ class TestScriptChecker(unittest.TestCase):
             "   g.end\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors, ["W:  4: Statement seems to have no effect (pointless-statement)"]
             )
@@ -106,7 +67,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_end_as_start_of_another_word_WHEN_check_THEN_no_error_message(self):
         script_lines = ["from genie_python import genie as g\n" "def test():\n", "    endAngle = 1"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_end_as_end_of_another_word_WHEN_check_THEN_no_error_message(self):
@@ -115,13 +76,15 @@ class TestScriptChecker(unittest.TestCase):
             "    angle_end = 1",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines, no_pyright=True) as errors:
+        with CreateTempScriptAndReturnErrors(
+            self.checker, self.machine, script_lines, no_pyright=True
+        ) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_end_without_brackets_at_start_of_line_WHEN_check_THEN_error_message(self):
         script_lines = ["from genie_python import genie as g\n" "def test():\n" "   g.end"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors, ["W:  3: Statement seems to have no effect (pointless-statement)"]
             )
@@ -131,7 +94,7 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = ["from genie_python import genie as g\n" "g.begin(); g.end "]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors, ["W:  2: Statement seems to have no effect (pointless-statement)"]
             )
@@ -139,13 +102,13 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_end_in_string_without_brackets_WHEN_check_THEN_no_message(self):
         script_lines = ["def test():\n" '   " a string containing end "']
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_end_in_comment_without_brackets_WHEN_check_THEN_no_message(self):
         script_lines = ["def test():\n", '   "stuff" # end "']
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_g_assignment_WHEN_check_THEN_warning_message(self):
@@ -229,13 +192,13 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_g_assignment_with_2_symbols_before_number_WHEN_check_THEN_warning_message(self):
         script_lines = ["from genie_python import genie as g\n", "def test():\n", "   g+=12"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, ["W:  3: 'g' assignment in line 3"])
 
     def test_GIVEN_variable_assignment_with_g__WHEN_check_THEN_no_message(self):
         script_lines = ["going=13"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_function_with_g_WHEN_check_THEN_warn_user(self):
@@ -243,7 +206,7 @@ class TestScriptChecker(unittest.TestCase):
             "from genie_python import genie as g\n" "def test():\n" "   g.test_function()\n"
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors,
                 ["E:  3: Module 'genie_python.genie' has no 'test_function' member (no-member)"],
@@ -255,7 +218,7 @@ class TestScriptChecker(unittest.TestCase):
             "    g=17",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors, ["W:  3: 'g' assignment in line 3", "W:  4: 'g' assignment in line 4"]
             )
@@ -265,7 +228,7 @@ class TestScriptChecker(unittest.TestCase):
             "from genie_python import genie as g\n" "def test():\n" "  g.aitfor_time(10)"
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
                 errors,
                 [
@@ -409,7 +372,7 @@ class TestScriptChecker(unittest.TestCase):
         script_lines = ["my_expr ="]
         expected = "E:  1: Parsing failed: 'invalid syntax"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(
                 errors[0].startswith(expected),
                 f"Result was {errors}, expected first line to start with {expected}",
@@ -418,20 +381,20 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_valid_python_expr_WHEN_call_check_THEN_no_error(self):
         script_lines = ["my_expr = {}"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_valid_python_class_WHEN_call_check_THEN_no_error(self):
         script_lines = ["class MyClass():", "pass"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_invalid_python_class_WHEN_call_check_THEN_error(self):
         script_lines = ["class MyClass():"]
         expected = "E:  1: Parsing failed: 'expected an indented block"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(
                 errors[0].startswith(expected),
                 f'Result was "{errors[0]}", expected first line to start with "{expected}"',
@@ -476,7 +439,7 @@ class TestScriptChecker(unittest.TestCase):
 
         expected = "E: 2: Argument of type"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(errors[0].startswith(expected))
 
     def test_GIVEN_invalid_var_type_THEN_pyright_throws_exception(self):
@@ -484,7 +447,7 @@ class TestScriptChecker(unittest.TestCase):
 
         expected = "not assignable"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(expected in errors[0])
 
     def test_GIVEN_new_directory_WHEN_pyright_script_checker_called_THEN_pyright_json_created_then_destroyed_after_use(
@@ -512,7 +475,7 @@ class TestScriptChecker(unittest.TestCase):
 
         expected = "E: 3: Argument of type"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(errors[0].startswith(expected))
 
     # Test that if linter fails then pyright does not run
@@ -530,7 +493,7 @@ class TestScriptChecker(unittest.TestCase):
         ]
         expected = "E:  1: Parsing failed: 'invalid syntax"
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(
                 errors[0].startswith(expected) and len(errors) == 1
             )  # Will be count of 2 if pyright still runs
@@ -546,7 +509,9 @@ class TestScriptChecker(unittest.TestCase):
             "   g.begin(1,2,3,4,5,6,7,8,9)\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines, no_pyright=True) as errors:
+        with CreateTempScriptAndReturnErrors(
+            self.checker, self.machine, script_lines, no_pyright=True
+        ) as errors:
             self.assertEqual(errors, [])
 
     # Pyright config checks
@@ -554,7 +519,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_unused_variable_in_script_WHEN_pyright_script_checker_called_THEN_no_error(self):
         script_lines = ["a = 10\n"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_access_member_of_optional_type_var_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -566,7 +531,7 @@ class TestScriptChecker(unittest.TestCase):
             "   a.upper()\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_index_var_of_optional_type_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -578,7 +543,7 @@ class TestScriptChecker(unittest.TestCase):
             "   return elements[0]\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_call_var_of_optional_type_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -590,7 +555,7 @@ class TestScriptChecker(unittest.TestCase):
             "   callback()\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_iterate_over_var_of_optional_type_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -602,7 +567,7 @@ class TestScriptChecker(unittest.TestCase):
             "       pass\n",
         ]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_define_function_with_none_type_args_type_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -610,7 +575,7 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = ["def none_func(arg: int = None):\n" "   print(arg)\n"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_use_optional_operand__WHEN_pyright_script_checker_called_THEN_no_error(
@@ -618,7 +583,7 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = ["def none_func(arg1: int, arg2: int = None):\n" "   print(arg2 + arg1)\n"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines) as errors:
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_trying_to_use_undefined_variable_WHEN_pyright_script_checker_called_THEN_no_error(
@@ -626,11 +591,15 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = ["def func():\n" "   print(arg)\n"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines, no_pylint=True) as errors:
+        with CreateTempScriptAndReturnErrors(
+            self.checker, self.machine, script_lines, no_pylint=True
+        ) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_unused_import_WHEN_pyright_script_checker_called_THEN_no_error(self):
         script_lines = ["import genie\n"]
 
-        with self._CreateTempScriptAndReturnErrors(self, script_lines, no_pylint=True) as errors:
+        with CreateTempScriptAndReturnErrors(
+            self.checker, self.machine, script_lines, no_pylint=True
+        ) as errors:
             self.assertEqual(errors, [])
