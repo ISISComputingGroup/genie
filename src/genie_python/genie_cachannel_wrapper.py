@@ -21,7 +21,13 @@ try:
         dbf_type_to_DBR_TIME,
     )
 except ImportError:
-    from caffi.ca import AlarmCondition, AlarmSeverity, dbf_type_to_DBR_STS, dbf_type_to_DBR_TIME
+    # Note: caffi dynamically added to dependencies by CaChannel if not using built backend.
+    from caffi.ca import (  # type: ignore[reportMissingImports]
+        AlarmCondition,
+        AlarmSeverity,
+        dbf_type_to_DBR_STS,
+        dbf_type_to_DBR_TIME,
+    )
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue

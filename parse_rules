@@ -1,8 +1,0 @@
-# allow for [timestamp]
-ok /IPython does not exist, auto complete not installed/
-error /(?i)^(\[[^]]*\] )?error:/
-error /(?i)^(\[[^]]*\] )?fatal:/
-error /FAILED \(errors=/
-error /FAILED \(failures=/
-warning /(?i)^(\[[^]]*\] )?warning:?/
-info /(?i)^(\[[^]]*\] )?info:?/

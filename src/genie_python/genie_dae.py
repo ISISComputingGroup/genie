@@ -22,7 +22,8 @@ import psutil
 try:
     from CaChannel._ca import AlarmCondition, AlarmSeverity
 except ImportError:
-    from caffi.ca import AlarmCondition, AlarmSeverity
+    # Note: caffi dynamically added to dependencies by CaChannel if not using built backend.
+    from caffi.ca import AlarmCondition, AlarmSeverity  # type: ignore[reportMissingImports]
 
 from genie_python.genie_cachannel_wrapper import CaChannelWrapper
 from genie_python.genie_change_cache import ChangeCache
