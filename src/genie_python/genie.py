@@ -47,7 +47,7 @@ PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None
 
 print("\ngenie_python version " + VERSION)
 
-SUPPORTED_PYTHON_VERSION = (3, 11, 6)
+SUPPORTED_PYTHON_VERSION = (3, 11, 9)
 if sys.version_info[0:3] != SUPPORTED_PYTHON_VERSION[0:3]:
     message = (
         "WARNING: genie_python only guarantees support for "
