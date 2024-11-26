@@ -119,5 +119,6 @@ reportUntypedClassDecorator = true
 reportUntypedFunctionDecorator = true
 
 [tool.setuptools_scm]
+version_file = "src/genie_python/_version.py"
 
 [tool.build_sphinx]
