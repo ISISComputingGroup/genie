@@ -173,6 +173,9 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         self.assertEqual(self.api.get_pv_alarm("DISCONNECTED_PV"), "UNKNOWN")
 
+    def test_GIVEN_api_is_imported_THEN_error_log_func_overwritten_on_wrapper(self):
+        self.assertEqual(self.mock_wrapper.error_log_func, self.api.logger.log_ca_msg)
+
 
 class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def setUp(self):

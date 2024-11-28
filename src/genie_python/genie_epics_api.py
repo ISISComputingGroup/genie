@@ -74,7 +74,7 @@ class API(object):
         else:
             self._environment_details = environment_details
 
-        Wrapper.errorLogFunc = self.logger.log_ca_msg
+        Wrapper.error_log_func = self.logger.log_ca_msg
 
         # disable CA error messages to console from disconnected PVs
         import ctypes
