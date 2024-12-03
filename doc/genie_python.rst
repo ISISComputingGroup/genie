@@ -20,3 +20,6 @@ Commands
 
 .. automodule:: genie_alerts
    :members:
+
+.. automodule:: genie_toggle_settings
+   :members:
