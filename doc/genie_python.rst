@@ -18,4 +18,5 @@ Commands
 .. automodule:: genie_advanced
    :members:
 
-
+.. automodule:: genie_alerts
+   :members:
