@@ -329,6 +329,19 @@ def get_instrument() -> str | None:
 
 
 @usercommand
+@helparglist("")
+@log_command_and_handle_exception
+def get_instrument_full_name() -> str | None:
+    """
+    Gets the full name of the local instrument
+
+    Returns:
+        the full name of the machine
+    """
+    return __api.get_instrument_full_name()
+
+
+@usercommand
 @helparglist("verbose")
 @log_command_and_handle_exception
 def set_dae_message_verbosity(verbose: bool) -> None:
