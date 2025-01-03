@@ -2,11 +2,11 @@ from __future__ import absolute_import, print_function
 
 import inspect
 import os
+import socket
 import xml.etree.ElementTree as ET
 from builtins import object, str
 from collections import OrderedDict
 from typing import TYPE_CHECKING, Callable
-import socket
 
 import numpy as np
 import numpy.typing as npt
@@ -1264,6 +1264,6 @@ class API(object):
 
     def get_block_units(self, block: str) -> str:
         return "mm"
-    
+
     def get_instrument_full_name(self) -> str:
         return socket.gethostname()
