@@ -323,12 +323,18 @@ class API(object):
 
         Args:
             name: the PV name
-            value: the value to set
+            value: the value to set. If this is None, do nothing.
             wait: wait for the value to be set before returning
             is_local (bool, optional): whether to automatically prepend the
                                        local inst prefix to the PV name
             attempts: number of attempts to try to set the pv value
         """
+        if value is None:
+            self.logger.log_info_msg(
+                f"set_pv_value called with name={name} value={value} wait={wait}"
+                f" is_local={is_local} attempts={attempts} ignoring because value is None"
+            )
+            return
         if is_local:
             if not name.startswith(self.inst_prefix):
                 name = self.prefix_pv_name(name)
