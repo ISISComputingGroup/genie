@@ -23,8 +23,6 @@ ignore = [
     "D406",  # Section name should end with a newline ("{name}")
     "D407",  # Missing dashed underline after section ("{name}")
     "N999",  # Ignore this because the repo itself would need to be renamed
-    "ANN101",  # ignore this until its removed in future versions
-    "ANN102",  # ignore this until its removed in future versions
     "ANN401", # explicit ANY type is allowed
 ]
 [lint.per-file-ignores]
