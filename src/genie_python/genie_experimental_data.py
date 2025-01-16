@@ -7,8 +7,8 @@ from typing import TypedDict
 from genie_python.mysql_abstraction_layer import SQLAbstraction
 
 SELECT_FOR_EXP_DETAILS = """
-SELECT e.experimentID, u.name as userName, r.name as roleName,"""
-""" t.startDate, e.duration FROM `experimentteams` t
+SELECT e.experimentID, u.name as userName, r.name as roleName,
+t.startDate, e.duration FROM `experimentteams` t
 JOIN experiment e ON e.experimentID = t.experimentID
 JOIN user u ON u.userID = t.userID
 JOIN role r ON r.roleID = t.roleID
@@ -94,10 +94,10 @@ class GetExperimentData:
                 self._pretty_print(exp_data)
             else:
                 raise NotFoundError(
-                    f'Found no experiments that match the given criteria '
-                    f'(RB: {rb if rb != "%" else "Any"}, '
-                    f'User: {user if user != "%" else "Any"}, '
-                    f'Role: {role if role != "%" else "Any"}).\n'
+                    f"Found no experiments that match the given criteria "
+                    f"(RB: {rb if rb != '%' else 'Any'}, "
+                    f"User: {user if user != '%' else 'Any'}, "
+                    f"Role: {role if role != '%' else 'Any'}).\n"
                 )
 
         return exp_data
@@ -169,11 +169,11 @@ class GetExperimentData:
 
         for exp in exp_data:
             print(
-                f'Experiment RB number: {exp["rb_number"]:{rb_padding}} | '
-                f'User: {exp["user"]:{user_padding}} | '
-                f'Role: {exp["role"]:{role_padding}} | '
-                f'Start date: {exp["start_date"]} | '
-                f'Duration: {exp["duration"]}'
+                f"Experiment RB number: {exp['rb_number']:{rb_padding}} | "
+                f"User: {exp['user']:{user_padding}} | "
+                f"Role: {exp['role']:{role_padding}} | "
+                f"Start date: {exp['start_date']} | "
+                f"Duration: {exp['duration']}"
             )
 
 
