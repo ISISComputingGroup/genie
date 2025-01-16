@@ -114,13 +114,13 @@ def get_block_units(block_name: str) -> str | dict | None:
 @helparglist("...")
 @log_command_and_handle_exception
 def cset(
-    *args: str,
+    *args: PVValue,
     runcontrol: bool | None = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     wait: bool | None = None,
     verbose: bool | None = None,
-    **kwargs: bool | int | float | str | None,
+    **kwargs: PVValue,
 ) -> None:
     """
     Sets the setpoint and runcontrol settings for blocks.
