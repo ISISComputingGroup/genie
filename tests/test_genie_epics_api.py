@@ -17,9 +17,9 @@
 from __future__ import absolute_import
 
 import unittest
+from unittest.mock import MagicMock, patch
 
 from hamcrest import assert_that, calling, is_, raises
-from mock import MagicMock, patch
 from parameterized import parameterized
 
 from genie_python.channel_access_exceptions import UnableToConnectToPVException

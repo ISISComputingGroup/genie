@@ -21,9 +21,9 @@ from __future__ import absolute_import
 import json
 import unittest
 from time import sleep
+from unittest.mock import Mock, patch
 
 from hamcrest import assert_that, has_key, has_length, is_, only_contains
-from mock import Mock, patch
 
 from genie_python.block_names import BlockNames, BlockNamesManager
 from genie_python.channel_access_exceptions import UnableToConnectToPVException

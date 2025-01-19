@@ -68,7 +68,7 @@ def _asyncio_send_exceptions_to_logfile_only(loop, context):
     exception = context.get("exception")
     try:
         GenieLogger().log_info_msg(
-            f"Caught (non-fatal) asyncio exception: " f"{exception.__class__.__name__}: {exception}"
+            f"Caught (non-fatal) asyncio exception: {exception.__class__.__name__}: {exception}"
         )
     except Exception:
         # Exception while logging, ignore...

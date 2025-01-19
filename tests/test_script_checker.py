@@ -54,7 +54,7 @@ class TestScriptChecker(unittest.TestCase):
 
     def test_GIVEN_end_without_brackets_WHEN_check_THEN_error_message(self):
         script_lines = [
-            "from genie_python import genie as g\n" "def test():\n",
+            "from genie_python import genie as g\ndef test():\n",
             "   g.begin()\n",
             "   g.end\n",
         ]
@@ -65,14 +65,14 @@ class TestScriptChecker(unittest.TestCase):
             )
 
     def test_GIVEN_end_as_start_of_another_word_WHEN_check_THEN_no_error_message(self):
-        script_lines = ["from genie_python import genie as g\n" "def test():\n", "    endAngle = 1"]
+        script_lines = ["from genie_python import genie as g\ndef test():\n", "    endAngle = 1"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
 
     def test_GIVEN_end_as_end_of_another_word_WHEN_check_THEN_no_error_message(self):
         script_lines = [
-            "from genie_python import genie as g\n" "def test():\n",
+            "from genie_python import genie as g\ndef test():\n",
             "    angle_end = 1",
         ]
 
@@ -82,7 +82,7 @@ class TestScriptChecker(unittest.TestCase):
             self.assertEqual(errors, [])
 
     def test_GIVEN_end_without_brackets_at_start_of_line_WHEN_check_THEN_error_message(self):
-        script_lines = ["from genie_python import genie as g\n" "def test():\n" "   g.end"]
+        script_lines = ["from genie_python import genie as g\ndef test():\n   g.end"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
@@ -92,7 +92,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_end_without_brackets_on_line_with_fn_with_brackets_WHEN_check_THEN_error_message(
         self,
     ):
-        script_lines = ["from genie_python import genie as g\n" "g.begin(); g.end "]
+        script_lines = ["from genie_python import genie as g\ng.begin(); g.end "]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
@@ -100,7 +100,7 @@ class TestScriptChecker(unittest.TestCase):
             )
 
     def test_GIVEN_end_in_string_without_brackets_WHEN_check_THEN_no_message(self):
-        script_lines = ["def test():\n" '   " a string containing end "']
+        script_lines = ['def test():\n   " a string containing end "']
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
@@ -202,9 +202,7 @@ class TestScriptChecker(unittest.TestCase):
             self.assertEqual(errors, [])
 
     def test_GIVEN_function_with_g_WHEN_check_THEN_warn_user(self):
-        script_lines = [
-            "from genie_python import genie as g\n" "def test():\n" "   g.test_function()\n"
-        ]
+        script_lines = ["from genie_python import genie as g\ndef test():\n   g.test_function()\n"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
@@ -214,7 +212,7 @@ class TestScriptChecker(unittest.TestCase):
 
     def test_GIVEN_2_g_assignments_WHEN_check_THEN_warning_message(self):
         script_lines = [
-            "from genie_python import genie as g\n" "def test():\n" "    g=16\n",
+            "from genie_python import genie as g\ndef test():\n    g=16\n",
             "    g=17",
         ]
 
@@ -224,9 +222,7 @@ class TestScriptChecker(unittest.TestCase):
             )
 
     def test_GIVEN_g_non_existing_command_WHEN_call_THEN_error_message(self):
-        script_lines = [
-            "from genie_python import genie as g\n" "def test():\n" "  g.aitfor_time(10)"
-        ]
+        script_lines = ["from genie_python import genie as g\ndef test():\n  g.aitfor_time(10)"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(
@@ -539,8 +535,7 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = [
             "from typing import Optional, List\n",
-            "def get_first_element(elements: Optional[List[int]]) -> int:\n"
-            "   return elements[0]\n",
+            "def get_first_element(elements: Optional[List[int]]) -> int:\n   return elements[0]\n",
         ]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
@@ -563,7 +558,7 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = [
             "from typing import Optional, List\n",
-            "def iter_elements(elements: Optional[List[int]]):\n" "   for element in elements:\n",
+            "def iter_elements(elements: Optional[List[int]]):\n   for element in elements:\n",
             "       pass\n",
         ]
 
@@ -573,7 +568,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_trying_to_define_function_with_none_type_args_type_WHEN_pyright_script_checker_called_THEN_no_error(
         self,
     ):
-        script_lines = ["def none_func(arg: int = None):\n" "   print(arg)\n"]
+        script_lines = ["def none_func(arg: int = None):\n   print(arg)\n"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
@@ -581,7 +576,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_trying_to_use_optional_operand__WHEN_pyright_script_checker_called_THEN_no_error(
         self,
     ):
-        script_lines = ["def none_func(arg1: int, arg2: int = None):\n" "   print(arg2 + arg1)\n"]
+        script_lines = ["def none_func(arg1: int, arg2: int = None):\n   print(arg2 + arg1)\n"]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertEqual(errors, [])
@@ -589,7 +584,7 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_trying_to_use_undefined_variable_WHEN_pyright_script_checker_called_THEN_no_error(
         self,
     ):
-        script_lines = ["def func():\n" "   print(arg)\n"]
+        script_lines = ["def func():\n   print(arg)\n"]
 
         with CreateTempScriptAndReturnErrors(
             self.checker, self.machine, script_lines, no_pylint=True
