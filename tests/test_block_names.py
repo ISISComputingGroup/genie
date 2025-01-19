@@ -218,7 +218,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         block_names, _ = create_block_names(get_pv_value_mock, [])
 
         try:
-            result = block_names._blocks_cant_start_with_hash
+            block_names._blocks_cant_start_with_hash
             self.fail("No exception thrown")
         except AttributeError:
             pass
