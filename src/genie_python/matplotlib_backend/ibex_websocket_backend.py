@@ -12,17 +12,14 @@ import sys
 import threading
 from functools import wraps
 from time import sleep
-from typing import Any, Callable, Mapping, ParamSpec, TypeVar, cast
 
 import tornado
-import tornado.websocket
 from matplotlib._pylab_helpers import Gcf
 from matplotlib.backend_bases import _Backend
 from matplotlib.backends import backend_webagg
 from matplotlib.backends import backend_webagg_core as core
 from py4j.java_collections import ListConverter
 from py4j.java_gateway import JavaGateway
-from tornado.ioloop import IOLoop
 from tornado.websocket import WebSocketClosedError
 
 from genie_python.genie_logging import GenieLogger
@@ -40,26 +37,20 @@ _web_backend_port = PRIMARY_WEB_PORT
 _is_primary = True
 
 
-T = TypeVar("T")
-P = ParamSpec("P")
-
-
-def _ignore_if_websocket_closed(func: Callable[P, T]) -> Callable[P, T | None]:
+def _ignore_if_websocket_closed(func):
     """
     Decorator which ignores exceptions that were caused by websockets being closed.
     """
 
     @wraps(func)
-    def wrapper(*a: P.args, **kw: P.kwargs) -> T | None:
+    def wrapper(*a, **kw):
         try:
             return func(*a, **kw)
         except WebSocketClosedError:
             pass
         except Exception as e:
-            # Plotting multiple graphs quickly can cause an error where
-            # pyplot tries to access a plot which
-            # has been removed. This error does not break anything, so log it
-            # and continue. It is better for the plot
+            # Plotting multiple graphs quickly can cause an error where pyplot tries to access a plot which
+            # has been removed. This error does not break anything, so log it and continue. It is better for the plot
             # to fail to update than for the whole user script to crash.
             try:
                 GenieLogger().log_info_msg(
@@ -73,32 +64,24 @@ def _ignore_if_websocket_closed(func: Callable[P, T]) -> Callable[P, T | None]:
     return wrapper
 
 
-def _asyncio_send_exceptions_to_logfile_only(
-    loop: asyncio.AbstractEventLoop, context: Mapping[str, Any]
-) -> None:
+def _asyncio_send_exceptions_to_logfile_only(loop, context):
     exception = context.get("exception")
     try:
         GenieLogger().log_info_msg(
-            f"Caught (non-fatal) asyncio exception: {exception.__class__.__name__}: {exception}"
+            f"Caught (non-fatal) asyncio exception: " f"{exception.__class__.__name__}: {exception}"
         )
     except Exception:
         # Exception while logging, ignore...
         pass
 
 
-def set_up_plot_default(
-    is_primary: bool = True,
-    should_open_ibex_window_on_show: bool = True,
-    max_figures: int | None = None,
-) -> None:
+def set_up_plot_default(is_primary=True, should_open_ibex_window_on_show=True, max_figures=None):
     """
     Set the plot defaults for when show is called
 
     Args:
-        is_primary: True display plot on primary web port; False display
-            plot on secondary web port
-        should_open_ibex_window_on_show: Does nothing; provided for
-            backwards-compatibility with older backend
+        is_primary: True display plot on primary web port; False display plot on secondary web port
+        should_open_ibex_window_on_show: Does nothing; provided for backwards-compatibility with older backend
         max_figures: Maximum number of figures to plot simultaneously (int)
     """
     global _web_backend_port
@@ -116,76 +99,71 @@ def set_up_plot_default(
 
 
 class WebAggApplication(backend_webagg.WebAggApplication):
-    class WebSocket(tornado.websocket.WebSocketHandler):  # pyright: ignore
+    class WebSocket(tornado.websocket.WebSocketHandler):
         supports_binary = True
 
-        def write_message(self, *args: Any, **kwargs: Any) -> asyncio.Future[None]:
+        def write_message(self, *args, **kwargs):
             f = super().write_message(*args, **kwargs)
 
             @_ignore_if_websocket_closed
-            def _cb(*args: Any, **kwargs: Any) -> None:
+            def _cb(*args, **kwargs):
                 return f.result()
 
             f.add_done_callback(_cb)
-            return f
 
         @_ignore_if_websocket_closed
-        def open(self, fignum: int, *args: Any, **kwargs: Any) -> None:
+        def open(self, fignum):
             self.fignum = int(fignum)
-            self.manager = cast(_FigureManager | None, Gcf.figs.get(self.fignum, None))
+            self.manager = Gcf.figs.get(self.fignum, None)
             if self.manager is not None:
                 self.manager.add_web_socket(self)
                 if hasattr(self, "set_nodelay"):
                     self.set_nodelay(True)
 
         @_ignore_if_websocket_closed
-        def on_close(self) -> None:
-            if self.manager is not None:
-                self.manager.remove_web_socket(self)
+        def on_close(self):
+            self.manager.remove_web_socket(self)
 
         @_ignore_if_websocket_closed
-        def on_message(self, message: str | bytes) -> None:
-            parsed_message: dict[str, Any] = json.loads(message)
+        def on_message(self, message):
+            message = json.loads(message)
             # The 'supports_binary' message is on a client-by-client
             # basis.  The others affect the (shared) canvas as a
             # whole.
-            if parsed_message["type"] == "supports_binary":
-                self.supports_binary = parsed_message["value"]
+            if message["type"] == "supports_binary":
+                self.supports_binary = message["value"]
             else:
-                manager = cast(_FigureManager | None, Gcf.figs.get(self.fignum, None))
+                manager = Gcf.figs.get(self.fignum, None)
                 # It is possible for a figure to be closed,
                 # but a stale figure UI is still sending messages
                 # from the browser.
                 if manager is not None:
-                    manager.handle_json(parsed_message)
+                    manager.handle_json(message)
 
         @_ignore_if_websocket_closed
-        def send_json(self, content: dict[str, str]) -> None:
+        def send_json(self, content):
             self.write_message(json.dumps(content))
 
         @_ignore_if_websocket_closed
-        def send_binary(self, blob: str) -> None:
+        def send_binary(self, blob):
             if self.supports_binary:
                 self.write_message(blob, binary=True)
             else:
-                blob_code = blob.encode("base64").replace(b"\n", b"")
+                blob_code = blob.encode("base64").replace("\n", "")
                 data_uri = f"data:image/png;base64,{blob_code}"
                 self.write_message(data_uri)
 
-    ioloop: IOLoop | None = None
+    ioloop = None
     asyncio_loop = None
     started = False
     app = None
 
     @classmethod
-    def initialize(
-        cls, url_prefix: str = "", port: int | None = None, address: str | None = None
-    ) -> None:
+    def initialize(cls, url_prefix="", port=None, address=None):
         """
         Create the class instance
 
-        We use a constant, hard-coded port as we will only
-        ever have one plot going at the same time.
+        We use a constant, hard-coded port as we will only ever have one plot going at the same time.
         """
         cls.app = cls(url_prefix=url_prefix)
         cls.url_prefix = url_prefix
@@ -193,7 +171,7 @@ class WebAggApplication(backend_webagg.WebAggApplication):
         cls.address = address
 
     @classmethod
-    def start(cls) -> None:
+    def start(cls):
         """
         IOLoop.running() was removed as of Tornado 2.4; see for example
         https://groups.google.com/forum/#!topic/python-tornado/QLMzkpQBGOY
@@ -213,8 +191,6 @@ class WebAggApplication(backend_webagg.WebAggApplication):
             asyncio.set_event_loop(loop)
             cls.asyncio_loop = loop
             cls.ioloop = tornado.ioloop.IOLoop.current()
-            if cls.port is None or cls.address is None or cls.app is None:
-                raise RuntimeError("port, address and app must be set")
             cls.app.listen(cls.port, cls.address)
 
             # Set the flag to True *before* blocking on ioloop.start()
@@ -226,26 +202,22 @@ class WebAggApplication(backend_webagg.WebAggApplication):
             traceback.print_exc()
 
     @classmethod
-    def stop(cls) -> None:
+    def stop(cls):
         try:
 
-            def _stop() -> None:
-                if cls.ioloop is not None:
-                    cls.ioloop.stop()
-                    sys.stdout.flush()
-                    cls.started = False
+            def _stop():
+                cls.ioloop.stop()
+                sys.stdout.flush()
+                cls.started = False
 
-            if cls.ioloop is not None:
-                cls.ioloop.add_callback(_stop)
+            cls.ioloop.add_callback(_stop)
         except Exception:
             import traceback
 
             traceback.print_exc()
 
 
-def ibex_open_plot_window(
-    figures: list[int], is_primary: bool = True, host: str | None = None
-) -> None:
+def ibex_open_plot_window(figures, is_primary=True, host=None):
     """
     Open the plot window in ibex gui through py4j. With sensible defaults
     Args:
@@ -258,14 +230,12 @@ def ibex_open_plot_window(
     url = f"{host}:{port}"
     try:
         gateway = JavaGateway()
-        converted_figures = ListConverter().convert(figures, gateway._gateway_client)
-        gateway.entry_point.openMplRenderer(converted_figures, url, is_primary)  # pyright: ignore (rpc)
+        figures = ListConverter().convert(figures, gateway._gateway_client)
+        gateway.entry_point.openMplRenderer(figures, url, is_primary)
     except Exception as e:
-        # We need this try-except to be very broad as various
-        # exceptions can, in principle,
+        # We need this try-except to be very broad as various exceptions can, in principle,
         # be thrown while translating between python <-> java.
-        # If any exceptions occur, it is better to log and
-        # continue rather than crashing the entire script.
+        # If any exceptions occur, it is better to log and continue rather than crashing the entire script.
         print(f"Failed to open plot in IBEX due to: {e}")
 
 
@@ -278,25 +248,25 @@ class _FigureManager(core.FigureManagerWebAgg):
     _toolbar2_class = core.NavigationToolbar2WebAgg
 
     @_ignore_if_websocket_closed
-    def _send_event(self, *args: Any, **kwargs: Any) -> None:
+    def _send_event(self, *args, **kwargs):
         with _IBEX_FIGURE_MANAGER_LOCK:
             super()._send_event(*args, **kwargs)
 
-    def remove_web_socket(self, *args: Any, **kwargs: Any) -> None:
+    def remove_web_socket(self, *args, **kwargs):
         with _IBEX_FIGURE_MANAGER_LOCK:
             super().remove_web_socket(*args, **kwargs)
 
-    def add_web_socket(self, *args: Any, **kwargs: Any) -> None:
+    def add_web_socket(self, *args, **kwargs):
         with _IBEX_FIGURE_MANAGER_LOCK:
             super().add_web_socket(*args, **kwargs)
 
     @_ignore_if_websocket_closed
-    def refresh_all(self) -> None:
+    def refresh_all(self, *args, **kwargs):
         with _IBEX_FIGURE_MANAGER_LOCK:
-            super().refresh_all()
+            super().refresh_all(*args, **kwargs)
 
     @classmethod
-    def pyplot_show(cls, *args: Any, **kwargs: Any) -> None:
+    def pyplot_show(cls, *args, **kwargs):
         """
         Show a plot.
 
@@ -335,18 +305,18 @@ class _FigureManager(core.FigureManagerWebAgg):
 class _FigureCanvas(backend_webagg.FigureCanvasWebAgg):
     manager_class = _FigureManager
 
-    def set_image_mode(self, mode: str) -> None:
+    def set_image_mode(self, mode):
         """
         Always send full images to ibex.
         """
         self._current_image_mode = "full"
 
-    def get_diff_image(self) -> bytes | None:
+    def get_diff_image(self, *args, **kwargs):
         """
         Always send full images to ibex.
         """
         self._force_full = True
-        return super().get_diff_image()
+        return super().get_diff_image(*args, **kwargs)
 
     def draw_idle(self) -> None:
         """
@@ -371,17 +341,17 @@ class _BackendIbexWebAgg(_Backend):
     FigureManager = _FigureManager
 
     @classmethod
-    def trigger_manager_draw(cls, manager: FigureManager) -> None:
+    def trigger_manager_draw(cls, manager):
         with IBEX_BACKEND_LOCK:
             manager.canvas.draw_idle()
 
     @classmethod
-    def draw_if_interactive(cls) -> None:
+    def draw_if_interactive(cls):
         with IBEX_BACKEND_LOCK:
-            super(_BackendIbexWebAgg, cls).draw_if_interactive()  # pyright: ignore
+            super(_BackendIbexWebAgg, cls).draw_if_interactive()
 
     @classmethod
-    def new_figure_manager(cls, num: int, *args: Any, **kwargs: Any) -> _FigureManager:
+    def new_figure_manager(cls, num, *args, **kwargs):
         with IBEX_BACKEND_LOCK:
             for x in list(figure_numbers):
                 if x not in Gcf.figs.keys():
@@ -390,8 +360,7 @@ class _BackendIbexWebAgg(_Backend):
             if len(figure_numbers) > max_number_of_figures:
                 Gcf.destroy(figure_numbers[0])
                 print(
-                    f"There are too many figures so deleted "
-                    f"the oldest figure, which was {figure_numbers[0]}."
+                    f"There are too many figures so deleted the oldest figure, which was {figure_numbers[0]}."
                 )
                 figure_numbers.pop(0)
-            return super(_BackendIbexWebAgg, cls).new_figure_manager(num, *args, **kwargs)  # pyright: ignore
+            return super(_BackendIbexWebAgg, cls).new_figure_manager(num, *args, **kwargs)
