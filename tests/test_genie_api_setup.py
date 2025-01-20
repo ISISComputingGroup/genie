@@ -20,9 +20,9 @@ from __future__ import absolute_import
 
 import os
 import unittest
+from unittest.mock import patch
 
 from hamcrest import assert_that, is_
-from mock import patch
 from parameterized import parameterized
 
 import genie_python.genie_api_setup

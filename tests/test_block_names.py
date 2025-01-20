@@ -21,9 +21,9 @@ from __future__ import absolute_import
 import json
 import unittest
 from time import sleep
+from unittest.mock import Mock, patch
 
 from hamcrest import assert_that, has_key, has_length, is_, only_contains
-from mock import Mock, patch
 
 from genie_python.block_names import BlockNames, BlockNamesManager
 from genie_python.channel_access_exceptions import UnableToConnectToPVException
@@ -218,7 +218,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         block_names, _ = create_block_names(get_pv_value_mock, [])
 
         try:
-            result = block_names._blocks_cant_start_with_hash
+            block_names._blocks_cant_start_with_hash
             self.fail("No exception thrown")
         except AttributeError:
             pass

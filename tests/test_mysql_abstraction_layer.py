@@ -16,10 +16,9 @@
 
 import unittest
 from typing import List
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from hamcrest import assert_that, equal_to
-from mock import Mock
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 from mysql.connector.errors import InternalError

@@ -1,7 +1,6 @@
 import time
 import unittest
-
-import mock
+from unittest.mock import MagicMock
 
 from genie_python.matplotlib_backend import ibex_websocket_backend
 
@@ -22,7 +21,7 @@ class TestMatplotlibBackend(unittest.TestCase):
     def test_WHEN_plotting_thread_fails_to_start_THEN_script_does_not_hang(self):
         ibex_websocket_backend.WebAggApplication = ErroringWebAggApplication
         ibex_websocket_backend.ibex_open_plot_window = lambda *a, **k: None
-        ibex_websocket_backend.Gcf = mock.MagicMock()
+        ibex_websocket_backend.Gcf = MagicMock()
 
         start = time.time()
         ibex_websocket_backend._BackendIbexWebAgg.show()
