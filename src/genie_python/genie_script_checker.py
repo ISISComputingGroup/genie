@@ -358,8 +358,7 @@ class ScriptChecker(object):
                 error_line = re.search(r"W:\s+(\d+):", warning)
                 if error_line:
                     selected_number = error_line.group(1)
-
-                error_line_numbers.append(int(selected_number))
+                    error_line_numbers.append(int(selected_number))
 
         lines_containing_errors = []
         with open(script_name) as f:
