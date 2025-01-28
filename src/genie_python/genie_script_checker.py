@@ -299,6 +299,7 @@ class ScriptChecker(object):
             init_hook = (
                 "import sys;"
                 'sys.path.append("{}");'
+                'sys.path.append("U:\\scripts");'
                 'sys.path.append("C:\\Instrument\\scripts");'.format(inst_file_path)
             )
             init_hook = init_hook.replace("\\", "\\\\")
