@@ -729,7 +729,7 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
 @log_command_and_handle_exception
 def get_pv(
     name: str, to_string: bool = False, is_local: bool = False, use_numpy: bool = False
-) -> PVValue:
+) -> Any:
     """
     Get the value for the specified PV.
 
