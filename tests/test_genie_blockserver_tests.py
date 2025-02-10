@@ -17,8 +17,7 @@
 from __future__ import absolute_import
 
 import unittest
-
-from mock import MagicMock, Mock
+from unittest.mock import MagicMock, Mock
 
 from genie_python.genie_blockserver import BlockServer
 from genie_python.utilities import compress_and_hex
