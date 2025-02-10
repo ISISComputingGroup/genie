@@ -27,15 +27,15 @@ classifiers = [
 
 dependencies = [
   # EPICS Channel access lib
-  "CaChannel",
+  "git+https://github.com/ISISComputingGroup/CaChannel",
   # Send log messages to graylog
   "graypy",
   # genie_python will install ipython completers
   "ipython",
   # Getting user details from database
-  "mysql-connector-python",
+  "mysql-connector-python==8.4.0",
   # Array support for CA calls
-  "numpy",
+  "numpy<2.0",
   # EPICS PV access lib
   "p4p",
   # Used to find process by name to kill it
