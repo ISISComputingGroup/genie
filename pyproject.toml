@@ -27,7 +27,7 @@ classifiers = [
 
 dependencies = [
   # EPICS Channel access lib
-  "genie_python@git+https://github.com/ISISComputingGroup/CaChannel",
+  "CaChannel@git+https://github.com/ISISComputingGroup/CaChannel",
   # Send log messages to graylog
   "graypy",
   # genie_python will install ipython completers
