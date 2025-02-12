@@ -1,5 +1,5 @@
 import astroid
-from astroid import MANAGER, NodeNG
+from astroid import MANAGER
 
 
 def register(linter: None) -> None:
@@ -22,7 +22,7 @@ def transform(cls: astroid.ClassDef) -> None:
                 name=public_method.name,
                 lineno=0,
                 col_offset=0,
-                parent=NodeNG(lineno=0, col_offset=0, parent=None, end_lineno=0, end_col_offset=0),
+                parent=cls.parent,
                 end_lineno=0,
                 end_col_offset=0,
             )
