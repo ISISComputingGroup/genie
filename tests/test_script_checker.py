@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 
 import builtins
+import contextlib
+import io
 import os
 import shutil
 import sys
@@ -612,3 +614,22 @@ class TestScriptChecker(unittest.TestCase):
             self.checker, self.machine, script_lines, no_pylint=True
         ) as errors:
             self.assertEqual(errors, [])
+
+    def test_GIVEN_scanning_instrument_WHEN_calling_pylint_THEN_pylint_does_not_crash(self):
+        # Pylint should not complain about this as the method from a class
+        # deriving from "ScanningInstrument" should get added to it's parents'
+        # locals by the scanning_instrument_pylint_plugin.
+        script_lines = [
+            "class ScanningInstrument(): pass\n",
+            "class Larmor(ScanningInstrument):\n",
+            "    def foo(self): pass\n",
+        ]
+
+        captured_stderr = io.StringIO()
+        with contextlib.redirect_stderr(captured_stderr):
+            with CreateTempScriptAndReturnErrors(
+                self.checker, self.machine, script_lines
+            ) as errors:
+                self.assertEqual(errors, [])
+
+        self.assertEqual(captured_stderr.getvalue(), "")
