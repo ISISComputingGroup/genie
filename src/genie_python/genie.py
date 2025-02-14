@@ -14,10 +14,6 @@ import numpy.typing as npt
 
 from genie_python.genie_api_setup import __api as _genie_api
 
-EPICS_CA_MAX_ARRAY_BYTES = "EPICS_CA_MAX_ARRAY_BYTES"
-if EPICS_CA_MAX_ARRAY_BYTES not in os.environ:
-    os.environ[EPICS_CA_MAX_ARRAY_BYTES] = "20000000"
-
 os.environ["FROM_IBEX"] = str(False)
 
 # for user import this functionality so they can do g.adv and g.sim
