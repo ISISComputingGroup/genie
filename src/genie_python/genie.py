@@ -14,7 +14,6 @@ import numpy.typing as npt
 
 from genie_python.genie_api_setup import __api as _genie_api
 
-os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "20000000"
 os.environ["FROM_IBEX"] = str(False)
 
 # for user import this functionality so they can do g.adv and g.sim
@@ -24,7 +23,7 @@ import genie_python.genie_simulate as sim  # noqa F401
 import genie_python.genie_toggle_settings as toggle  # noqa F401
 
 # Import required for g.my_pv_prefix
-from genie_python.genie_api_setup import (
+from genie_python.genie_api_setup import (  # noqa E402
     get_user_script_dir,
     helparglist,
     log_command_and_handle_exception,
@@ -32,15 +31,15 @@ from genie_python.genie_api_setup import (
     set_user_script_dir,
     usercommand,
 )
-from genie_python.genie_script_checker import ScriptChecker
-from genie_python.genie_toggle_settings import ToggleSettings
-from genie_python.utilities import (
+from genie_python.genie_script_checker import ScriptChecker  # noqa E402
+from genie_python.genie_toggle_settings import ToggleSettings  # noqa E402
+from genie_python.utilities import (  # noqa E402
     EnvironmentDetails,
     check_lowlimit_against_highlimit,
     get_correct_filepath_existing,
     get_correct_path,
 )
-from genie_python.version import VERSION
+from genie_python.version import VERSION  # noqa E402
 
 PVBaseValue = bool | int | float | str
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None
