@@ -57,6 +57,9 @@ if sys.version_info[0:3] != SUPPORTED_PYTHON_VERSION[0:3]:
     print(message, file=sys.stderr)
 
 
+foo = "bar"
+
+
 @log_command_and_handle_exception
 def set_instrument(pv_prefix: str, import_instrument_init: bool = True) -> None:
     """
