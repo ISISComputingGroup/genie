@@ -68,6 +68,8 @@ class API(object):
         self.motion_suffix = "CS:MOT:MOVING"
         self.pre_post_cmd_manager = PrePostCmdManager()
         self.logger = GenieLogger()
+        self._sample_par_names_cache = None
+        self._beamline_par_names_cache = None
 
         if environment_details is None:
             self._environment_details = EnvironmentDetails()
@@ -624,7 +626,11 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
-        names = self.blockserver.get_sample_par_names()
+        try:
+            names = self.blockserver.get_sample_par_names()
+            self._sample_par_names_cache = names
+        except Exception:
+            names = self._sample_par_names_cache
         if names is not None:
             for n in names:
                 m = re.match(".+:SAMPLE:%s" % name.upper(), n)
@@ -648,7 +654,11 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
-        names = self.blockserver.get_beamline_par_names()
+        try:
+            names = self.blockserver.get_beamline_par_names()
+            self._beamline_par_names_cache = names
+        except Exception:
+            names = self._beamline_par_names_cache
         if names is not None:
             for n in names:
                 m = re.match(".+:BL:%s" % name.upper(), n)
