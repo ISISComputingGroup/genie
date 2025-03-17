@@ -458,9 +458,7 @@ class Dae(object):
             prepost: run pre and post commands [optional]
         """
         if self.get_run_state() == "ENDING" and not immediate:
-            print(
-                "Please specify the 'immediate=True' flag to end a run " "while in the ENDING state"
-            )
+            print("Please specify the 'immediate=True' flag to end a run while in the ENDING state")
             return
 
         run_number = self.get_run_number()
@@ -601,8 +599,7 @@ class Dae(object):
         """
         if self.get_run_state() == "PAUSING" and not immediate:
             print(
-                "Please specify the 'immediate=True' flag "
-                "to pause a run while in the PAUSING state"
+                "Please specify the 'immediate=True' flag to pause a run while in the PAUSING state"
             )
             return
 
