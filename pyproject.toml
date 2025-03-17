@@ -56,7 +56,7 @@ dependencies = [
 # - It depends on a couple of heavyweight libs (py4j and tornado) that aren't necessary otherwise
 plot = [
   # When updating, check plotting works in GUI. Must keep pinned to a specific, tested version.
-  "matplotlib==3.9.2",
+  "matplotlib==3.10.1",
   # Python <-> Java communication, to spawn matplotlib plots in GUI
   "py4j",
   # Tornado webserver used by custom backend
