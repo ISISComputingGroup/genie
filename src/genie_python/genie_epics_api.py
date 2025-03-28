@@ -587,8 +587,9 @@ class API(object):
                     block_name, self.get_block_names()
                 )
             )
-
-        return Wrapper.get_pv_value(unit_name)
+        # Only return block units if PV field type is _not_ ENUM, CHAR or STRING (type 3),
+        # as they're unlikely to have .EGU fields
+        return Wrapper.get_pv_value(unit_name) if Wrapper.get_chan(pv_name).field_type() != 3 else ""
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], list[str]]
