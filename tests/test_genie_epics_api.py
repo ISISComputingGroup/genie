@@ -705,7 +705,7 @@ class TestPvMethods(unittest.TestCase):
             raises(UnableToConnectToPVException),
         )
 
-    # Test that when units of char-type PV (ENUM, STRING, CHAR) requested, empty string is returned
+    # Test that when units of char-type PV (ENUM, STRING, CHAR) requested, None is returned
     # (as these PVs don't usually have .EGU fields).
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_chartype_pv_WHEN_get_block_units_called_THEN_empty_string_returned(
@@ -721,7 +721,7 @@ class TestPvMethods(unittest.TestCase):
         test_units = self.api.get_block_units("TEST")
 
         # Assert that returned units value is empty string
-        self.assertEqual(test_units, "")
+        self.assertEqual(test_units, None)
 
 class TestSetBlockMethod(unittest.TestCase):
     @patch("genie_python.genie_epics_api.GetExperimentData")
