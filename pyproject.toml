@@ -9,6 +9,7 @@ dynamic = ["version"]
 description = "Instrument control & scripting for the ISIS Neutron & Muon source"
 readme = "README.md"
 requires-python = ">=3.11"
+license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 
 authors = [
