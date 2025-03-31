@@ -9,7 +9,7 @@ dynamic = ["version"]
 description = "Instrument control & scripting for the ISIS Neutron & Muon source"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {file = "LICENSE"}
+license-files = ["LICENSE"]
 
 authors = [
   {name = "ISIS Experiment Controls", email = "ISISExperimentControls@stfc.ac.uk" }
@@ -21,7 +21,6 @@ maintainers = [
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: BSD License",
   "Programming Language :: Python :: 3.11",
 ]
 
