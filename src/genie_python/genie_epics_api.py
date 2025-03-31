@@ -560,7 +560,7 @@ class API(object):
         for name, value in temp:
             self.set_block_value(name, value)
 
-    def get_block_units(self, block_name: str) -> str:
+    def get_block_units(self, block_name: str) -> str | None:
         """
         Get the physical measurement units associated with a block name.
 
@@ -572,6 +572,7 @@ class API(object):
         -------
         units of the block
         """
+
         pv_name = self.get_pv_from_block(block_name)
         if "." in pv_name:
             # Remove any headers
@@ -587,9 +588,13 @@ class API(object):
                     block_name, self.get_block_names()
                 )
             )
-        # Only return block units if PV field type is _not_ ENUM, CHAR or STRING (type 3),
-        # as they're unlikely to have .EGU fields
-        return Wrapper.get_pv_value(unit_name) if Wrapper.get_chan(pv_name).field_type() != 3 else None
+
+        field_type = Wrapper.dbf_type_to_string(Wrapper.get_chan(pv_name).field_type())
+
+        if field_type in ["DBF_ENUM", "DBF_STRING", "DBF_CHAR"]:
+            return None
+        # Only return block units if PV field type is _not_ ENUM, CHAR or STRING as they're unlikely to have .EGU fields
+        return Wrapper.get_pv_value(unit_name)
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], list[str]]
