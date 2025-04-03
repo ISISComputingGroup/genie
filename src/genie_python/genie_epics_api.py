@@ -591,9 +591,10 @@ class API(object):
 
         field_type = Wrapper.dbf_type_to_string(Wrapper.get_chan(pv_name).field_type())
 
-        if field_type in ["DBF_ENUM", "DBF_STRING", "DBF_CHAR"]:
+        if field_type in ["DBF_STRING", "DBF_CHAR", "DBF_UCHAR", "DBF_ENUM"]:
             return None
-        # Only return block units if PV field type is _not_ ENUM, CHAR or STRING as they're unlikely to have .EGU fields
+        # Only return block units if PV field type is _not_ STRING, CHAR, UCHAR or ENUM
+        # as they're unlikely to have .EGU fields
         return Wrapper.get_pv_value(unit_name)
 
     def _get_pars(

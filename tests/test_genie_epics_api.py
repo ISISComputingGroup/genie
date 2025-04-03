@@ -705,19 +705,25 @@ class TestPvMethods(unittest.TestCase):
             raises(UnableToConnectToPVException),
         )
 
-    # Test that when units of char-type PV (ENUM, STRING, CHAR) requested, None is returned
+    # Test that when units of char-type PV (STRING, CHAR, UCHAR, ENUM) requested, None is returned
     # (as these PVs don't usually have .EGU fields).
-    # @parameterized.expand([
-    #     foo
-    # ])
+    @parameterized.expand(
+        [
+            "DBF_STRING",
+            "DBF_CHAR",
+            "DBF_UCHAR",
+            "DBF_ENUM",
+        ]
+    )
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_chartype_pv_WHEN_get_block_units_called_THEN_None_returned(
-        self, pv_wrapper_mock
+        self, field_type, pv_wrapper_mock
     ):
         # Mock get_pv_from_block to return something with .SOMETHING on the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME.SOMETHING")
 
-        pv_wrapper_mock.dbf_type_to_string.return_value = "DBF_ENUM"
+        # Mock return value for DBF type (integer) to string from genie api
+        pv_wrapper_mock.dbf_type_to_string.return_value = field_type
 
         # Call get_block_units
         self.api.get_block_names = MagicMock(return_value=["TEST"])
