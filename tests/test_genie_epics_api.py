@@ -732,6 +732,7 @@ class TestPvMethods(unittest.TestCase):
         # Assert that returned units value is None
         self.assertEqual(test_units, None)
 
+
 class TestSetBlockMethod(unittest.TestCase):
     @patch("genie_python.genie_epics_api.GetExperimentData")
     def setUp(self, sql_mock):
