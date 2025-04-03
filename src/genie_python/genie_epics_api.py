@@ -560,7 +560,7 @@ class API(object):
         for name, value in temp:
             self.set_block_value(name, value)
 
-    def get_block_units(self, block_name: str) -> str | None:
+    def get_block_units(self, block_name: str) -> str | PVValue | None:
         """
         Get the physical measurement units associated with a block name.
 

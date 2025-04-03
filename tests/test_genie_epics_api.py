@@ -717,7 +717,7 @@ class TestPvMethods(unittest.TestCase):
     )
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_chartype_pv_WHEN_get_block_units_called_THEN_None_returned(
-        self, field_type, pv_wrapper_mock
+        self, field_type: str, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something with .SOMETHING on the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME.SOMETHING")
