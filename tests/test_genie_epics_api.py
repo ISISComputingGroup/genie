@@ -18,6 +18,7 @@ from __future__ import absolute_import
 
 import unittest
 
+from OpenGL.wrapper import Wrapper
 from hamcrest import assert_that, calling, is_, raises
 from mock import MagicMock, patch
 from parameterized import parameterized
@@ -419,7 +420,7 @@ class TestPvMethods(unittest.TestCase):
                 raise
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_get_local_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock):
+    def test_GIVEN_mock_pv_WHEN_get_local_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock: MagicMock):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
@@ -433,7 +434,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_get_value_of_local_pv_with_local_prefix_on_start_THEN_pv_is_returned_and_pv_asked_for_has_only_one_prefix(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
@@ -447,7 +448,7 @@ class TestPvMethods(unittest.TestCase):
         pv_wrapper_mock.get_pv_value.assert_called_with(expected_pv_name, False, use_numpy=None)
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_get_global_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock):
+    def test_GIVEN_mock_pv_WHEN_get_global_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock: MagicMock):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
@@ -460,7 +461,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_get_pv_value_but_pv_does_not_exist_THEN_exception(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         pv_wrapper_mock.pv_exists.return_value = False
 
@@ -470,7 +471,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_get_pv_value_but_wrapper_exception_THEN_exception_thrown(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         pv_wrapper_mock.get_pv_value.side_effect = ValueError()
 
@@ -483,7 +484,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_get_pv_value_wrapper_exception_on_first_trial_and_ok_on_second_THEN_value_returned(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
@@ -502,7 +503,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_get_pv_value_raises_exception_except_on_last_trial_THEN_value_returned(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
@@ -525,7 +526,7 @@ class TestPvMethods(unittest.TestCase):
         )
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_set_local_pv_value_THEN_pv_is_set(self, pv_wrapper_mock):
+    def test_GIVEN_mock_pv_WHEN_set_local_pv_value_THEN_pv_is_set(self, pv_wrapper_mock: MagicMock):
         expected_value = 10
         pv_name = "PV"
         expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
@@ -538,7 +539,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_set_local_pv_value_with_inst_prefix_THEN_pv_is_set_pv_does_not_have_extra_prefix(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_name = "PV"
@@ -551,7 +552,7 @@ class TestPvMethods(unittest.TestCase):
         )
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_set_global_pv_value_THEN_pv_is_set(self, pv_wrapper_mock):
+    def test_GIVEN_mock_pv_WHEN_set_global_pv_value_THEN_pv_is_set(self, pv_wrapper_mock: MagicMock):
         expected_value = 10
         expected_pv_name = "PV"
 
@@ -563,7 +564,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_set_local_pv_value_but_wrapper_exceptions_THEN_exception_thrown(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         pv_wrapper_mock.set_pv_value.side_effect = ValueError()
         expected_value = 10
@@ -584,7 +585,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_set_local_pv_value_but_wrapper_exception_on_first_trial_and_ok_on_second_THEN_pv_value_set(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_name = "PV"
@@ -605,7 +606,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_mock_pv_WHEN_set_local_pv_value_raises_exception_except_on_last_trial_THEN_pv_value_set_called_attempt_times(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         expected_value = 10
         pv_name = "PV"
@@ -631,7 +632,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_block_pointing_at_field_WHEN_get_block_units_THEN_units_field_is_called(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something with .SOMETHING on the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME.SOMETHING")
@@ -645,7 +646,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_block_already_pointing_at_unit_field_WHEN_get_block_units_THEN_units_field_is_called(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something with .EGU at the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME.EGU")
@@ -659,7 +660,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_block_not_pointing_at_field_WHEN_get_block_units_THEN_units_field_is_called(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something without .SOMETHING at the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME")
@@ -673,7 +674,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_block_not_found_WHEN_get_block_units_THEN_exception_is_raised(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something without .SOMETHING at the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME")
@@ -687,7 +688,7 @@ class TestPvMethods(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_GIVEN_pv_not_found_WHEN_get_block_units_THEN_exception_is_raised(
-        self, pv_wrapper_mock
+        self, pv_wrapper_mock: MagicMock
     ):
         # Mock get_pv_from_block to return something without .SOMETHING at the end
         self.api.get_pv_from_block = MagicMock(return_value="PVNAME")
@@ -746,7 +747,7 @@ class TestSetBlockMethod(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_WHEN_set_block_value_called_with_wait_THEN_setpoint_set_and_wait_for_called(
-        self, pv_wrapper
+        self, pv_wrapper: Wrapper
     ):
         self.api.waitfor = MagicMock()
 
@@ -758,7 +759,7 @@ class TestSetBlockMethod(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_WHEN_set_block_value_called_with_wait_and_high_low_THEN_wait_for_called_with_high_low(
-        self, pv_wrapper
+        self, pv_wrapper: Wrapper
     ):
         self.api.waitfor = MagicMock()
         block_name, set_point = "TEST_BLOCK", 10
@@ -773,7 +774,7 @@ class TestSetBlockMethod(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_WHEN_set_block_value_called_with_wait_and_high_low_incorrect_order_THEN_wait_for_called_with_high_low_correct_order(
-        self, pv_wrapper
+        self, pv_wrapper: Wrapper
     ):
         self.api.waitfor = MagicMock()
         block_name, set_point = "TEST_BLOCK", 10
@@ -788,7 +789,7 @@ class TestSetBlockMethod(unittest.TestCase):
 
     @patch("genie_python.genie_epics_api.Wrapper")
     def test_WHEN_set_block_value_called_with_wait_and_high_low_THEN_wait_for_called_with_high_low_correct_order(
-        self, pv_wrapper
+        self, pv_wrapper: Wrapper
     ):
         self.api.waitfor = MagicMock()
         block_name, set_point = "TEST_BLOCK", 10
@@ -811,7 +812,7 @@ class TestSetBlockMethod(unittest.TestCase):
     @patch("genie_python.genie_epics_api.Wrapper")
     @patch("genie_python.genie_epics_api.print")
     def test_WHEN_set_block_value_called_with_wait_and_various_odd_high_lows_THEN_message_printed(
-        self, _, low, high, val, should_warn, mock_print, pv_wrapper
+        self, _, low: int, high: int, val: int, should_warn: bool, mock_print: MagicMock, pv_wrapper: Wrapper
     ):
         self.api.waitfor = MagicMock()
         block_name, set_point = "TEST_BLOCK", 10
