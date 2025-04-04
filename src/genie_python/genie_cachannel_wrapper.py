@@ -252,8 +252,10 @@ class CaChannelWrapper(object):
                 chan = pv_map[name]
             else:
                 chan = CaChannel(name)
-                # noinspection PyTypeChecker
-                CaChannelWrapper.installHandlers(chan)
+                # do not install handlers if server
+                if os.getenv("EPICS_CAS_INTF_ADDR_LIST") is None:
+                    # noinspection PyTypeChecker
+                    CaChannelWrapper.installHandlers(chan)
                 chan.setTimeout(timeout)
                 # Try to connect - throws if cannot
                 CaChannelWrapper.connect_to_pv(chan)
