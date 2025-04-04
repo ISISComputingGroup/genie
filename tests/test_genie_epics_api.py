@@ -18,12 +18,12 @@ from __future__ import absolute_import
 
 import unittest
 
-from OpenGL.wrapper import Wrapper
 from hamcrest import assert_that, calling, is_, raises
 from mock import MagicMock, patch
 from parameterized import parameterized
 
 from genie_python.channel_access_exceptions import UnableToConnectToPVException
+from genie_python.genie_cachannel_wrapper import CaChannelWrapper as Wrapper
 from genie_python.genie_epics_api import API
 
 
@@ -420,7 +420,9 @@ class TestPvMethods(unittest.TestCase):
                 raise
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_get_local_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock: MagicMock):
+    def test_GIVEN_mock_pv_WHEN_get_local_pv_value_THEN_pv_is_returned(
+        self, pv_wrapper_mock: MagicMock
+    ):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
@@ -448,7 +450,9 @@ class TestPvMethods(unittest.TestCase):
         pv_wrapper_mock.get_pv_value.assert_called_with(expected_pv_name, False, use_numpy=None)
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_get_global_pv_value_THEN_pv_is_returned(self, pv_wrapper_mock: MagicMock):
+    def test_GIVEN_mock_pv_WHEN_get_global_pv_value_THEN_pv_is_returned(
+        self, pv_wrapper_mock: MagicMock
+    ):
         expected_value = 10
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
@@ -552,7 +556,9 @@ class TestPvMethods(unittest.TestCase):
         )
 
     @patch("genie_python.genie_epics_api.Wrapper")
-    def test_GIVEN_mock_pv_WHEN_set_global_pv_value_THEN_pv_is_set(self, pv_wrapper_mock: MagicMock):
+    def test_GIVEN_mock_pv_WHEN_set_global_pv_value_THEN_pv_is_set(
+        self, pv_wrapper_mock: MagicMock
+    ):
         expected_value = 10
         expected_pv_name = "PV"
 
@@ -812,7 +818,14 @@ class TestSetBlockMethod(unittest.TestCase):
     @patch("genie_python.genie_epics_api.Wrapper")
     @patch("genie_python.genie_epics_api.print")
     def test_WHEN_set_block_value_called_with_wait_and_various_odd_high_lows_THEN_message_printed(
-        self, _, low: int, high: int, val: int, should_warn: bool, mock_print: MagicMock, pv_wrapper: Wrapper
+        self,
+        _,
+        low: int,
+        high: int,
+        val: int,
+        should_warn: bool,
+        mock_print: MagicMock,
+        pv_wrapper: Wrapper,
     ):
         self.api.waitfor = MagicMock()
         block_name, set_point = "TEST_BLOCK", 10

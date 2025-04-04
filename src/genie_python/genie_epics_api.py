@@ -4,6 +4,7 @@ import contextlib
 import os
 import re
 import sys
+import typing
 import urllib.parse
 import urllib.request
 from builtins import str
@@ -560,7 +561,7 @@ class API(object):
         for name, value in temp:
             self.set_block_value(name, value)
 
-    def get_block_units(self, block_name: str) -> str | PVValue | None:
+    def get_block_units(self, block_name: str) -> str | None:
         """
         Get the physical measurement units associated with a block name.
 
@@ -595,7 +596,7 @@ class API(object):
             return None
         # Only return block units if PV field type is _not_ STRING, CHAR, UCHAR or ENUM
         # as they're unlikely to have .EGU fields
-        return Wrapper.get_pv_value(unit_name)
+        return typing.cast(str | None, Wrapper.get_pv_value(unit_name))
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], list[str]]
