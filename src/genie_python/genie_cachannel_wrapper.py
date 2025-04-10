@@ -19,6 +19,7 @@ try:
         AlarmSeverity,
         dbf_type_to_DBR_STS,
         dbf_type_to_DBR_TIME,
+        dbf_type_to_text,
     )
 except ImportError:
     # Note: caffi dynamically added to dependencies by CaChannel if not using built backend.
@@ -27,6 +28,7 @@ except ImportError:
         AlarmSeverity,
         dbf_type_to_DBR_STS,
         dbf_type_to_DBR_TIME,
+        dbf_type_to_text,
     )
 
 if TYPE_CHECKING:
@@ -551,3 +553,19 @@ class CaChannelWrapper(object):
 
         if not event.is_set():
             raise UnableToConnectToPVException(chan.name(), "Pend event timeout")
+
+    @staticmethod
+    def dbf_type_to_string(typ: int) -> str:
+        """
+        Return DB field type as text
+
+        Args:
+            typ: DB field type as integer
+
+        Returns: DB field type as string
+            Valid values:
+            DBF_STRING, DBF_CHAR, DBF_UCHAR, DBF_SHORT, DBF_USHORT, DBF_LONG,
+            DBF_ULONG, DBF_INT64, DBF_UINT64, DBF_FLOAT, DBF_DOUBLE, DBF_ENUM,
+            DBF_MENU, DBF_DEVICE, DBF_INLINK, DBF_OUTLINK, DBF_FWDLINK, DBF_NOACCESS
+        """
+        return dbf_type_to_text(typ)
