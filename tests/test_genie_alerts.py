@@ -16,8 +16,7 @@
 from __future__ import absolute_import, print_function
 
 import unittest
-
-from mock import patch
+from unittest.mock import patch
 
 import genie_python.genie_alerts
 import genie_python.genie_api_setup

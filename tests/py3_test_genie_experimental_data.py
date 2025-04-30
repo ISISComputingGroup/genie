@@ -17,9 +17,9 @@ from __future__ import absolute_import
 
 import datetime
 import unittest
+from unittest.mock import call, patch
 
 from hamcrest import assert_that, calling, raises
-from mock import call, patch
 from parameterized import parameterized
 
 from genie_python.genie_experimental_data import (
