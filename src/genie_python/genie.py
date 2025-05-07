@@ -1,7 +1,8 @@
 from __future__ import absolute_import, print_function
 
 import datetime
-import imp
+import importlib
+import importlib.util
 import os
 import re
 import sys
@@ -46,12 +47,14 @@ PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None
 
 print("\ngenie_python version " + VERSION)
 
-SUPPORTED_PYTHON_VERSION = (3, 11, 9)
-if sys.version_info[0:3] != SUPPORTED_PYTHON_VERSION[0:3]:
+MIN_SUPPORTED_PYTHON_VERSION = (3, 11, 0)
+MAX_SUPPORTED_PYTHON_VERSION = (3, 12, 999)
+
+if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_PYTHON_VERSION):
     message = (
-        "WARNING: genie_python only guarantees support for "
-        "Python version {0[0]}.{0[1]}.{0[2]}, you are running {1}".format(
-            SUPPORTED_PYTHON_VERSION, sys.version
+        "WARNING: genie_python only supports "
+        "python versions {0[0]}.{0[1]}.{0[2]} to {1[0]}.{1[1]}.{1[2]}, you are running {2}".format(
+            MIN_SUPPORTED_PYTHON_VERSION, MAX_SUPPORTED_PYTHON_VERSION, sys.version
         )
     )
     print(message, file=sys.stderr)
@@ -1459,14 +1462,16 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     """
     This will reload the module if it has already been loaded.
     """
-    fpath = None
-    try:
-        fpath, pathname, description = imp.find_module(name, [directory])
-        return imp.load_module(name, fpath, pathname, description)
-    finally:
-        # Since we may exit via an exception, close fpath explicitly.
-        if fpath is not None:
-            fpath.close()
+    spec = importlib.util.find_spec(name, directory)
+    if spec is None:
+        raise ValueError(f"Cannot find spec for module {name} in {directory}")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    loader = spec.loader
+    if loader is None:
+        raise ValueError("Module spec has no loader")
+    loader.exec_module(module)
+    return module
 
 
 @log_command_and_handle_exception

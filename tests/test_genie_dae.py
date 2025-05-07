@@ -285,7 +285,7 @@ class TestGenieDAE(unittest.TestCase):
     ):
         self.dae.in_change = False
 
-        self.assertRaisesRegexp(ValueError, "Change has already finished", self.dae.change_finish)
+        self.assertRaisesRegex(ValueError, "Change has already finished", self.dae.change_finish)
 
     def test_GIVEN_in_transition_WHEN_change_finish_called_THEN_value_error_with_correct_message_thrown(
         self,
@@ -293,10 +293,9 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.in_change = True
         self.dae.in_transition = MagicMock(return_value=True)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
-            "Another DAE change operation is currently in progress - values will be "
-            "inconsistent",
+            "Another DAE change operation is currently in progress - values will be inconsistent",
             self.dae.change_finish,
         )
 
@@ -306,7 +305,7 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.in_change = True
         self.dae.get_run_state = MagicMock(return_value="RUNNING")
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             "Instrument must be in SETUP when changing settings!",
             self.dae.change_finish,
