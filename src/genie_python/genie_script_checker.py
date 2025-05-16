@@ -210,8 +210,9 @@ class ScriptChecker(object):
             try:
                 json_data = json.loads(json_out)
             except json.decoder.JSONDecodeError:
-                errors.append("Failed to check the file with pyright, the user cache is corrupted.\nPlease delete the"
-                              " folder C:\\Users\\<User>\\.cache\\pyright-python and try again.")
+                errors.append("Failed to check the file with pyright, the user cache is corrupted."
+                              "\nPlease delete the folder "
+                              "C:\\Users\\<User>\\.cache\\pyright-python and try again.")
                 return warnings, errors
             
             # for each diagnostic, if severity is error then
