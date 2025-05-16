@@ -20,6 +20,7 @@ import unittest
 from datetime import datetime, timedelta
 from io import StringIO
 
+import test
 from hamcrest import assert_that, contains_exactly, has_length, is_
 from mock import MagicMock, call, patch
 
@@ -30,6 +31,13 @@ from genie_python.genie_waitfor import (
     WaitForController,
     WaitForControllerConnectedState,
     WaitForControllerExceptionContext,
+)
+
+invalid_module_msg = (
+    f"Cannot load script test as its name clashes with a standard python module "
+    f"or with a module accessible elsewhere on the python path.\nThe conflicting "
+    f"module was at '{test.__file__}'.\nIf this is a user script, rename the "
+    f"user script to avoid the clash."
 )
 
 
@@ -46,6 +54,14 @@ class TestGenie(unittest.TestCase):
 
         # Act
         self.assertRaises(Exception, genie.load_script, script)
+
+    def test_GIVEN_script_uses_module_name_WHEN_load_script_THEN_error(self):
+        # Arrange
+        script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "test.py")
+
+        # Act
+        with self.assertRaises(ValueError, msg=invalid_module_msg):
+            genie.load_script(script)
 
     def test_GIVEN_valid_script_WHEN_load_script_THEN_can_call_script(self):
         # Arrange

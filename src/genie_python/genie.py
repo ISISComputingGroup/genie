@@ -1466,6 +1466,13 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     if spec is None:
         raise ValueError(f"Cannot find spec for module {name} in {directory}")
     module = importlib.util.module_from_spec(spec)
+    if os.path.normpath(os.path.dirname(module.__file__)) != os.path.normpath(directory):
+        raise ValueError(
+            f"Cannot load script '{name}' as its name clashes with a standard python module "
+            f"or with a module accessible elsewhere on the python path.\n"
+            f"The conflicting module was at '{module.__file__}'.\n"
+            f"If this is a user script, rename the user script to avoid the clash."
+        )
     sys.modules[name] = module
     loader = spec.loader
     if loader is None:
