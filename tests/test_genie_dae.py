@@ -431,7 +431,7 @@ class TestGenieDAE(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_simulation_mode_AND_test_clock_WHEN_begin_run_THEN_user_is_warned(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
@@ -449,7 +449,7 @@ class TestGenieDAE(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_in_test_clock_AND_not_in_simulation_mode_WHEN_begin_run_THEN_user_is_warned(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
@@ -467,7 +467,7 @@ class TestGenieDAE(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_simulation_mode_AND_not_test_clock_WHEN_begin_run_THEN_user_is_warned(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
@@ -485,7 +485,7 @@ class TestGenieDAE(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_not_in_test_clock_not_in_simulation_mode_WHEN_begin_run_THEN_user_is_warned(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
@@ -741,7 +741,7 @@ class TestGenieAndSimulateDAEParity(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_in_setup_state_WHEN_begin_run_called_THEN_no_exception_thrown(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.set_run_state("SETUP")
