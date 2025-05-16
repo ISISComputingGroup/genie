@@ -403,7 +403,7 @@ class Dae(object):
         print("Simulation mode can be stopped using:               \n")
         print("         >>>set_dae_simulation_mode(False)          \n")
         print("==================================================\n")
-        
+
     def test_clock_warning(self) -> None:
         """
         Warn user they are using the test clock.
