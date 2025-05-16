@@ -339,6 +339,8 @@ class Dae(object):
         if not quiet:
             if self.get_simulation_mode():
                 self.simulation_mode_warning()
+            elif self.get_timing_source() == "Internal Test Clock":
+                self.test_clock_warning()
             print("** Beginning Run {} at {}".format(run_number, strftime("%H:%M:%S %d/%m/%y ")))
             ## don't fail begin() if we are unabel to print rb/user details
             try:
@@ -400,6 +402,15 @@ class Dae(object):
         print("\n=========== RUNNING IN SIMULATION MODE ===========\n")
         print("Simulation mode can be stopped using:               \n")
         print("         >>>set_dae_simulation_mode(False)          \n")
+        print("==================================================\n")
+        
+    def test_clock_warning(self) -> None:
+        """
+        Warn user they are using the test clock.
+        """
+        print("\n========= RUNNING AGAINST DAE TEST CLOCK =========\n")
+        print("Timing source can be changed using:               \n")
+        print("         >>>change_sync(source)                   \n")
         print("==================================================\n")
 
     def post_begin_check(self, verbose: bool = False) -> None:
