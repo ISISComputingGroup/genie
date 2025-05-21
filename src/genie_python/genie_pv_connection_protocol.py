@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Protocol, Tuple, runtime_checkable, Optional
+from typing import TYPE_CHECKING, Optional, Protocol, Tuple, runtime_checkable
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue

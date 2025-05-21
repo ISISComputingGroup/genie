@@ -478,7 +478,7 @@ class CaChannelWrapper(object):
                 else:
                     value = str(value)
             chan.last_value = value
-            
+
             call_back_function(
                 value,
                 epics_args.get("pv_severity", AlarmSeverity.No),
