@@ -16,6 +16,8 @@
 from __future__ import absolute_import
 
 import builtins
+import contextlib
+import io
 import os
 import shutil
 import sys
@@ -446,6 +448,20 @@ class TestScriptChecker(unittest.TestCase):
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
             self.assertTrue(expected in errors[0])
 
+    def test_GIVEN_two_get_pv_calls_with_arithmetic_operators_THEN_no_error(self):
+        script_lines = [
+            "from genie_python import genie as g\n",
+            "a = g.get_pv('...')\n",
+            "b = g.get_pv('...')\n",
+            "added = a + b\n",
+            "subtracted = a - b\n",
+            "multiplied = a * b\n",
+            "divided = a / b\n",
+        ]
+
+        with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
+            self.assertListEqual(errors, [])
+
     def test_GIVEN_new_directory_WHEN_pyright_script_checker_called_THEN_pyright_json_created_then_destroyed_after_use(
         self,
     ):
@@ -598,3 +614,22 @@ class TestScriptChecker(unittest.TestCase):
             self.checker, self.machine, script_lines, no_pylint=True
         ) as errors:
             self.assertEqual(errors, [])
+
+    def test_GIVEN_scanning_instrument_WHEN_calling_pylint_THEN_pylint_does_not_crash(self):
+        # Pylint should not complain about this as the method from a class
+        # deriving from "ScanningInstrument" should get added to it's parents'
+        # locals by the scanning_instrument_pylint_plugin.
+        script_lines = [
+            "class ScanningInstrument(): pass\n",
+            "class Larmor(ScanningInstrument):\n",
+            "    def foo(self): pass\n",
+        ]
+
+        captured_stderr = io.StringIO()
+        with contextlib.redirect_stderr(captured_stderr):
+            with CreateTempScriptAndReturnErrors(
+                self.checker, self.machine, script_lines
+            ) as errors:
+                self.assertEqual(errors, [])
+
+        self.assertEqual(captured_stderr.getvalue(), "")

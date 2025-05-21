@@ -1,7 +1,8 @@
 from __future__ import absolute_import, print_function
 
 import datetime
-import imp
+import importlib
+import importlib.util
 import os
 import re
 import sys
@@ -14,7 +15,6 @@ import numpy.typing as npt
 
 from genie_python.genie_api_setup import __api as _genie_api
 
-os.environ["EPICS_CA_MAX_ARRAY_BYTES"] = "20000000"
 os.environ["FROM_IBEX"] = str(False)
 
 # for user import this functionality so they can do g.adv and g.sim
@@ -24,7 +24,7 @@ import genie_python.genie_simulate as sim  # noqa F401
 import genie_python.genie_toggle_settings as toggle  # noqa F401
 
 # Import required for g.my_pv_prefix
-from genie_python.genie_api_setup import (
+from genie_python.genie_api_setup import (  # noqa E402
     get_user_script_dir,
     helparglist,
     log_command_and_handle_exception,
@@ -32,27 +32,29 @@ from genie_python.genie_api_setup import (
     set_user_script_dir,
     usercommand,
 )
-from genie_python.genie_script_checker import ScriptChecker
-from genie_python.genie_toggle_settings import ToggleSettings
-from genie_python.utilities import (
+from genie_python.genie_script_checker import ScriptChecker  # noqa E402
+from genie_python.genie_toggle_settings import ToggleSettings  # noqa E402
+from genie_python.utilities import (  # noqa E402
     EnvironmentDetails,
     check_lowlimit_against_highlimit,
     get_correct_filepath_existing,
     get_correct_path,
 )
-from genie_python.version import VERSION
+from genie_python.version import VERSION  # noqa E402
 
 PVBaseValue = bool | int | float | str
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None
 
 print("\ngenie_python version " + VERSION)
 
-SUPPORTED_PYTHON_VERSION = (3, 11, 9)
-if sys.version_info[0:3] != SUPPORTED_PYTHON_VERSION[0:3]:
+MIN_SUPPORTED_PYTHON_VERSION = (3, 11, 0)
+MAX_SUPPORTED_PYTHON_VERSION = (3, 12, 999)
+
+if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_PYTHON_VERSION):
     message = (
-        "WARNING: genie_python only guarantees support for "
-        "Python version {0[0]}.{0[1]}.{0[2]}, you are running {1}".format(
-            SUPPORTED_PYTHON_VERSION, sys.version
+        "WARNING: genie_python only supports "
+        "python versions {0[0]}.{0[1]}.{0[2]} to {1[0]}.{1[1]}.{1[2]}, you are running {2}".format(
+            MIN_SUPPORTED_PYTHON_VERSION, MAX_SUPPORTED_PYTHON_VERSION, sys.version
         )
     )
     print(message, file=sys.stderr)
@@ -729,7 +731,7 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
 @log_command_and_handle_exception
 def get_pv(
     name: str, to_string: bool = False, is_local: bool = False, use_numpy: bool = False
-) -> PVValue:
+) -> Any:
     """
     Get the value for the specified PV.
 
@@ -1460,14 +1462,23 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     """
     This will reload the module if it has already been loaded.
     """
-    fpath = None
-    try:
-        fpath, pathname, description = imp.find_module(name, [directory])
-        return imp.load_module(name, fpath, pathname, description)
-    finally:
-        # Since we may exit via an exception, close fpath explicitly.
-        if fpath is not None:
-            fpath.close()
+    spec = importlib.util.find_spec(name, directory)
+    if spec is None:
+        raise ValueError(f"Cannot find spec for module {name} in {directory}")
+    module = importlib.util.module_from_spec(spec)
+    if os.path.normpath(os.path.dirname(module.__file__)) != os.path.normpath(directory):
+        raise ValueError(
+            f"Cannot load script '{name}' as its name clashes with a standard python module "
+            f"or with a module accessible elsewhere on the python path.\n"
+            f"The conflicting module was at '{module.__file__}'.\n"
+            f"If this is a user script, rename the user script to avoid the clash."
+        )
+    sys.modules[name] = module
+    loader = spec.loader
+    if loader is None:
+        raise ValueError("Module spec has no loader")
+    loader.exec_module(module)
+    return module
 
 
 @log_command_and_handle_exception
