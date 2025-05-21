@@ -500,8 +500,9 @@ class ScriptChecker(object):
                 else:
                     # variables defined inside __init__
                     for variables in function_body.body:
-                        if (isinstance(variables, ast.Assign)
-                                and isinstance(variables.targets[0], ast.Attribute)):
+                        if isinstance(variables, ast.Assign) and isinstance(
+                            variables.targets[0], ast.Attribute
+                        ):
                             attributes += "{class_name}.{variable_name},".format(
                                 class_name=class_name, variable_name=variables.targets[0].attr
                             )
