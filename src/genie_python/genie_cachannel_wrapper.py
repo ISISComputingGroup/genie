@@ -435,7 +435,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, str, str], None]",
+        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: bool | None = None,
@@ -477,8 +477,8 @@ class CaChannelWrapper(object):
                     value = waveform_to_string(value)
                 else:
                     value = str(value)
-
             chan.last_value = value
+
             call_back_function(
                 value,
                 epics_args.get("pv_severity", AlarmSeverity.No),

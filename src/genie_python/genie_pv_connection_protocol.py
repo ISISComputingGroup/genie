@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Protocol, Tuple, runtime_checkable
+from typing import TYPE_CHECKING, Optional, Protocol, Tuple, runtime_checkable
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue
@@ -29,7 +29,7 @@ class GeniePvConnectionProtocol(Protocol):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, str, str], None]",
+        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: bool | None = None,
