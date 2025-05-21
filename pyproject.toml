@@ -72,7 +72,6 @@ doc = [
 
 dev = [
   "genie_python[plot,doc]",
-  "mock",
   "parameterized",
   "pyhamcrest",
   "pytest",

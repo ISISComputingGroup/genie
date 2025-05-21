@@ -17,8 +17,7 @@ from __future__ import absolute_import
 
 import json
 import unittest
-
-from mock import Mock
+from unittest.mock import Mock
 
 from genie_python.utilities import (
     EnvironmentDetails,
