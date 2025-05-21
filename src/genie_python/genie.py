@@ -9,8 +9,9 @@ import sys
 import types
 from builtins import FileNotFoundError, str
 from io import open
-from typing import Any, Callable, TypedDict
+from typing import Any, Callable, TypedDict, TypeVar
 
+import numpy as np
 import numpy.typing as npt
 
 from genie_python.genie_api_setup import __api as _genie_api
@@ -42,8 +43,9 @@ from genie_python.utilities import (  # noqa E402
 )
 from genie_python.version import VERSION  # noqa E402
 
+E = TypeVar("E", bound=np.generic, covariant=True)
 PVBaseValue = bool | int | float | str
-PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None
+PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray[E] | None
 
 print("\ngenie_python version " + VERSION)
 
@@ -99,7 +101,7 @@ def get_blocks() -> list[str]:
 @usercommand
 @helparglist("block")
 @log_command_and_handle_exception
-def get_block_units(block_name: str) -> str | dict | None:
+def get_block_units(block_name: str) -> str | None:
     """
     Get the physical measurement units associated with a block name.
 
@@ -116,13 +118,13 @@ def get_block_units(block_name: str) -> str | dict | None:
 @helparglist("...")
 @log_command_and_handle_exception
 def cset(
-    *args: PVValue,
+    *args: PVValue[E],
     runcontrol: bool | None = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     wait: bool | None = None,
     verbose: bool | None = None,
-    **kwargs: PVValue,
+    **kwargs: PVValue[E],
 ) -> None:
     """
     Sets the setpoint and runcontrol settings for blocks.
@@ -177,7 +179,7 @@ def cset(
             raise Exception(
                 "Too many arguments, please type: help(g.cset) for more information on the syntax"
             )
-        blocks = [args[0]]
+        blocks = [str(args[0])]
         values = [args[1]] if len(args) == 2 else [None]
     elif len(kwargs) > 0:
         # Check for specifying blocks via the cset(block=value) syntax
@@ -268,7 +270,7 @@ def _log_alarmed_block(block_name: str, alarm_state: str) -> None:
     print("Block {} is in alarm: {}".format(block_name, alarm_state), file=sys.stdout)
 
 
-def _warn_if_block_alarm(block: object) -> None:
+def _warn_if_block_alarm(block: str) -> None:
     """
     Checks whether a block is in an alarmed state and warn user (inc log)
 
@@ -282,7 +284,7 @@ def _warn_if_block_alarm(block: object) -> None:
             _log_alarmed_block(alarm[0], alarm_type)
 
 
-def _print_from_cget(block_details: dict[str, str]) -> None:
+def _print_from_cget(block_details: _CgetReturn) -> None:
     """
     Prints the values obtained through cget into a
     human readable format, used for cshow.
@@ -414,11 +416,11 @@ def waitfor(
                 if block is not None:
                     raise Exception("Can set waitfor for only one block at a time")
                 block = k
-                value = pars[k]
+                value = pars[k] # pyright: ignore
             else:
                 raise ValueError("Block named '{}' did not exist.".format(k))
     # Check that wait_for object exists
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -448,7 +450,7 @@ def waitfor(
 @log_command_and_handle_exception
 def waitfor_block(
     block: str,
-    value: bool | int | float | str | None = None,
+    value: PVValue[E] | None = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     maxwait: float | None = None,
@@ -477,7 +479,7 @@ def waitfor_block(
         ...     "myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0
         ... )
     """
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -527,7 +529,7 @@ def waitfor_time(
         )
     if any(t is not None and t < 0 for t in (seconds, minutes, hours)):
         raise ValueError("Cannot execute waitfor_time - Time parameters cannot be negative")
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise TypeError("Cannot execute waitfor_time - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(
         seconds=seconds, minutes=minutes, hours=hours, time=time, quiet=quiet
@@ -537,7 +539,7 @@ def waitfor_time(
 @usercommand
 @helparglist("frames")
 @log_command_and_handle_exception
-def waitfor_frames(frames: int, quiet: bool = False) -> None:
+def waitfor_frames(frames: int | None = None, quiet: bool = False) -> None:
     """
     Interrupts execution to wait for number of total good frames to reach parameter value
 
@@ -555,7 +557,7 @@ def waitfor_frames(frames: int, quiet: bool = False) -> None:
         )
     if frames < 0:
         raise ValueError("Cannot execute waitfor_frames - frames parameter cannot be negative")
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(frames=frames, quiet=quiet)
 
@@ -563,7 +565,7 @@ def waitfor_frames(frames: int, quiet: bool = False) -> None:
 @usercommand
 @helparglist("raw_frames")
 @log_command_and_handle_exception
-def waitfor_raw_frames(raw_frames: int, quiet: bool = False) -> None:
+def waitfor_raw_frames(raw_frames: int | None = None, quiet: bool = False) -> None:
     """
     Interrupts execution to wait for number of total raw frames to reach parameter value
 
@@ -584,7 +586,7 @@ def waitfor_raw_frames(raw_frames: int, quiet: bool = False) -> None:
         raise ValueError(
             "Cannot execute waitfor_raw_frames - raw_frames parameter cannot be negative"
         )
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(raw_frames=raw_frames, quiet=quiet)
 
@@ -604,7 +606,7 @@ def waitfor_uamps(uamps: float, quiet: bool = False) -> None:
 
         >>> waitfor_uamps(115.5)
     """
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(uamps=uamps, quiet=quiet)
 
@@ -612,7 +614,7 @@ def waitfor_uamps(uamps: float, quiet: bool = False) -> None:
 @usercommand
 @helparglist("mevents")
 @log_command_and_handle_exception
-def waitfor_mevents(mevents: float, quiet: bool = False) -> None:
+def waitfor_mevents(mevents: float | None = None, quiet: bool = False) -> None:
     """
     Interrupts execution to wait for number of millions of events to reach parameter value
 
@@ -631,7 +633,7 @@ def waitfor_mevents(mevents: float, quiet: bool = False) -> None:
         )
     if mevents < 0:
         raise ValueError("Cannot execute waitfor_mevents - mevents parameter cannot be negative")
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_mevents - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(mevents=mevents, quiet=quiet)
 
@@ -661,7 +663,7 @@ def waitfor_runstate(
         >>> waitfor_runstate("paused", onexit=True)
     """
     # Check that wait_for object exists
-    if _genie_api.waitfor is None:
+    if _genie_api.waitfor is None: # pyright: ignore
         raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
     _genie_api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit, quiet)
 
@@ -752,7 +754,7 @@ def get_pv(
 @usercommand
 @helparglist("name, value[, wait][, is_local]")
 @log_command_and_handle_exception
-def set_pv(name: str, value: PVValue, wait: bool = False, is_local: bool = False) -> None:
+def set_pv(name: str, value: PVValue[E], wait: bool = False, is_local: bool = False) -> None:
     """
     Set the value for the specified PV.
 

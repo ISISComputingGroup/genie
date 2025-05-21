@@ -31,7 +31,7 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+    from genie_python.genie import PVValue, _CgetReturn
 
 RC_ENABLE = ":RC:ENABLE"
 RC_LOW = ":RC:LOW"
@@ -866,7 +866,7 @@ class API(object):
         except Exception:
             return "UNKNOWN"
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict:
+    def get_block_data(self, block: str, fail_fast: bool = False) -> "_CgetReturn":
         """
         Gets the useful values associated with a block.
 

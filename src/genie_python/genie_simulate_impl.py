@@ -16,7 +16,7 @@ from genie_python.genie_pre_post_cmd_manager import PrePostCmdManager
 from genie_python.utilities import require_runstate
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn
+    from genie_python.genie import PVValue, _GetspectrumReturn, _CgetReturn
     from genie_python.genie_waitfor import WAITFOR_VALUE
 
 
@@ -1141,7 +1141,7 @@ class API(object):
         runcontrol: bool | None = None,
         lowlimit: float | None = None,
         highlimit: float | None = None,
-        wait: bool = False,
+        wait: bool | None = False,
     ) -> None:
         """Sets a block's values.
         If the block already exists, update the block. Only update values
@@ -1178,7 +1178,7 @@ class API(object):
         if wait:
             self.waitfor.start_waiting(block=name, value=value)
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict():
+    def get_block_data(self, block: str, fail_fast: bool = False) -> "_CgetReturn":
         ans = OrderedDict()
         ans["connected"] = True
 
