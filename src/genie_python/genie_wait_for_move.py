@@ -3,39 +3,47 @@
 """Waits until the supplied process variable returns 'done'.
 Allows motors to complete their motion fully before proceeding."""
 
-# If you include db/motorUtil.db and call motorUtilInit(“pv prefix”) from your IOC you get 3 PVs defined:
+# If you include db/motorUtil.db and call motorUtilInit(“pv prefix”) from
+# your IOC you get 3 PVs defined:
 # $(P)alldone, $(P)allstop, $(P)moving which cover all motors in that IOC.
 # The “allstop” PV is automatically reset after the stop command has been issued to all motors,
 # “alldone” indicates when any motion has completed and “moving” gives a count of moving motors.
 
-from __future__ import absolute_import, print_function
-
 import time
-from builtins import object
+from typing import TYPE_CHECKING, Callable, Iterable
 
 from genie_python.utilities import check_break
 
+if TYPE_CHECKING:
+    from genie_python.genie_epics_api import API
+
 
 class WaitForMoveController(object):
-    def __init__(self, api, motion_pv):
+    def __init__(self, api: "API", motion_pv: str) -> None:
         self._api = api
         self._motion_pv = motion_pv
         self._polling_delay = 0.02
         self._wait_succeeded = False
         self._missing_blocks = list()
 
-    def wait(self, start_timeout=None, move_timeout=None):
+    def wait(self, start_timeout: float | None = None, move_timeout: float | None = None) -> None:
         """Wait for motor motion to complete.
 
         Args:
             start_timeout (int, optional) : the number of seconds to wait for the movement to begin
             move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
 
-        If the motion does not start within the specified start_timeout then it will continue as if it did.
+        If the motion does not start within the specified start_timeout then it will continue as if
+        it did.
         """
         self._do_wait(start_timeout, move_timeout, self._any_motion)
 
-    def wait_specific(self, blocks, start_timeout=None, move_timeout=None):
+    def wait_specific(
+        self,
+        blocks: list[str],
+        start_timeout: float | None = None,
+        move_timeout: float | None = None,
+    ) -> None:
         """Wait for motor motion to complete on the specified blocks only.
 
         Args:
@@ -43,17 +51,24 @@ class WaitForMoveController(object):
             start_timeout (int, optional) : the number of seconds to wait for the movement to begin
             move_timeout (int, optional) : the maximum number of seconds to wait for motion to stop
 
-        If the motion does not start within the specified start_timeout then it will continue as if it did
+        If the motion does not start within the specified start_timeout then it
+        will continue as if it did
         """
 
-        def check_blocks():
+        def check_blocks() -> bool:
             return self._check_specific_motion(blocks)
 
         self._do_wait(start_timeout, move_timeout, check_blocks)
         self._flag_error_conditions(blocks)
 
-    def _do_wait(self, start_timeout, move_timeout, check_for_move):
-        # Pause very briefly to avoid any "double move" that may occur when multiple motors are moved
+    def _do_wait(
+        self,
+        start_timeout: float | None,
+        move_timeout: float | None,
+        check_for_move: Callable[[], bool],
+    ) -> None:
+        # Pause very briefly to avoid any "double move"
+        # that may occur when multiple motors are moved
         # and one of the motors is sent to its current position
         time.sleep(0.01)
 
@@ -73,7 +88,9 @@ class WaitForMoveController(object):
                 return
         self._api.logger.log_info_msg("WAITFOR_MOVE MOVE FINISHED")
 
-    def _check_timeouts_valid(self, start_timeout, move_timeout):
+    def _check_timeouts_valid(
+        self, start_timeout: float | None, move_timeout: float | None
+    ) -> tuple[float | None, float | None]:
         if start_timeout is not None and start_timeout <= 0:
             self._api.logger.log_info_msg(
                 "Start time out cannot be less than zero - using default value"
@@ -86,7 +103,7 @@ class WaitForMoveController(object):
             move_timeout = None
         return start_timeout, move_timeout
 
-    def wait_for_start(self, timeout, check_for_move):
+    def wait_for_start(self, timeout: float | None, check_for_move: Callable[[], bool]) -> None:
         if timeout is not None:
             start = time.time()
 
@@ -98,10 +115,10 @@ class WaitForMoveController(object):
                     return
             self._api.logger.log_info_msg("WAITFOR_MOVE START FINISHED")
 
-    def _any_motion(self):
+    def _any_motion(self) -> bool:
         return self._api.get_pv_value(self._motion_pv) != 0
 
-    def _check_specific_motion(self, blocks):
+    def _check_specific_motion(self, blocks: Iterable[str]) -> bool:
         for block in blocks:
             if block in self._missing_blocks:
                 # Skip any missing blocks
@@ -121,7 +138,7 @@ class WaitForMoveController(object):
 
         return False
 
-    def _flag_error_conditions(self, blocks):
+    def _flag_error_conditions(self, blocks: Iterable[str]) -> None:
         time.sleep(0.5)
         filtered_blocks = self._filter_out_missing_blocks(blocks)
 
@@ -145,7 +162,7 @@ class WaitForMoveController(object):
             self._api.logger.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
             print("Block %s could not be found" % i)
 
-    def _filter_out_missing_blocks(self, blocks):
+    def _filter_out_missing_blocks(self, blocks: Iterable[str]) -> list[str]:
         filtered_blocks = []
         for b in blocks:
             if b in self._missing_blocks:
