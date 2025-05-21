@@ -4,8 +4,6 @@ Genie Alerts module:
 This module is used for setting alerts on blocks.
 """
 
-from __future__ import absolute_import, print_function
-
 from genie_python.genie_api_setup import (
     __api,
     helparglist,
@@ -25,9 +23,10 @@ _ALERT_MESSAGE = "CS:AC:ALERTS:MESSAGE:SP"
 
 
 @usercommand
-@helparglist("block, lowlimit, highlimit, [delay_in, delay_out]")
+@helparglist("block, lowlimit, highlimit, [set_enable, delay_in, delay_out]")
 @log_command_and_handle_exception
-def set_range(block, lowlimit, highlimit, set_enable=True, delay_in=None, delay_out=None):
+def set_range(block: str, lowlimit: float, highlimit: float, set_enable: bool=True,
+              delay_in: float|None=None, delay_out: float|None=None) -> None:
     """
     Sets alert range on block.
 
@@ -36,19 +35,22 @@ def set_range(block, lowlimit, highlimit, set_enable=True, delay_in=None, delay_
         lowlimit (float): low limit
         highlimit (float): high limit
         set_enable (bool): (optional setting True will enable alerts on the block. Defaults to True.
-        delay_in (float): (optional) delay /s before triggering in range. If not specified the delay remains unchanged.
-        delay_out (float): (optional) delay /s before triggering out of range. If not specified the delay remains unchanged.
+        delay_in (float): (optional) delay /s before triggering in range. If not specified the delay
+                                     remains unchanged.
+        delay_out (float): (optional) delay /s before triggering out of range.
+                                      If not specified the delay remains unchanged.
 
     """
     if not __api.block_exists(block):
         raise Exception('No block with the name "{}" exists'.format(block))
 
-    __api.set_pv_value(_ALERT_LOW.format(block), lowlimit, wait=False, is_local=True)
-    __api.set_pv_value(_ALERT_HIGH.format(block), highlimit, wait=False, is_local=True)
+    __api.set_pv_value(_ALERT_LOW.format(block), f"{lowlimit}", wait=False, is_local=True)
+    __api.set_pv_value(_ALERT_HIGH.format(block), f"{highlimit}", wait=False, is_local=True)
     if delay_in is not None:
-        __api.set_pv_value(_ALERT_DELAY_IN.format(block), delay_in, wait=False, is_local=True)
+        __api.set_pv_value(_ALERT_DELAY_IN.format(block), f"{delay_in}", wait=False, is_local=True)
     if delay_out is not None:
-        __api.set_pv_value(_ALERT_DELAY_OUT.format(block), delay_out, wait=False, is_local=True)
+        __api.set_pv_value(_ALERT_DELAY_OUT.format(block), f"{delay_out}",
+                           wait=False, is_local=True)
     if set_enable:
         enable(block)
 
@@ -56,7 +58,7 @@ def set_range(block, lowlimit, highlimit, set_enable=True, delay_in=None, delay_
 @usercommand
 @helparglist("block [, is_enabled]")
 @log_command_and_handle_exception
-def enable(block, set_enabled=True):
+def enable(block: str, set_enabled: bool=True) -> None:
     """
     Enable alerts on a block.
 
@@ -73,7 +75,7 @@ def enable(block, set_enabled=True):
 @usercommand
 @helparglist("message")
 @log_command_and_handle_exception
-def send(message):
+def send(message: str) -> None:
     """
     Send a message to all alert recipients.
 
@@ -87,7 +89,7 @@ def send(message):
 ## no log decorator so mobile numbers not sent to log file
 @usercommand
 @helparglist("numbers")
-def set_sms(numbers):
+def set_sms(numbers:list[str] | str) -> None:
     """
     Set SMS text numbers for alerts on blocks.
 
@@ -107,7 +109,7 @@ def set_sms(numbers):
 ## no log decorator so email addresses not sent to log file
 @usercommand
 @helparglist("emails")
-def set_email(emails):
+def set_email(emails: list[str]|str) -> None:
     """
     Set email addresses for alerts on blocks.
 
@@ -124,7 +126,7 @@ def set_email(emails):
         print("Unable to set alert email addresses: {}".format(e))
 
 
-def _print_block(block, only_if_enabled=False):
+def _print_block(block: str, only_if_enabled: bool=False) -> None:
     enabled = (
         __api.get_pv_value(_ALERT_ENABLE.format(block), to_string=True, is_local=True) == "YES"
     )
@@ -157,7 +159,7 @@ def _print_block(block, only_if_enabled=False):
 @usercommand
 @helparglist("[block, all]")
 @log_command_and_handle_exception
-def status(block=None, all=False):
+def status(block: str|None=None, all:bool=False) -> None:
     """
     Prints the emails and mobiles used for alerts and the current status of specified block.
     Args:
@@ -177,12 +179,13 @@ def status(block=None, all=False):
 
 
 # used as part of tests, returns a dictionary of details
-def _dump(block):
+def _dump(block: str) -> dict[str,str]:
     if not __api.block_exists(block):
         raise Exception('No block with the name "{}" exists'.format(block))
     res = {}
-    res["emails"] = __api.get_pv_value(_ALERT_EMAILS, to_string=True, is_local=True).split(";")
-    res["mobiles"] = __api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True).split(";")
+    res["emails"] = str(__api.get_pv_value(_ALERT_EMAILS, to_string=True, is_local=True)).split(";")
+    res["mobiles"] = (str(__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True))
+                      .split(";"))
     res["enabled"] = __api.get_pv_value(_ALERT_ENABLE.format(block), to_string=False, is_local=True)
     res["lowlimit"] = __api.get_pv_value(_ALERT_LOW.format(block), to_string=False, is_local=True)
     res["highlimit"] = __api.get_pv_value(_ALERT_HIGH.format(block), to_string=False, is_local=True)
