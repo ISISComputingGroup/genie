@@ -5,10 +5,11 @@ This module is used for advanced commands that are for expert users.
 """
 
 import contextlib
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
 from typing import Any, Callable, Iterator, TypedDict
 
+import numpy as np
 import numpy.typing as npt
 
 from genie_python.genie_api_setup import (
@@ -52,7 +53,7 @@ def assert_in_manager_mode() -> None:
 
 
 @contextlib.contextmanager
-def motor_in_set_mode(pv_name: str) -> Iterator:
+def motor_in_set_mode(pv_name: str) -> Iterator[None]:
     """
     Uses a context to place motor into set mode and ensure that it leaves
     set mode after context has ended. If it can not set the mode correctly
@@ -134,7 +135,7 @@ def get_pv_from_block(block: str) -> str:
 @usercommand
 @helparglist("pv str")
 @log_command_and_handle_exception
-def pv_exists(pv: str, is_local: bool = False) -> None:
+def pv_exists(pv: str, is_local: bool = False) -> bool:
     """
     Check if PV exists.
 
@@ -159,13 +160,13 @@ def wait_for_pv(
         value: The value to wait for
         maxwait (int, optional): The maximum time to wait for in seconds
     """
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
     while True:
         curr_value = __api.get_pv_value(pv)
         if curr_value == value:
             break
         if maxwait is not None:
-            if timedelta(seconds=maxwait) < datetime.utcnow() - start_time:
+            if timedelta(seconds=maxwait) < datetime.now(UTC) - start_time:
                 break
         sleep(DELAY_IN_WAIT_FOR_SLEEP_LOOP)
         check_break(2)
@@ -400,7 +401,9 @@ def get_exp_data(
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_spectrum_data(with_spec_zero: bool = True, with_time_bin_zero: bool = False) -> npt.NDArray:
+def get_spectrum_data(
+    with_spec_zero: bool = True, with_time_bin_zero: bool = False
+) -> npt.NDArray[np.float32]:
     """
     Get the event mode spectrum data as ND array.
 
