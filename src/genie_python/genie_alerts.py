@@ -25,8 +25,14 @@ _ALERT_MESSAGE = "CS:AC:ALERTS:MESSAGE:SP"
 @usercommand
 @helparglist("block, lowlimit, highlimit, [set_enable, delay_in, delay_out]")
 @log_command_and_handle_exception
-def set_range(block: str, lowlimit: float, highlimit: float, set_enable: bool=True,
-              delay_in: float|None=None, delay_out: float|None=None) -> None:
+def set_range(
+    block: str,
+    lowlimit: float,
+    highlimit: float,
+    set_enable: bool = True,
+    delay_in: float | None = None,
+    delay_out: float | None = None,
+) -> None:
     """
     Sets alert range on block.
 
@@ -49,8 +55,9 @@ def set_range(block: str, lowlimit: float, highlimit: float, set_enable: bool=Tr
     if delay_in is not None:
         __api.set_pv_value(_ALERT_DELAY_IN.format(block), f"{delay_in}", wait=False, is_local=True)
     if delay_out is not None:
-        __api.set_pv_value(_ALERT_DELAY_OUT.format(block), f"{delay_out}",
-                           wait=False, is_local=True)
+        __api.set_pv_value(
+            _ALERT_DELAY_OUT.format(block), f"{delay_out}", wait=False, is_local=True
+        )
     if set_enable:
         enable(block)
 
@@ -58,7 +65,7 @@ def set_range(block: str, lowlimit: float, highlimit: float, set_enable: bool=Tr
 @usercommand
 @helparglist("block [, is_enabled]")
 @log_command_and_handle_exception
-def enable(block: str, set_enabled: bool=True) -> None:
+def enable(block: str, set_enabled: bool = True) -> None:
     """
     Enable alerts on a block.
 
@@ -89,7 +96,7 @@ def send(message: str) -> None:
 ## no log decorator so mobile numbers not sent to log file
 @usercommand
 @helparglist("numbers")
-def set_sms(numbers:list[str] | str) -> None:
+def set_sms(numbers: list[str] | str) -> None:
     """
     Set SMS text numbers for alerts on blocks.
 
@@ -109,7 +116,7 @@ def set_sms(numbers:list[str] | str) -> None:
 ## no log decorator so email addresses not sent to log file
 @usercommand
 @helparglist("emails")
-def set_email(emails: list[str]|str) -> None:
+def set_email(emails: list[str] | str) -> None:
     """
     Set email addresses for alerts on blocks.
 
@@ -126,7 +133,7 @@ def set_email(emails: list[str]|str) -> None:
         print("Unable to set alert email addresses: {}".format(e))
 
 
-def _print_block(block: str, only_if_enabled: bool=False) -> None:
+def _print_block(block: str, only_if_enabled: bool = False) -> None:
     enabled = (
         __api.get_pv_value(_ALERT_ENABLE.format(block), to_string=True, is_local=True) == "YES"
     )
@@ -159,7 +166,7 @@ def _print_block(block: str, only_if_enabled: bool=False) -> None:
 @usercommand
 @helparglist("[block, all]")
 @log_command_and_handle_exception
-def status(block: str|None=None, all:bool=False) -> None:
+def status(block: str | None = None, all: bool = False) -> None:
     """
     Prints the emails and mobiles used for alerts and the current status of specified block.
     Args:
@@ -179,13 +186,14 @@ def status(block: str|None=None, all:bool=False) -> None:
 
 
 # used as part of tests, returns a dictionary of details
-def _dump(block: str) -> dict[str,str]:
+def _dump(block: str) -> dict[str, str]:
     if not __api.block_exists(block):
         raise Exception('No block with the name "{}" exists'.format(block))
     res = {}
     res["emails"] = str(__api.get_pv_value(_ALERT_EMAILS, to_string=True, is_local=True)).split(";")
-    res["mobiles"] = (str(__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True))
-                      .split(";"))
+    res["mobiles"] = str(__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True)).split(
+        ";"
+    )
     res["enabled"] = __api.get_pv_value(_ALERT_ENABLE.format(block), to_string=False, is_local=True)
     res["lowlimit"] = __api.get_pv_value(_ALERT_LOW.format(block), to_string=False, is_local=True)
     res["highlimit"] = __api.get_pv_value(_ALERT_HIGH.format(block), to_string=False, is_local=True)
