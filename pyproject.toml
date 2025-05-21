@@ -118,6 +118,7 @@ reportUnnecessaryIsInstance = true
 reportUntypedBaseClass = true
 reportUntypedClassDecorator = true
 reportUntypedFunctionDecorator = true
+stubPath = "src/genie_python/typings"
 
 [tool.setuptools_scm]
 version_file = "src/genie_python/_version.py"
