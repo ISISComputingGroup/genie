@@ -157,7 +157,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def set_pv_value(
         name: str,
-        value: "PVValue",
+        value: "PVValue|bytes",
         wait: bool = False,
         timeout: float = TIMEOUT,
         safe_not_quick: bool = True,
@@ -403,7 +403,7 @@ class CaChannelWrapper(object):
             raise UnableToConnectToPVException(ca_channel.name(), "Connection timeout (state)")
 
     @staticmethod
-    def check_for_enum_value(value: "PVValue", chan: CaChannel, name: str) -> "PVValue":
+    def check_for_enum_value(value: "PVValue|bytes", chan: CaChannel, name: str) -> "PVValue|bytes":
         """
         Check for string input for MBBI/BI records and replace with the equivalent index value.
 

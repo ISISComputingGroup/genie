@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 class GeniePvConnectionProtocol(Protocol):
     @staticmethod
     def set_pv_value(
-        name: str, value: "PVValue", wait: bool, timeout: float, safe_not_quick: bool
+        name: str, value: "PVValue|bytes", wait: bool, timeout: float, safe_not_quick: bool
     ) -> None: ...
 
     @staticmethod
