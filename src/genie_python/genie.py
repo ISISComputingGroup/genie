@@ -10,6 +10,7 @@ import types
 from builtins import FileNotFoundError, str
 from io import open
 from typing import Any, Callable, TypedDict, TypeVar
+from typing_extensions import Unpack
 
 import numpy as np
 import numpy.typing as npt
@@ -680,7 +681,7 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
     to stop.
 
     Args:
-        blocks (string, multiple, optional): the names of specific blocks to wait for
+        blocks (string, multiple): the names of specific blocks to wait for
         start_timeout (int, optional): the number of seconds to wait for the
             movement to begin (default = 2 seconds)
         move_timeout (int, optional): the maximum number of seconds to wait for motion to stop
@@ -713,12 +714,12 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
     if _genie_api.wait_for_move is None:
         raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
 
-    if len(blocks) > 0:
+    if blocks is not tuple[None]:
         # Specified blocks waitfor_move
         move_blocks = list()
         # Check blocks exist
         for b in blocks:
-            if _genie_api.block_exists(b):
+            if _genie_api.block_exists(b): # pyright: ignore  b cannot be None given line 716
                 move_blocks.append(b)
             else:
                 print("Block %s does not exist, so ignoring it" % b)
@@ -1177,7 +1178,7 @@ def get_number_spectra() -> int:
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_spectrum_integrals(with_spec_zero: bool = True) -> npt.NDArray:
+def get_spectrum_integrals(with_spec_zero: bool = True) -> npt.NDArray[np.float32]:
     """
     Get the event mode spectrum integrals as numpy ND array.
 
@@ -1202,7 +1203,7 @@ def get_spectrum_integrals(with_spec_zero: bool = True) -> npt.NDArray:
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_spectrum_data(with_spec_zero: bool = True) -> npt.NDArray:
+def get_spectrum_data(with_spec_zero: bool = True) -> npt.NDArray[np.float32]:
     """
     Get the event mode spectrum data as numpy ND array.
 
@@ -1291,7 +1292,7 @@ class _GetdashboardReturn(TypedDict):
     rb_number: str
     user: str
     title: str
-    display_title: str
+    display_title: bool
     run_time: int
     good_frames_total: int
     good_frames_period: int
@@ -1318,33 +1319,34 @@ def get_dashboard() -> _GetdashboardReturn:
     Returns:
         dict: the experiment values
     """
-    data = dict()
-    data["status"] = _genie_api.dae.get_run_state()
-    data["run_number"] = _genie_api.dae.get_run_number()
-    data["rb_number"] = _genie_api.dae.get_rb_number()
-    data["user"] = _genie_api.dae.get_users()
-    data["title"] = _genie_api.dae.get_title()
-    data["display_title"] = _genie_api.dae.get_display_title()
-    data["run_time"] = _genie_api.dae.get_run_duration()
-    data["good_frames_total"] = _genie_api.dae.get_good_frames()
-    data["good_frames_period"] = _genie_api.dae.get_good_frames(True)
-    data["raw_frames_total"] = _genie_api.dae.get_raw_frames()
-    data["raw_frames_period"] = _genie_api.dae.get_raw_frames(True)
-    data["beam_current"] = _genie_api.dae.get_beam_current()
-    data["total_current"] = _genie_api.dae.get_total_uamps()
-    data["spectra"] = _genie_api.dae.get_num_spectra()
-    # data["dae_memory_used"] = genie_api.dae.get_memory_used()
-    # Not implemented in EPICS system
-    data["periods"] = _genie_api.dae.get_num_periods()
-    data["time_channels"] = _genie_api.dae.get_num_timechannels()
-    data["monitor_spectrum"] = _genie_api.dae.get_monitor_spectrum()
-    data["monitor_from"] = _genie_api.dae.get_monitor_from()
-    data["monitor_to"] = _genie_api.dae.get_monitor_to()
-    data["monitor_counts"] = _genie_api.dae.get_monitor_counts()
+    data = _GetdashboardReturn(
+        status = _genie_api.dae.get_run_state(),
+        run_number = _genie_api.dae.get_run_number(),
+        rb_number = _genie_api.dae.get_rb_number(),
+        user = _genie_api.dae.get_users(),
+        title = _genie_api.dae.get_title(),
+        display_title = _genie_api.dae.get_display_title(),
+        run_time = _genie_api.dae.get_run_duration(),
+        good_frames_total = _genie_api.dae.get_good_frames(),
+        good_frames_period = _genie_api.dae.get_good_frames(True),
+        raw_frames_total = _genie_api.dae.get_raw_frames(),
+        raw_frames_period = _genie_api.dae.get_raw_frames(True),
+        beam_current = _genie_api.dae.get_beam_current(),
+        total_current = _genie_api.dae.get_total_uamps(),
+        spectra = _genie_api.dae.get_num_spectra(),
+        # data["dae_memory_used"] = genie_api.dae.get_memory_used()
+        # Not implemented in EPICS system
+        periods = _genie_api.dae.get_num_periods(),
+        time_channels = _genie_api.dae.get_num_timechannels(),
+        monitor_spectrum = _genie_api.dae.get_monitor_spectrum(),
+        monitor_from = _genie_api.dae.get_monitor_from(),
+        monitor_to = _genie_api.dae.get_monitor_to(),
+        monitor_counts = _genie_api.dae.get_monitor_counts(),
+    )
     return data
 
 
-def _get_correct_globals() -> dict[types.FrameType, int]:
+def _get_correct_globals() -> dict[str, int]:
     """
     This is a hack to find the frame in which to add the script function(s).
 
@@ -1357,7 +1359,7 @@ def _get_correct_globals() -> dict[types.FrameType, int]:
     for i in inspect.stack():
         if "cshow" in i[0].f_globals:
             globs = i[0].f_globals
-    return globs
+    return globs # pyright: ignore (inspect library does not provide type hints)
 
 
 def load_script(name: str, check_script: bool = True, warnings_as_error: bool = False) -> None:
@@ -1468,6 +1470,10 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     if spec is None:
         raise ValueError(f"Cannot find spec for module {name} in {directory}")
     module = importlib.util.module_from_spec(spec)
+
+    if module.__file__ is None:
+        raise ValueError(f"Module {name} has no __file__ attribute")
+
     if os.path.normpath(os.path.dirname(module.__file__)) != os.path.normpath(directory):
         raise ValueError(
             f"Cannot load script '{name}' as its name clashes with a standard python module "
@@ -1709,7 +1715,7 @@ def get_tcb_settings(trange: int, regime: int = 1) -> dict[str, int]:
 @usercommand
 @helparglist("[...]")
 @log_command_and_handle_exception
-def change_vetos(**params: bool | None) -> None:
+def change_vetos(**params: bool) -> None:
     """
     Change the DAE veto settings.
 
@@ -1894,8 +1900,16 @@ def define_hard_period(
     configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
 
 
+class ChangeParams(TypedDict):
+    title: str
+    period: int
+    nperiods: int
+    user: str
+    rbt: int
+
+
 @log_command_and_handle_exception
-def change(**params: str | int) -> None:
+def change(**params: Unpack[ChangeParams]) -> None:
     """
     Change experiment parameters.
 
@@ -2040,13 +2054,11 @@ def change_rb(rb: int | str) -> None:
     if isinstance(rb, int):
         # If it is an int then that is fine, just cast to str as the PV is a string
         rb = str(rb)
-    elif isinstance(rb, str):
+    else:
         # Let's be kind in case they enter a string.
         # Check string contains only digits though
         if not rb.isdigit():
             raise TypeError("RB number must be a number.")
-    else:
-        raise TypeError("RB number must be a number.")
     _genie_api.dae.set_rb_number(rb)
 
 
@@ -2169,7 +2181,7 @@ def get_sample_pars() -> _GetSampleParsReturn:
 @usercommand
 @helparglist("name, value")
 @log_command_and_handle_exception
-def change_sample_par(name: str, value: bool | int | float | str | None) -> None:
+def change_sample_par(name: str, value: PVValue[E]) -> None:
     """
     Set a new value for a sample parameter.
 
@@ -2225,7 +2237,7 @@ def get_beamline_pars() -> _GetbeamlineparsReturn:
 @usercommand
 @helparglist("name, value")
 @log_command_and_handle_exception
-def change_beamline_par(name: str, value: bool | int | float | str | None) -> None:
+def change_beamline_par(name: str, value: PVValue[E]) -> None:
     """
     Set a new value for a beamline parameter
 
@@ -2411,7 +2423,7 @@ def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -
          skip_required_runstates: Ignore all checks, use with caution
     """
     # skip_required_runstates must be passed as a keyword argument for wrapper to catch it.
-    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates)
+    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates) # pyright: ignore
 
 
 @usercommand

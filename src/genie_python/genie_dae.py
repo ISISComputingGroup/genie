@@ -36,7 +36,7 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+    from genie_python.genie import PVValue, _GetspectrumReturn
     from genie_python.genie_epics_api import API
 
 ## for beginrun etc. there exists both the PV specified here and also a PV with
@@ -1349,7 +1349,7 @@ class Dae(object):
         return out
 
     def change_tcb(
-        self, low: float, high: float, step: float, trange: int, log: bool = False, regime: int = 1
+        self, low: float | None, high: float | None, step: float | None, trange: int, log: bool = False, regime: int = 1
     ) -> None:
         """
         Change the time channel boundaries.
@@ -1869,7 +1869,7 @@ class Dae(object):
 
     def get_spectrum(
         self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
-    ) -> dict:
+    ) -> "_GetspectrumReturn":
         """
         Gets a spectrum from the DAE via a PV.
 
@@ -1924,7 +1924,7 @@ class Dae(object):
         else:
             return False
 
-    def get_wiring_tables(self) -> str:
+    def get_wiring_tables(self) -> list[str]:
         """
         Gets a list of wiring table choices.
 

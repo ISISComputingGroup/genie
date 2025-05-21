@@ -3,10 +3,11 @@ from __future__ import absolute_import, print_function
 import inspect
 import os
 import socket
+import typing
 import xml.etree.ElementTree as ET
 from builtins import object, str
 from collections import OrderedDict
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Tuple
 
 import numpy as np
 import numpy.typing as npt
@@ -16,7 +17,7 @@ from genie_python.genie_pre_post_cmd_manager import PrePostCmdManager
 from genie_python.utilities import require_runstate
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn, _CgetReturn
+    from genie_python.genie import PVValue, _GetspectrumReturn, _CgetReturn, _GetSampleParsReturn, _GetbeamlineparsReturn
     from genie_python.genie_waitfor import WAITFOR_VALUE
 
 
@@ -532,7 +533,7 @@ class Dae(object):
     def get_users(self) -> str:
         return self.users
 
-    def get_run_duration(self) -> float:
+    def get_run_duration(self) -> int:
         return self.run_duration
 
     def get_raw_frames(self, period: bool = False) -> int:
@@ -906,7 +907,7 @@ class Dae(object):
             self.change_finish()
 
     def change_tcb(
-        self, low: float, high: float, step: float, trange: int, log: bool = False, regime: int = 1
+        self, low: float | None, high: float | None, step: float | None, trange: int, log: bool = False, regime: int = 1
     ) -> None:
         """Change the time channel boundaries.
 
@@ -981,7 +982,7 @@ class Dae(object):
         if did_change:
             self.change_finish()
 
-    def set_fermi_veto(self, enable: bool = None, delay: float = 1.0, width: float = 1.0) -> None:
+    def set_fermi_veto(self, enable: bool | None = None, delay: float = 1.0, width: float = 1.0) -> None:
         """Configure the fermi chopper veto.
 
         Parameters:
@@ -1100,7 +1101,7 @@ class API(object):
         return name
 
     def set_pv_value(
-        self, name: str, value: str, wait: bool = False, is_local: bool = False
+        self, name: str, value: "PVValue", wait: bool = False, is_local: bool = False
     ) -> None:
         if is_local:
             name = self.prefix_pv_name(name)
@@ -1110,13 +1111,13 @@ class API(object):
         )
 
     def get_pv_value(
-        self, name: str, to_string: bool = False, attempts: int = 3, is_local: bool = False
+        self, name: str, to_string: bool = False, attempts: int = 3, is_local: bool = False, use_numpy: bool = False
     ) -> None:
         if is_local:
             name = self.prefix_pv_name(name)
         print(
-            "get_pv_value called (name=%s value=%s attempts=%s is_local=%s)"
-            % (name, to_string, attempts, is_local)
+            "get_pv_value called (name=%s value=%s attempts=%s is_local=%s use_numpy=%s)"
+            % (name, to_string, attempts, is_local, use_numpy)
         )
 
     def pv_exists(self, name: str) -> bool:
@@ -1206,16 +1207,16 @@ class API(object):
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
         pass
 
-    def get_sample_pars(self) -> dict:
+    def get_sample_pars(self) -> "_GetSampleParsReturn":
         return self.sample_pars
 
-    def set_sample_par(self, name: str, value: str) -> None:
+    def set_sample_par(self, name: str, value: "PVValue") -> None:
         self.sample_pars[name] = value
 
-    def get_beamline_pars(self) -> dict:
+    def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
         return self.beamline_pars
 
-    def set_beamline_par(self, name: str, value: str) -> None:
+    def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
 
     def get_runcontrol_settings(self, name: str) -> tuple():
@@ -1225,13 +1226,13 @@ class API(object):
             self.block_dict[name]["highlimit"],
         )
 
-    def check_alarms(*blocks: str) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(self, blocks: Tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
         minor = list()
         major = list()
         invalid = list()
         return (minor, major, invalid)
 
-    def check_limit_violations(self, blocks: str) -> list:
+    def check_limit_violations(self, blocks: typing.Tuple[str, ...]) -> list:
         return list()
 
     def get_current_block_values(self) -> dict:
@@ -1256,7 +1257,7 @@ class API(object):
     def send_email(self, address: str, message: str) -> None:
         print(('Email "{}" sent to {}'.format(message, address)))
 
-    def send_alert(self, message: str, inst: str) -> str:
+    def send_alert(self, message: str, inst: str | None) -> None:
         print(('Slack message "{}" sent to {}'.format(message, inst)))
 
     def get_alarm_from_block(self, block: str) -> str:

@@ -15,7 +15,6 @@ from genie_python.utilities import check_break, get_time_delta
 if TYPE_CHECKING:
     from genie_python.genie_epics_api import API
     from genie_python.genie import PVValue
-    E = TypeVar("E", bound=np.generic, covariant=True)
 
 NUMERIC_TYPE = (float, int)
 
@@ -257,7 +256,7 @@ class WaitForController(object):
     def start_waiting(
         self,
         block: str | None = None,
-        value: None | "PVValue[E]" = None,
+        value: "PVValue | None" = None,
         lowlimit: float | int | None = None,
         highlimit: float | int | None = None,
         maxwait: float | None = None,
@@ -508,7 +507,7 @@ class WaitForController(object):
     def _init_wait_block(
         self,
         block: str | None,
-        value: PVValue[E],
+        value: "PVValue",
         lowlimit: float | int | None,
         highlimit: float | int | None,
         quiet: bool = False,
@@ -533,8 +532,8 @@ class WaitForController(object):
             )
 
     def _get_block_limits(
-        self, value: PVValue[E], lowlimit: float | int | None, highlimit: float | int | None
-    ) -> tuple[PVValue[E] | None, PVValue[E] | None]:
+        self, value: "PVValue", lowlimit: float | int | None, highlimit: float | int | None
+    ) -> tuple["PVValue | None", "PVValue | None"]:
         low = None
         high = None
         if value is not None:

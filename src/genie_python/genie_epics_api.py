@@ -30,8 +30,9 @@ from genie_python.utilities import (
     remove_field_from_pv,
 )
 
+
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _CgetReturn
+    from genie_python.genie import PVValue, _CgetReturn, _GetSampleParsReturn, _GetbeamlineparsReturn
 
 RC_ENABLE = ":RC:ENABLE"
 RC_LOW = ":RC:LOW"
@@ -618,7 +619,7 @@ class API(object):
                     )
         return ans
 
-    def get_sample_pars(self) -> dict:
+    def get_sample_pars(self) -> "_GetSampleParsReturn":
         """
         Get the current sample parameter values as a dictionary.
         """
@@ -642,7 +643,7 @@ class API(object):
                     return
         raise Exception("Sample parameter %s does not exist" % name)
 
-    def get_beamline_pars(self) -> dict:
+    def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
         """
         Get the current beamline parameter values as a dictionary.
         """
@@ -684,7 +685,7 @@ class API(object):
         except UnableToConnectToPVException:
             return "UNKNOWN", "UNKNOWN", "UNKNOWN"
 
-    def check_alarms(self, blocks: list[str]) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(self, blocks: typing.Tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
         """
         Checks whether the specified blocks are in alarm.
 
@@ -694,13 +695,13 @@ class API(object):
         Returns:
             list, list, list: the blocks in minor, major and invalid alarm
         """
-        alarm_states = self._get_fields_from_blocks(blocks, "SEVR", "alarm state")
+        alarm_states = self._get_fields_from_blocks(list(blocks), "SEVR", "alarm state")
         minor = [t[0] for t in alarm_states if t[1] == "MINOR"]
         major = [t[0] for t in alarm_states if t[1] == "MAJOR"]
         invalid = [t[0] for t in alarm_states if t[1] == "INVALID"]
         return minor, major, invalid
 
-    def check_limit_violations(self, blocks: list[str]) -> list[str]:
+    def check_limit_violations(self, blocks: typing.Tuple[str, ...]) -> list[str]:
         """
         Checks whether the specified blocks have soft limit violations.
 
@@ -710,7 +711,7 @@ class API(object):
         Returns:
             list: the blocks which have soft limit violations
         """
-        violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
+        violation_states = self._get_fields_from_blocks(list(blocks), "LVIO", "limit violation")
         return [t[0] for t in violation_states if t[1] == 1]
 
     def _get_fields_from_blocks(
@@ -817,7 +818,7 @@ class API(object):
         except Exception as e:
             raise Exception("Could not send email: {}".format(e))
 
-    def send_alert(self, message: str, inst: str) -> None:
+    def send_alert(self, message: str, inst: str | None) -> None:
         """
         Sends an alert message for a specified instrument.
 
