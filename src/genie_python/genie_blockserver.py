@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function
 
 import time
 from builtins import object
-from typing import TYPE_CHECKING, Callable, ParamSpec, TypeVar, Any
+from typing import TYPE_CHECKING, Any, Callable, ParamSpec, TypeVar
 
 from genie_python.utilities import compress_and_hex, dehex_decompress_and_dejson
 
@@ -47,21 +47,21 @@ class BlockServer(object):
         return self.api.set_pv_value(self.api.prefix_pv_name(pv), value, wait)
 
     @_blockserver_retry
-    def get_sample_par_names(self) -> Any: # noqa: ANN401
+    def get_sample_par_names(self) -> Any:  # noqa: ANN401
         """Get the current sample parameter names as a list."""
         # Get the names from the blockserver
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "SAMPLE_PARS", True)
         return dehex_decompress_and_dejson(raw)
 
     @_blockserver_retry
-    def get_beamline_par_names(self) -> Any: # noqa: ANN401
+    def get_beamline_par_names(self) -> Any:  # noqa: ANN401
         """Get the current beamline parameter names as a list."""
         # Get the names from the blockserver
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "BEAMLINE_PARS", True)
         return dehex_decompress_and_dejson(raw)
 
     @_blockserver_retry
-    def get_runcontrol_settings(self) -> Any: # noqa: ANN401
+    def get_runcontrol_settings(self) -> Any:  # noqa: ANN401
         """Get the current run-control settings."""
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "GET_RC_PARS", True)
         return dehex_decompress_and_dejson(raw)
