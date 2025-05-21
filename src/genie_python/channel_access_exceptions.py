@@ -4,7 +4,7 @@ In general catch the super class of these.
 """
 
 
-class UnableToConnectToPVException(IOError):
+class UnableToConnectToPVException(IOError):  # noqa N818 Historic name
     """
     The system is unable to connect to a PV for some reason.
     """
@@ -15,7 +15,7 @@ class UnableToConnectToPVException(IOError):
         )
 
 
-class InvalidEnumStringException(KeyError):
+class InvalidEnumStringException(KeyError):  # noqa N818 Historic name
     """
     The enum string that is trying to be set is not listed in the pv.
     """
@@ -26,7 +26,7 @@ class InvalidEnumStringException(KeyError):
         )
 
 
-class ReadAccessException(IOError):
+class ReadAccessException(IOError):  # noqa N818 Historic name
     """
     PV exists but its value is unavailable to read.
     """
@@ -35,7 +35,7 @@ class ReadAccessException(IOError):
         super(ReadAccessException, self).__init__(f"Read access denied for PV {pv_name}")
 
 
-class WriteAccessException(IOError):
+class WriteAccessException(IOError):  # noqa N818 Historic name
     """
     PV was written to but does not allow writes.
     """
