@@ -214,8 +214,8 @@ class WebAggApplication(backend_webagg.WebAggApplication):
             asyncio.set_event_loop(loop)
             cls.asyncio_loop = loop
             cls.ioloop = tornado.ioloop.IOLoop.current()
-            if cls.port is None or cls.address is None or cls.app is None:
-                raise RuntimeError("port, address and app must be set")
+            if cls.port is None or cls.app is None:
+                raise RuntimeError(f"port and app must be set (port={cls.port}, app={cls.app})")
             cls.app.listen(cls.port, cls.address)
 
             # Set the flag to True *before* blocking on ioloop.start()
