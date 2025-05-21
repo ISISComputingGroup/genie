@@ -1,9 +1,7 @@
 import zlib
 from keyword import iskeyword
 from threading import RLock, Timer
-from typing import TYPE_CHECKING, Optional, TypeVar
-
-import numpy as np
+from typing import TYPE_CHECKING, Optional
 
 from .channel_access_exceptions import UnableToConnectToPVException
 from .genie_blockserver import BLOCK_SERVER_PREFIX, PV_BLOCK_NAMES
@@ -14,8 +12,6 @@ DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue
-
-    E = TypeVar("E", bound=np.generic, covariant=True)
 
 
 class BlockNamesManager:
