@@ -14,6 +14,7 @@ DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue
+
     E = TypeVar("E", bound=np.generic, covariant=True)
 
 
@@ -24,7 +25,7 @@ class BlockNamesManager:
 
     def __init__(
         self,
-        block_names: "PVValue[E]",
+        block_names: "PVValue",
         delay_before_retry_add_monitor: float = DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL,
     ) -> None:
         """
@@ -87,7 +88,7 @@ class BlockNamesManager:
                 self._timer.daemon = True
                 self._timer.start()
 
-    def _update_block_names(self, value: "PVValue[E]", _: Optional[str], _1: Optional[str]) -> None:
+    def _update_block_names(self, value: "PVValue", _: Optional[str], _1: Optional[str]) -> None:
         """
         Update the block names from a pv
         Args:
