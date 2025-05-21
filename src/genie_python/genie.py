@@ -10,10 +10,10 @@ import types
 from builtins import FileNotFoundError, str
 from io import open
 from typing import Any, Callable, TypedDict, TypeVar
-from typing_extensions import Unpack
 
 import numpy as np
 import numpy.typing as npt
+from typing_extensions import Unpack
 
 from genie_python.genie_api_setup import __api as _genie_api
 
@@ -417,11 +417,11 @@ def waitfor(
                 if block is not None:
                     raise Exception("Can set waitfor for only one block at a time")
                 block = k
-                value = pars[k] # pyright: ignore
+                value = pars[k]  # pyright: ignore
             else:
                 raise ValueError("Block named '{}' did not exist.".format(k))
     # Check that wait_for object exists
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -480,7 +480,7 @@ def waitfor_block(
         ...     "myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0
         ... )
     """
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -530,7 +530,7 @@ def waitfor_time(
         )
     if any(t is not None and t < 0 for t in (seconds, minutes, hours)):
         raise ValueError("Cannot execute waitfor_time - Time parameters cannot be negative")
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise TypeError("Cannot execute waitfor_time - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(
         seconds=seconds, minutes=minutes, hours=hours, time=time, quiet=quiet
@@ -558,7 +558,7 @@ def waitfor_frames(frames: int | None = None, quiet: bool = False) -> None:
         )
     if frames < 0:
         raise ValueError("Cannot execute waitfor_frames - frames parameter cannot be negative")
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(frames=frames, quiet=quiet)
 
@@ -587,7 +587,7 @@ def waitfor_raw_frames(raw_frames: int | None = None, quiet: bool = False) -> No
         raise ValueError(
             "Cannot execute waitfor_raw_frames - raw_frames parameter cannot be negative"
         )
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(raw_frames=raw_frames, quiet=quiet)
 
@@ -607,7 +607,7 @@ def waitfor_uamps(uamps: float, quiet: bool = False) -> None:
 
         >>> waitfor_uamps(115.5)
     """
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(uamps=uamps, quiet=quiet)
 
@@ -634,7 +634,7 @@ def waitfor_mevents(mevents: float | None = None, quiet: bool = False) -> None:
         )
     if mevents < 0:
         raise ValueError("Cannot execute waitfor_mevents - mevents parameter cannot be negative")
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_mevents - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(mevents=mevents, quiet=quiet)
 
@@ -664,7 +664,7 @@ def waitfor_runstate(
         >>> waitfor_runstate("paused", onexit=True)
     """
     # Check that wait_for object exists
-    if _genie_api.waitfor is None: # pyright: ignore
+    if _genie_api.waitfor is None:  # pyright: ignore
         raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
     _genie_api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit, quiet)
 
@@ -719,7 +719,7 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
         move_blocks = list()
         # Check blocks exist
         for b in blocks:
-            if _genie_api.block_exists(b): # pyright: ignore  b cannot be None given line 716
+            if _genie_api.block_exists(b):  # pyright: ignore  b cannot be None given line 716
                 move_blocks.append(b)
             else:
                 print("Block %s does not exist, so ignoring it" % b)
@@ -1320,28 +1320,28 @@ def get_dashboard() -> _GetdashboardReturn:
         dict: the experiment values
     """
     data = _GetdashboardReturn(
-        status = _genie_api.dae.get_run_state(),
-        run_number = _genie_api.dae.get_run_number(),
-        rb_number = _genie_api.dae.get_rb_number(),
-        user = _genie_api.dae.get_users(),
-        title = _genie_api.dae.get_title(),
-        display_title = _genie_api.dae.get_display_title(),
-        run_time = _genie_api.dae.get_run_duration(),
-        good_frames_total = _genie_api.dae.get_good_frames(),
-        good_frames_period = _genie_api.dae.get_good_frames(True),
-        raw_frames_total = _genie_api.dae.get_raw_frames(),
-        raw_frames_period = _genie_api.dae.get_raw_frames(True),
-        beam_current = _genie_api.dae.get_beam_current(),
-        total_current = _genie_api.dae.get_total_uamps(),
-        spectra = _genie_api.dae.get_num_spectra(),
+        status=_genie_api.dae.get_run_state(),
+        run_number=_genie_api.dae.get_run_number(),
+        rb_number=_genie_api.dae.get_rb_number(),
+        user=_genie_api.dae.get_users(),
+        title=_genie_api.dae.get_title(),
+        display_title=_genie_api.dae.get_display_title(),
+        run_time=_genie_api.dae.get_run_duration(),
+        good_frames_total=_genie_api.dae.get_good_frames(),
+        good_frames_period=_genie_api.dae.get_good_frames(True),
+        raw_frames_total=_genie_api.dae.get_raw_frames(),
+        raw_frames_period=_genie_api.dae.get_raw_frames(True),
+        beam_current=_genie_api.dae.get_beam_current(),
+        total_current=_genie_api.dae.get_total_uamps(),
+        spectra=_genie_api.dae.get_num_spectra(),
         # data["dae_memory_used"] = genie_api.dae.get_memory_used()
         # Not implemented in EPICS system
-        periods = _genie_api.dae.get_num_periods(),
-        time_channels = _genie_api.dae.get_num_timechannels(),
-        monitor_spectrum = _genie_api.dae.get_monitor_spectrum(),
-        monitor_from = _genie_api.dae.get_monitor_from(),
-        monitor_to = _genie_api.dae.get_monitor_to(),
-        monitor_counts = _genie_api.dae.get_monitor_counts(),
+        periods=_genie_api.dae.get_num_periods(),
+        time_channels=_genie_api.dae.get_num_timechannels(),
+        monitor_spectrum=_genie_api.dae.get_monitor_spectrum(),
+        monitor_from=_genie_api.dae.get_monitor_from(),
+        monitor_to=_genie_api.dae.get_monitor_to(),
+        monitor_counts=_genie_api.dae.get_monitor_counts(),
     )
     return data
 
@@ -1359,7 +1359,7 @@ def _get_correct_globals() -> dict[str, int]:
     for i in inspect.stack():
         if "cshow" in i[0].f_globals:
             globs = i[0].f_globals
-    return globs # pyright: ignore (inspect library does not provide type hints)
+    return globs  # pyright: ignore (inspect library does not provide type hints)
 
 
 def load_script(name: str, check_script: bool = True, warnings_as_error: bool = False) -> None:
@@ -2423,7 +2423,7 @@ def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -
          skip_required_runstates: Ignore all checks, use with caution
     """
     # skip_required_runstates must be passed as a keyword argument for wrapper to catch it.
-    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates) # pyright: ignore
+    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates)  # pyright: ignore
 
 
 @usercommand

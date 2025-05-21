@@ -7,6 +7,7 @@ import typing
 import xml.etree.ElementTree as ET
 from builtins import object, str
 from collections import OrderedDict
+from datetime import timedelta
 from typing import TYPE_CHECKING, Callable, Tuple
 
 import numpy as np
@@ -433,6 +434,21 @@ class Dae(object):
             pass
         else:
             raise Exception("Can only be called when SETUP")
+
+    def post_recover_check(self, verbose: bool = False) -> None:
+        pass
+
+    def get_time_since_begin(self, get_timedelta: bool) -> float | timedelta:
+        return 0.0
+
+    def get_events(self) -> int:
+        return 0
+
+    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict:
+        return {}
+
+    def get_simulation_mode(self) -> bool:
+        return False
 
     def get_period(self) -> int:
         """
@@ -1122,6 +1138,10 @@ class API(object):
 
     def pv_exists(self, name: str) -> bool:
         return True
+
+    def connected_pvs_in_list(self, pv_list: list[str], is_local: bool = False) -> list[str]:
+        return [""]
+
 
     def reload_current_config(self) -> None:
         pass
