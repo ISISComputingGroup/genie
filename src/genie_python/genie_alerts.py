@@ -50,14 +50,12 @@ def set_range(
     if not __api.block_exists(block):
         raise Exception('No block with the name "{}" exists'.format(block))
 
-    __api.set_pv_value(_ALERT_LOW.format(block), f"{lowlimit}", wait=False, is_local=True)
-    __api.set_pv_value(_ALERT_HIGH.format(block), f"{highlimit}", wait=False, is_local=True)
+    __api.set_pv_value(_ALERT_LOW.format(block), lowlimit, wait=False, is_local=True)
+    __api.set_pv_value(_ALERT_HIGH.format(block), highlimit, wait=False, is_local=True)
     if delay_in is not None:
-        __api.set_pv_value(_ALERT_DELAY_IN.format(block), f"{delay_in}", wait=False, is_local=True)
+        __api.set_pv_value(_ALERT_DELAY_IN.format(block), delay_in, wait=False, is_local=True)
     if delay_out is not None:
-        __api.set_pv_value(
-            _ALERT_DELAY_OUT.format(block), f"{delay_out}", wait=False, is_local=True
-        )
+        __api.set_pv_value(_ALERT_DELAY_OUT.format(block), delay_out, wait=False, is_local=True)
     if set_enable:
         enable(block)
 
