@@ -47,7 +47,7 @@ class BlockServer(object):
         return self.api.set_pv_value(self.api.prefix_pv_name(pv), value, wait)
 
     @_blockserver_retry
-    def get_sample_par_names(self) -> str:
+    def get_sample_par_names(self) -> Any: # noqa: ANN401
         """Get the current sample parameter names as a list."""
         # Get the names from the blockserver
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "SAMPLE_PARS", True)
