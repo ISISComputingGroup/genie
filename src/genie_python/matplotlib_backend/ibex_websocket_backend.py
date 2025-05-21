@@ -69,6 +69,7 @@ def _ignore_if_websocket_closed(func: Callable[P, T]) -> Callable[P, T | None]:
             except Exception:
                 # Exception while logging, ignore...
                 pass
+        return None
 
     return wrapper
 
