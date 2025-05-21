@@ -2,7 +2,7 @@ from __future__ import absolute_import, print_function
 
 import time
 from builtins import object
-from typing import TYPE_CHECKING, Callable, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Callable, ParamSpec, TypeVar, Any
 
 from genie_python.utilities import compress_and_hex, dehex_decompress_and_dejson
 
@@ -35,14 +35,14 @@ def _blockserver_retry(func: Callable[Param, RetType]) -> Callable[Param, RetTyp
 
 
 class BlockServer(object):
-    def __init__(self, api: API) -> None:
-        self.api: API = api
+    def __init__(self, api: "API") -> None:
+        self.api: "API" = api
 
-    def _get_pv_value(self, pv: str, as_string: bool = False) -> PVValue:
+    def _get_pv_value(self, pv: str, as_string: bool = False) -> "PVValue":
         """Just a convenient wrapper for calling the api's get_pv_value method"""
         return self.api.get_pv_value(self.api.prefix_pv_name(pv), as_string)
 
-    def _set_pv_value(self, pv: str, value: PVValue | bytes, wait: bool = False) -> None:
+    def _set_pv_value(self, pv: str, value: "PVValue | bytes", wait: bool = False) -> None:
         """Just a convenient wrapper for calling the api's set_pv_value method"""
         return self.api.set_pv_value(self.api.prefix_pv_name(pv), value, wait)
 
@@ -54,14 +54,14 @@ class BlockServer(object):
         return dehex_decompress_and_dejson(raw)
 
     @_blockserver_retry
-    def get_beamline_par_names(self) -> str:
+    def get_beamline_par_names(self) -> Any: # noqa: ANN401
         """Get the current beamline parameter names as a list."""
         # Get the names from the blockserver
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "BEAMLINE_PARS", True)
         return dehex_decompress_and_dejson(raw)
 
     @_blockserver_retry
-    def get_runcontrol_settings(self) -> str:
+    def get_runcontrol_settings(self) -> Any: # noqa: ANN401
         """Get the current run-control settings."""
         raw = self._get_pv_value(BLOCK_SERVER_PREFIX + "GET_RC_PARS", True)
         return dehex_decompress_and_dejson(raw)
