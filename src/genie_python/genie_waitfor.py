@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractmethod
 from builtins import object, str
 from datetime import datetime, timedelta
 from time import sleep, strptime
-from typing import TYPE_CHECKING, Callable, TypeVar
+from typing import TYPE_CHECKING, Callable
 import numpy as np
 from genie_python.utilities import check_break, get_time_delta
 

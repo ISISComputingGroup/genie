@@ -9,7 +9,7 @@ import sys
 import types
 from builtins import FileNotFoundError, str
 from io import open
-from typing import Any, Callable, TypedDict, TypeVar
+from typing import Any, Callable, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -44,9 +44,8 @@ from genie_python.utilities import (  # noqa E402
 )
 from genie_python.version import VERSION  # noqa E402
 
-E = TypeVar("E", bound=np.generic, covariant=True)
 PVBaseValue = bool | int | float | str
-PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray[E] | None
+PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
 
 print("\ngenie_python version " + VERSION)
 
@@ -119,13 +118,13 @@ def get_block_units(block_name: str) -> str | None:
 @helparglist("...")
 @log_command_and_handle_exception
 def cset(
-    *args: PVValue[E],
+    *args: PVValue,
     runcontrol: bool | None = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     wait: bool | None = None,
     verbose: bool | None = None,
-    **kwargs: PVValue[E],
+    **kwargs: PVValue,
 ) -> None:
     """
     Sets the setpoint and runcontrol settings for blocks.
@@ -451,7 +450,7 @@ def waitfor(
 @log_command_and_handle_exception
 def waitfor_block(
     block: str,
-    value: PVValue[E] | None = None,
+    value: PVValue | None = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     maxwait: float | None = None,
@@ -714,7 +713,7 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
     if _genie_api.wait_for_move is None:
         raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
 
-    if blocks is not tuple[None]:
+    if blocks != ():
         # Specified blocks waitfor_move
         move_blocks = list()
         # Check blocks exist
@@ -755,7 +754,7 @@ def get_pv(
 @usercommand
 @helparglist("name, value[, wait][, is_local]")
 @log_command_and_handle_exception
-def set_pv(name: str, value: PVValue[E], wait: bool = False, is_local: bool = False) -> None:
+def set_pv(name: str, value: PVValue, wait: bool = False, is_local: bool = False) -> None:
     """
     Set the value for the specified PV.
 
@@ -1905,7 +1904,7 @@ class ChangeParams(TypedDict):
     period: int
     nperiods: int
     user: str
-    rbt: int
+    rb: int
 
 
 @log_command_and_handle_exception
@@ -2181,7 +2180,7 @@ def get_sample_pars() -> _GetSampleParsReturn:
 @usercommand
 @helparglist("name, value")
 @log_command_and_handle_exception
-def change_sample_par(name: str, value: PVValue[E]) -> None:
+def change_sample_par(name: str, value: PVValue) -> None:
     """
     Set a new value for a sample parameter.
 
@@ -2237,7 +2236,7 @@ def get_beamline_pars() -> _GetbeamlineparsReturn:
 @usercommand
 @helparglist("name, value")
 @log_command_and_handle_exception
-def change_beamline_par(name: str, value: PVValue[E]) -> None:
+def change_beamline_par(name: str, value: PVValue) -> None:
     """
     Set a new value for a beamline parameter
 

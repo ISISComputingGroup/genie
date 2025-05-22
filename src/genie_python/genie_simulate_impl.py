@@ -3,12 +3,11 @@ from __future__ import absolute_import, print_function
 import inspect
 import os
 import socket
-import typing
 import xml.etree.ElementTree as ET
 from builtins import object, str
 from collections import OrderedDict
 from datetime import timedelta
-from typing import TYPE_CHECKING, Callable, Tuple
+from typing import TYPE_CHECKING, Callable
 
 import numpy as np
 import numpy.typing as npt
@@ -998,7 +997,7 @@ class Dae(object):
         if did_change:
             self.change_finish()
 
-    def set_fermi_veto(self, enable: bool | None = None, delay: float = 1.0, width: float = 1.0) -> None:
+    def set_fermi_veto(self, enable: bool | None, delay: float = 1.0, width: float = 1.0) -> None:
         """Configure the fermi chopper veto.
 
         Parameters:
@@ -1140,8 +1139,7 @@ class API(object):
         return True
 
     def connected_pvs_in_list(self, pv_list: list[str], is_local: bool = False) -> list[str]:
-        return [""]
-
+        return []
 
     def reload_current_config(self) -> None:
         pass
@@ -1246,13 +1244,13 @@ class API(object):
             self.block_dict[name]["highlimit"],
         )
 
-    def check_alarms(self, blocks: Tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(self, blocks: tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
         minor = list()
         major = list()
         invalid = list()
         return (minor, major, invalid)
 
-    def check_limit_violations(self, blocks: typing.Tuple[str, ...]) -> list:
+    def check_limit_violations(self, blocks: tuple[str, ...]) -> list:
         return list()
 
     def get_current_block_values(self) -> dict:
