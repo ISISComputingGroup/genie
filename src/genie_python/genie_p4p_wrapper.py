@@ -47,7 +47,7 @@ class P4PWrapper(object):
     @staticmethod
     def set_pv_value(
         name: str,
-        value: "PVValue",
+        value: "PVValue|bytes",
         wait: bool = False,
         timeout: float = TIMEOUT,
         safe_not_quick: bool = True,
