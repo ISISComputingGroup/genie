@@ -1,10 +1,9 @@
 import zlib
 from keyword import iskeyword
 from threading import RLock, Timer
-from typing import TypeVar
+from typing import TYPE_CHECKING
 
 import numpy as np
-import numpy.typing as npt
 
 from .channel_access_exceptions import UnableToConnectToPVException
 from .genie_blockserver import BLOCK_SERVER_PREFIX, PV_BLOCK_NAMES
@@ -12,10 +11,9 @@ from .genie_cachannel_wrapper import CaChannelWrapper
 from .utilities import dehex_decompress_and_dejson
 
 DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
-E = TypeVar("E", bound=np.generic, covariant=True)
-PVBaseValue = bool | int | float | str
-PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray[E] | None
 
+if TYPE_CHECKING:
+    from genie_python.genie import PVValue
 
 class BlockNamesManager:
     """
@@ -24,7 +22,7 @@ class BlockNamesManager:
 
     def __init__(
         self,
-        block_names: PVValue[E],
+        block_names: "BlockNames",
         delay_before_retry_add_monitor: float = DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL,
     ) -> None:
         """
@@ -87,7 +85,7 @@ class BlockNamesManager:
                 self._timer.daemon = True
                 self._timer.start()
 
-    def _update_block_names(self, value: PVValue[E], _: str, _1: str) -> None:
+    def _update_block_names(self, value: "PVValue", _: str, _1: str) -> None:
         """
         Update the block names from a pv
         Args:
