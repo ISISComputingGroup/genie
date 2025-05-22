@@ -1358,7 +1358,7 @@ def _get_correct_globals() -> dict[str, int]:
     for i in inspect.stack():
         if "cshow" in i[0].f_globals:
             globs = i[0].f_globals
-    return globs  # pyright: ignore (inspect library does not provide type hints)
+    return globs
 
 
 def load_script(name: str, check_script: bool = True, warnings_as_error: bool = False) -> None:
