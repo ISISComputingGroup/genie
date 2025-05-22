@@ -7,7 +7,7 @@ This module is used for advanced commands that are for expert users.
 import contextlib
 from datetime import UTC, datetime, timedelta
 from time import sleep
-from typing import Any, Callable, Iterator, TypedDict
+from typing import Any, Iterator, ParamSpec, Protocol, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -20,6 +20,13 @@ from genie_python.genie_api_setup import (
 )
 from genie_python.genie_waitfor import DELAY_IN_WAIT_FOR_SLEEP_LOOP
 from genie_python.utilities import check_break
+
+P = ParamSpec("P")
+
+
+class PrePostCmd(Protocol):
+    def __call__(self, **kwargs: Any) -> str | None:
+        pass
 
 
 @usercommand
@@ -174,7 +181,7 @@ def wait_for_pv(
 
 @usercommand
 @helparglist("")
-def set_begin_precmd(begin_precmd: Callable[[Any], str | None]) -> None:
+def set_begin_precmd(begin_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the begin command.
 
@@ -187,7 +194,7 @@ def set_begin_precmd(begin_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_begin_postcmd(begin_postcmd: Callable[[Any], str | None]) -> None:
+def set_begin_postcmd(begin_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the begin command.
 
@@ -199,7 +206,7 @@ def set_begin_postcmd(begin_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_abort_precmd(abort_precmd: Callable[[Any], str | None]) -> None:
+def set_abort_precmd(abort_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the abort command.
 
@@ -211,7 +218,7 @@ def set_abort_precmd(abort_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_abort_postcmd(abort_postcmd: Callable[[Any], str | None]) -> None:
+def set_abort_postcmd(abort_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the abort command.
 
@@ -223,7 +230,7 @@ def set_abort_postcmd(abort_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_end_precmd(end_precmd: Callable[[Any], str | None]) -> None:
+def set_end_precmd(end_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the end command.
 
@@ -235,7 +242,7 @@ def set_end_precmd(end_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_end_postcmd(end_postcmd: Callable[[Any], str | None]) -> None:
+def set_end_postcmd(end_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the end command.
 
@@ -247,7 +254,7 @@ def set_end_postcmd(end_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_pause_precmd(pause_precmd: Callable[[Any], str | None]) -> None:
+def set_pause_precmd(pause_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the pause command.
 
@@ -259,7 +266,7 @@ def set_pause_precmd(pause_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_pause_postcmd(pause_postcmd: Callable[[Any], str | None]) -> None:
+def set_pause_postcmd(pause_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the pause command.
 
@@ -271,7 +278,7 @@ def set_pause_postcmd(pause_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_resume_precmd(resume_precmd: Callable[[Any], str | None]) -> None:
+def set_resume_precmd(resume_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the resume command.
 
@@ -283,7 +290,7 @@ def set_resume_precmd(resume_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_resume_postcmd(resume_postcmd: Callable[[Any], str | None]) -> None:
+def set_resume_postcmd(resume_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the resume command.
 

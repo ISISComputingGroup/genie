@@ -1,5 +1,5 @@
 from builtins import object
-from typing import Any, Callable
+from typing import Any
 
 
 class PrePostCmdManager(object):
@@ -7,6 +7,7 @@ class PrePostCmdManager(object):
     A class to manager the precmd and postcmd commands such as used in begin, end, abort, resume,
      pause.
     """
+
     def begin_precmd(self, **kwargs: Any) -> str | None:
         return
 
