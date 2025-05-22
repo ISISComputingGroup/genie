@@ -1092,7 +1092,7 @@ class API(object):
     ) -> None:
         self.inst_prefix = pv_prefix
 
-    def get_instrument(self) -> str:
+    def get_instrument(self) -> str | None:
         return self.inst_prefix
 
     def prefix_pv_name(self, name: str) -> str:
@@ -1196,7 +1196,7 @@ class API(object):
     def get_pv_from_block(self, block_name: str) -> str:
         return block_name
 
-    def set_multiple_blocks(self, names: list, values: list) -> None:
+    def set_multiple_blocks(self, names: list[str], values: list[PVValue]) -> None:
         temp = list(zip(names, values))
         for name, value in temp:
             if name in self.block_dict:

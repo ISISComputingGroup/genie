@@ -7,7 +7,7 @@ This module is used for advanced commands that are for expert users.
 import contextlib
 from datetime import UTC, datetime, timedelta
 from time import sleep
-from typing import Any, Iterator, ParamSpec, Protocol, TypedDict
+from typing import Any, Iterator, Protocol, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -20,8 +20,6 @@ from genie_python.genie_api_setup import (
 )
 from genie_python.genie_waitfor import DELAY_IN_WAIT_FOR_SLEEP_LOOP
 from genie_python.utilities import check_break
-
-P = ParamSpec("P")
 
 
 class PrePostCmd(Protocol):
