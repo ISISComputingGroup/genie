@@ -313,7 +313,7 @@ class API(object):
     def set_pv_value(
         self,
         name: str,
-        value: "PVValue",
+        value: "PVValue|bytes",
         wait: bool = False,
         attempts: int = 3,
         is_local: bool = False,

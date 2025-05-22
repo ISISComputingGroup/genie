@@ -1,9 +1,8 @@
 import zlib
 from keyword import iskeyword
 from threading import RLock, Timer
-from typing import TYPE_CHECKING
-
 import numpy as np
+from typing import TYPE_CHECKING, Optional
 
 from .channel_access_exceptions import UnableToConnectToPVException
 from .genie_blockserver import BLOCK_SERVER_PREFIX, PV_BLOCK_NAMES
@@ -85,7 +84,8 @@ class BlockNamesManager:
                 self._timer.daemon = True
                 self._timer.start()
 
-    def _update_block_names(self, value: "PVValue", _: str, _1: str) -> None:
+                
+    def _update_block_names(self, value: "PVValue", _: Optional[str], _1: Optional[str]) -> None:
         """
         Update the block names from a pv
         Args:

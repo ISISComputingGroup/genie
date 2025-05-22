@@ -17,10 +17,10 @@
 from __future__ import absolute_import
 
 import unittest
+from unittest.mock import MagicMock, patch
 
 import numpy as np
 from hamcrest import assert_that, calling, close_to, is_, raises
-from mock import MagicMock, patch
 from parameterized import parameterized_class
 
 from genie_python.genie_change_cache import ChangeCache

@@ -19,10 +19,10 @@ import os
 import unittest
 from datetime import datetime, timedelta
 from io import StringIO
+from unittest.mock import MagicMock, call, patch
 
 import test
 from hamcrest import assert_that, contains_exactly, has_length, is_
-from mock import MagicMock, call, patch
 
 import genie_python.genie_api_setup
 from genie_python import genie
