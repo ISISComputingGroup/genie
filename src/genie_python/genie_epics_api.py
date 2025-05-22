@@ -617,7 +617,7 @@ class API(object):
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], Any]
-    ) -> dict[str, PVValue]:
+    ) -> dict[str, "PVValue"]:
         """
         Get the current parameter values for a given pv subset as a dictionary.
         """
@@ -639,7 +639,7 @@ class API(object):
                     )
         return ans
 
-    def get_sample_pars(self) -> dict[str, PVValue]:
+    def get_sample_pars(self) -> dict[str, "PVValue"]:
         """
         Get the current sample parameter values as a dictionary.
         """
@@ -669,7 +669,7 @@ class API(object):
                     return
         raise Exception("Sample parameter %s does not exist" % name)
 
-    def get_beamline_pars(self) -> dict[str, PVValue]:
+    def get_beamline_pars(self) -> dict[str, "PVValue"]:
         """
         Get the current beamline parameter values as a dictionary.
         """
@@ -694,7 +694,7 @@ class API(object):
                     return
         raise Exception("Beamline parameter %s does not exist" % name)
 
-    def get_runcontrol_settings(self, block_name: str) -> tuple[PVValue, PVValue, PVValue]:
+    def get_runcontrol_settings(self, block_name: str) -> tuple["PVValue", "PVValue", "PVValue"]:
         """
         Gets the current run-control settings for a block.
 
@@ -898,7 +898,7 @@ class API(object):
         except Exception:
             return "UNKNOWN"
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, PVValue]:
+    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, "PVValue"]:
         """
         Gets the useful values associated with a block.
 
