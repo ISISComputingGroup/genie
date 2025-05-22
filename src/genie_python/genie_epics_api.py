@@ -10,7 +10,7 @@ import urllib.request
 from builtins import str
 from collections import OrderedDict
 from io import open
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Any, Callable
 
 from genie_python.block_names import BlockNames, BlockNamesManager
 from genie_python.channel_access_exceptions import UnableToConnectToPVException
@@ -22,7 +22,7 @@ from genie_python.genie_logging import GenieLogger
 from genie_python.genie_logging import filter as logging_filter
 from genie_python.genie_pre_post_cmd_manager import PrePostCmdManager
 from genie_python.genie_wait_for_move import WaitForMoveController
-from genie_python.genie_waitfor import WaitForController
+from genie_python.genie_waitfor import WAITFOR_VALUE, WaitForController
 from genie_python.utilities import (
     EnvironmentDetails,
     crc8,
@@ -46,7 +46,10 @@ BLOCK_NAMES_MANAGER = BlockNamesManager(BLOCK_NAMES)
 
 class API(object):
     def __init__(
-        self, pv_prefix: str, globs: dict, environment_details: EnvironmentDetails | None = None
+        self,
+        pv_prefix: str,
+        globs: dict[str, Any],
+        environment_details: EnvironmentDetails | None = None,
     ) -> None:
         """
         Constructor for the EPICS enabled API.
@@ -56,12 +59,12 @@ class API(object):
             globs: globals
             environment_details: details of the computer environment
         """
-        self.waitfor = None  # type: WaitForController
-        self.wait_for_move = None
-        self.dae = None  # type: Dae
-        self.blockserver = None  # type: BlockServer
-        self.exp_data = None  # type: GetExperimentData
-        self.inst_prefix = ""
+        self.waitfor: WaitForController | None = None  # type: WaitForController
+        self.wait_for_move: WaitForMoveController | None = None
+        self.dae: Dae | None = None  # type: Dae
+        self.blockserver: BlockServer | None = None  # type: BlockServer
+        self.exp_data: GetExperimentData | None = None  # type: GetExperimentData
+        self.inst_prefix: str = ""
         self.instrument_name = ""
         self.machine_name = ""
         self.localmod = None
@@ -108,7 +111,9 @@ class API(object):
         """
         return self.instrument_name.lower().replace("-", "_")
 
-    def _get_machine_details_from_identifier(self, machine_identifier: str) -> tuple[str, str, str]:
+    def _get_machine_details_from_identifier(
+        self, machine_identifier: str | None
+    ) -> tuple[str, str, str]:
         """
         Gets the details of a machine by looking it up in the instrument list first.
         If there is no match it calculates the details as usual.
@@ -137,7 +142,9 @@ class API(object):
         # that's been passed to this function if it is not found instrument_details will be None
         instrument_details = None
         try:
-            instrument_list = dehex_decompress_and_dejson(self.get_pv_value("CS:INSTLIST"))
+            input_list = self.get_pv_value("CS:INSTLIST")
+            assert isinstance(input_list, str | bytes)
+            instrument_list = dehex_decompress_and_dejson(input_list)
             instrument_details = next(
                 (inst for inst in instrument_list if inst["pvPrefix"] == machine_identifier), None
             )
@@ -182,7 +189,7 @@ class API(object):
         return self.machine_name
 
     def set_instrument(
-        self, machine_identifier: str, globs: dict, import_instrument_init: bool = True
+        self, machine_identifier: str, globs: dict[str, Any], import_instrument_init: bool = True
     ) -> None:
         """
         Set the instrument being used by setting the PV prefix or by the
@@ -262,12 +269,14 @@ class API(object):
         """
         Adds the instrument prefix to the specified PV.
         """
-        if self.inst_prefix is not None:
-            return self.inst_prefix + name
-        return name
+        return self.inst_prefix + name
 
     def init_instrument(
-        self, instrument: str, machine_name: str, globs: dict, import_instrument_init: bool
+        self,
+        instrument: str,
+        machine_name: str,
+        globs: dict[str, Any],
+        import_instrument_init: bool,
     ) -> None:
         """
         Initialise an instrument using the default init file followed by the machine specific init.
@@ -298,10 +307,14 @@ class API(object):
             # Load the instrument init file
             self.localmod = importlib.import_module("init_{}".format(instrument))
 
-            if self.localmod.__file__.endswith(".pyc"):
-                file_loc = self.localmod.__file__[:-1]
+            _file = self.localmod.__file__
+            assert _file is not None
+
+            if _file.endswith(".pyc"):
+                file_loc = _file[:-1]
             else:
-                file_loc = self.localmod.__file__
+                file_loc = _file
+            assert isinstance(file_loc, str)
             # execfile - this puts any imports in the init file into the globals namespace
             # Note: Anything loose in the module like print statements will be run twice
             exec(compile(open(file_loc).read(), file_loc, "exec"), globs)
@@ -448,6 +461,7 @@ class API(object):
         """
         Reload the current configuration.
         """
+        assert self.blockserver is not None
         self.blockserver.reload_current_config()
 
     def correct_blockname(self, name: str, add_prefix: bool = True) -> str:
@@ -472,7 +486,7 @@ class API(object):
         """
         return [name for name in BLOCK_NAMES.__dict__.keys()]
 
-    def block_exists(self, name: str, fail_fast: bool = False) -> str | None:
+    def block_exists(self, name: str, fail_fast: bool = False) -> bool:
         """
         Checks whether the block exists.
 
@@ -510,6 +524,7 @@ class API(object):
         full_name = self.get_pv_from_block(name)
 
         if lowlimit is not None and highlimit is not None:
+            assert isinstance(value, (float, int))
             if lowlimit > highlimit:
                 print(
                     "Low limit ({}) higher than high limit ({}), "
@@ -531,6 +546,8 @@ class API(object):
                 self.set_pv_value(full_name, value)
 
         if wait:
+            assert isinstance(value, WAITFOR_VALUE)
+            assert self.waitfor is not None
             self.waitfor.start_waiting(name, value, lowlimit, highlimit)
             return
 
@@ -599,14 +616,18 @@ class API(object):
         return typing.cast(str | None, Wrapper.get_pv_value(unit_name))
 
     def _get_pars(
-        self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], list[str]]
-    ) -> dict:
+        self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], Any]
+    ) -> dict[str, PVValue]:
         """
         Get the current parameter values for a given pv subset as a dictionary.
         """
         names = get_names_from_blockserver()
         ans = {}
-        if names is not None:
+        if (
+            names is not None
+            and isinstance(names, list)
+            and all(isinstance(elem, str) for elem in names)
+        ):
             for n in names:
                 val = self.get_pv_value(self.prefix_pv_name(n))
                 m = re.match(".+:" + pv_prefix_identifier + ":(.+)", n)
@@ -618,10 +639,11 @@ class API(object):
                     )
         return ans
 
-    def get_sample_pars(self) -> dict:
+    def get_sample_pars(self) -> dict[str, PVValue]:
         """
         Get the current sample parameter values as a dictionary.
         """
+        assert self.blockserver is not None
         return self._get_pars("SAMPLE", self.blockserver.get_sample_par_names)
 
     def set_sample_par(self, name: str, value: "PVValue") -> None:
@@ -632,8 +654,13 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
+        assert self.blockserver is not None
         names = self.blockserver.get_sample_par_names()
-        if names is not None:
+        if (
+            names is not None
+            and isinstance(names, list)
+            and all(isinstance(elem, str) for elem in names)
+        ):
             for n in names:
                 m = re.match(".+:SAMPLE:%s" % name.upper(), n)
                 if m is not None:
@@ -642,10 +669,11 @@ class API(object):
                     return
         raise Exception("Sample parameter %s does not exist" % name)
 
-    def get_beamline_pars(self) -> dict:
+    def get_beamline_pars(self) -> dict[str, PVValue]:
         """
         Get the current beamline parameter values as a dictionary.
         """
+        assert self.blockserver is not None
         return self._get_pars("BL", self.blockserver.get_beamline_par_names)
 
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
@@ -656,6 +684,7 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
+        assert self.blockserver is not None
         names = self.blockserver.get_beamline_par_names()
         if names is not None:
             for n in names:
@@ -665,7 +694,7 @@ class API(object):
                     return
         raise Exception("Beamline parameter %s does not exist" % name)
 
-    def get_runcontrol_settings(self, block_name: str) -> tuple[bool, float, float]:
+    def get_runcontrol_settings(self, block_name: str) -> tuple[PVValue, PVValue, PVValue]:
         """
         Gets the current run-control settings for a block.
 
@@ -711,11 +740,11 @@ class API(object):
             list: the blocks which have soft limit violations
         """
         violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
-        return [t[0] for t in violation_states if t[1] == 1]
+        return [t[0] for t in violation_states if t[1] == "1"]
 
     def _get_fields_from_blocks(
         self, blocks: list[str], field_name: str, field_description: str
-    ) -> list["PVValue"]:
+    ) -> list[str]:
         field_values = list()
         for block in blocks:
             if self.block_exists(block):
@@ -723,7 +752,7 @@ class API(object):
                 full_block_pv = self.get_pv_from_block(block)
                 try:
                     field_value = self.get_pv_value(full_block_pv + "." + field_name, attempts=1)
-                    field_values.append([block_name, field_value])
+                    field_values.append([block_name, str(field_value)])
                 except IOError:
                     # Could not get value
                     print("Could not get {} for block: {}".format(field_description, block))
@@ -817,7 +846,7 @@ class API(object):
         except Exception as e:
             raise Exception("Could not send email: {}".format(e))
 
-    def send_alert(self, message: str, inst: str) -> None:
+    def send_alert(self, message: str, inst: str | None) -> None:
         """
         Sends an alert message for a specified instrument.
 
@@ -860,13 +889,16 @@ class API(object):
             alarm status could not be determined
         """
         try:
-            return self.get_pv_value(
+            alarm_val = self.get_pv_value(
                 "{}.SEVR".format(remove_field_from_pv(pv_name)), to_string=True
             )
+            assert alarm_val is str
+            return alarm_val
+
         except Exception:
             return "UNKNOWN"
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict:
+    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, PVValue]:
         """
         Gets the useful values associated with a block.
 

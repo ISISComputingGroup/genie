@@ -21,7 +21,7 @@ class BlockNamesManager:
 
     def __init__(
         self,
-        block_names: "PVValue",
+        block_names: "BlockNames",
         delay_before_retry_add_monitor: float = DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL,
     ) -> None:
         """
@@ -100,6 +100,7 @@ class BlockNamesManager:
 
         # add new block as attributes to class
         try:
+            assert isinstance(value, str | bytes)
             block_names = dehex_decompress_and_dejson(value)
             for name in block_names:
                 attribute_name = name
