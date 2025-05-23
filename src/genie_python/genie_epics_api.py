@@ -371,7 +371,7 @@ class API(object):
         to_string: typing.Literal[True] = True,
         attempts: int = 3,
         is_local: bool = True,
-        use_numpy: None = None,
+        use_numpy: bool | None = None,
     ) -> str: ...
 
     @typing.overload
