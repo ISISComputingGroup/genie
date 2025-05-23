@@ -100,6 +100,7 @@ class BlockNamesManager:
 
         # add new block as attributes to class
         try:
+            assert isinstance(value, (str, bytes)), value
             block_names = dehex_decompress_and_dejson(value)
             for name in block_names:
                 attribute_name = name
