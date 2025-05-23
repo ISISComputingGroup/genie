@@ -892,7 +892,7 @@ class API(object):
             alarm_val = self.get_pv_value(
                 "{}.SEVR".format(remove_field_from_pv(pv_name)), to_string=True
             )
-            assert alarm_val is str
+            assert isinstance(alarm_val, str)
             return alarm_val
 
         except Exception:
