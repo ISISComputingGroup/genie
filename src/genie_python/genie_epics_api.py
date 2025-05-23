@@ -59,11 +59,11 @@ class API(object):
             globs: globals
             environment_details: details of the computer environment
         """
-        self.waitfor: WaitForController | None = None  # type: WaitForController
+        self.waitfor: WaitForController | None = None
         self.wait_for_move: WaitForMoveController | None = None
-        self.dae: Dae | None = None  # type: Dae
-        self.blockserver: BlockServer | None = None  # type: BlockServer
-        self.exp_data: GetExperimentData | None = None  # type: GetExperimentData
+        self.dae: Dae | None = None
+        self.blockserver: BlockServer | None = None
+        self.exp_data: GetExperimentData | None = None
         self.inst_prefix: str = ""
         self.instrument_name = ""
         self.machine_name = ""
@@ -364,6 +364,26 @@ class API(object):
                     self.logger.log_error_msg("set_pv_value exception {!r}".format(e))
                     raise e
 
+    @typing.overload
+    def get_pv_value(
+        self,
+        name: str,
+        to_string: typing.Literal[True] = True,
+        attempts: int = 3,
+        is_local: bool = True,
+        use_numpy: None = None,
+    ) -> str: ...
+
+    @typing.overload
+    def get_pv_value(
+        self,
+        name: str,
+        to_string: bool = False,
+        attempts: int = 3,
+        is_local: bool = False,
+        use_numpy: bool | None = None,
+    ) -> "PVValue": ...
+
     def get_pv_value(
         self,
         name: str,
@@ -524,7 +544,8 @@ class API(object):
         full_name = self.get_pv_from_block(name)
 
         if lowlimit is not None and highlimit is not None:
-            assert isinstance(value, (float, int))
+            if not isinstance(value, (float, int)):
+                raise ValueError("Both limits provided but value is not a number")
             if lowlimit > highlimit:
                 print(
                     "Low limit ({}) higher than high limit ({}), "
@@ -546,7 +567,8 @@ class API(object):
                 self.set_pv_value(full_name, value)
 
         if wait:
-            assert isinstance(value, WAITFOR_VALUE)
+            if not isinstance(value, WAITFOR_VALUE):
+                raise ValueError(f"Wait value is not a WAITFOR_VALUE: {value}")
             assert self.waitfor is not None
             self.waitfor.start_waiting(name, value, lowlimit, highlimit)
             return
@@ -740,11 +762,12 @@ class API(object):
             list: the blocks which have soft limit violations
         """
         violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
-        return [t[0] for t in violation_states if t[1] == "1"]
+
+        return [t[0] for t in violation_states if typing.cast(bool, t[1]) == 1]
 
     def _get_fields_from_blocks(
         self, blocks: list[str], field_name: str, field_description: str
-    ) -> list[str]:
+    ) -> list[tuple[str, "PVValue"]]:
         field_values = list()
         for block in blocks:
             if self.block_exists(block):
@@ -752,7 +775,7 @@ class API(object):
                 full_block_pv = self.get_pv_from_block(block)
                 try:
                     field_value = self.get_pv_value(full_block_pv + "." + field_name, attempts=1)
-                    field_values.append([block_name, str(field_value)])
+                    field_values.append((block_name, field_value))
                 except IOError:
                     # Could not get value
                     print("Could not get {} for block: {}".format(field_description, block))
@@ -892,7 +915,6 @@ class API(object):
             alarm_val = self.get_pv_value(
                 "{}.SEVR".format(remove_field_from_pv(pv_name)), to_string=True
             )
-            assert isinstance(alarm_val, str)
             return alarm_val
 
         except Exception:
