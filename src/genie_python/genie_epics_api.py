@@ -707,12 +707,12 @@ class API(object):
         invalid = [t[0] for t in alarm_states if t[1] == "INVALID"]
         return minor, major, invalid
 
-    def check_limit_violations(self, blocks: typing.Tuple[str, ...]) -> list[str]:
+    def check_limit_violations(self, blocks: typing.Iterable[str]) -> list[str]:
         """
         Checks whether the specified blocks have soft limit violations.
 
         Args:
-            blocks (list): the blocks to check
+            blocks (iterable): the blocks to check
 
         Returns:
             list: the blocks which have soft limit violations
