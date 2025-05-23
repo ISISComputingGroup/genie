@@ -587,6 +587,10 @@ class Dae(object):
     def set_users(self, users: str) -> None:
         self.users = users
 
+    @require_runstate(["SETUP", "PROCESSING"])
+    def set_simulation_mode(self, mode: bool) -> None:
+        return False
+
     def change_start(self) -> None:
         """Start a change operation.
         The operaton is finished when change_finish is called.

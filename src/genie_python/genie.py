@@ -46,6 +46,7 @@ from genie_python.version import VERSION  # noqa E402
 
 PVBaseValue = bool | int | float | str
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
+# because we don't want to make PVValue generic
 
 print("\ngenie_python version " + VERSION)
 
@@ -328,7 +329,7 @@ def cshow(block: str | None = None) -> None:
 @log_command_and_handle_exception
 def waitfor(
     block: str | None = None,
-    value: float | None = None,
+    value: PVValue = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     maxwait: float | None = None,
@@ -343,7 +344,7 @@ def waitfor(
     mevents: float | None = None,
     early_exit: Callable[[], bool] = lambda: False,
     quiet: bool = False,
-    **pars: bool | int | float | str | Callable[[None], bool] | None,
+    **pars: PVValue,
 ) -> None:
     """
     Interrupts execution until certain conditions are met.
@@ -416,11 +417,12 @@ def waitfor(
                 if block is not None:
                     raise Exception("Can set waitfor for only one block at a time")
                 block = k
-                value = pars[k]  # pyright: ignore
+                value = pars[k]
             else:
                 raise ValueError("Block named '{}' did not exist.".format(k))
     # Check that wait_for object exists
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -450,7 +452,7 @@ def waitfor(
 @log_command_and_handle_exception
 def waitfor_block(
     block: str,
-    value: PVValue | None = None,
+    value: PVValue = None,
     lowlimit: float | None = None,
     highlimit: float | None = None,
     maxwait: float | None = None,
@@ -480,6 +482,7 @@ def waitfor_block(
         ... )
     """
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
@@ -530,6 +533,7 @@ def waitfor_time(
     if any(t is not None and t < 0 for t in (seconds, minutes, hours)):
         raise ValueError("Cannot execute waitfor_time - Time parameters cannot be negative")
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise TypeError("Cannot execute waitfor_time - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(
         seconds=seconds, minutes=minutes, hours=hours, time=time, quiet=quiet
@@ -558,6 +562,7 @@ def waitfor_frames(frames: int | None = None, quiet: bool = False) -> None:
     if frames < 0:
         raise ValueError("Cannot execute waitfor_frames - frames parameter cannot be negative")
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(frames=frames, quiet=quiet)
 
@@ -587,6 +592,7 @@ def waitfor_raw_frames(raw_frames: int | None = None, quiet: bool = False) -> No
             "Cannot execute waitfor_raw_frames - raw_frames parameter cannot be negative"
         )
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(raw_frames=raw_frames, quiet=quiet)
 
@@ -607,6 +613,7 @@ def waitfor_uamps(uamps: float, quiet: bool = False) -> None:
         >>> waitfor_uamps(115.5)
     """
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(uamps=uamps, quiet=quiet)
 
@@ -634,6 +641,7 @@ def waitfor_mevents(mevents: float | None = None, quiet: bool = False) -> None:
     if mevents < 0:
         raise ValueError("Cannot execute waitfor_mevents - mevents parameter cannot be negative")
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_mevents - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(mevents=mevents, quiet=quiet)
 
@@ -664,6 +672,7 @@ def waitfor_runstate(
     """
     # Check that wait_for object exists
     if _genie_api.waitfor is None:  # pyright: ignore
+        # pyright doesn't recognise that waitfor can be None
         raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
     _genie_api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit, quiet)
 
@@ -671,7 +680,7 @@ def waitfor_runstate(
 @usercommand
 @helparglist("[block, ...][, start_timeout][, move_timeout]")
 @log_command_and_handle_exception
-def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
+def waitfor_move(*blocks: str, **kwargs: int | None) -> None:
     """
     Wait for all motion or specific motion to complete.
 
@@ -713,12 +722,12 @@ def waitfor_move(*blocks: str | None, **kwargs: int | None) -> None:
     if _genie_api.wait_for_move is None:
         raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
 
-    if blocks != ():
+    if len(blocks) > 0:
         # Specified blocks waitfor_move
         move_blocks = list()
         # Check blocks exist
         for b in blocks:
-            if _genie_api.block_exists(b):  # pyright: ignore  b cannot be None given line 716
+            if _genie_api.block_exists(b):
                 move_blocks.append(b)
             else:
                 print("Block %s does not exist, so ignoring it" % b)
@@ -2422,7 +2431,7 @@ def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -
          skip_required_runstates: Ignore all checks, use with caution
     """
     # skip_required_runstates must be passed as a keyword argument for wrapper to catch it.
-    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates)  # pyright: ignore
+    _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates)
 
 
 @usercommand
