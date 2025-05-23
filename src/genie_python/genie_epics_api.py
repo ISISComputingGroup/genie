@@ -763,7 +763,7 @@ class API(object):
         """
         violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
 
-        return [t[0] for t in violation_states if typing.cast(bool, t[1]) == 1]
+        return [t[0] for t in violation_states if t[1]]
 
     def _get_fields_from_blocks(
         self, blocks: list[str], field_name: str, field_description: str
