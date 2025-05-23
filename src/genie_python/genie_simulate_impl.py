@@ -17,7 +17,13 @@ from genie_python.genie_pre_post_cmd_manager import PrePostCmdManager
 from genie_python.utilities import require_runstate
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn, _CgetReturn, _GetSampleParsReturn, _GetbeamlineparsReturn
+    from genie_python.genie import (
+        PVValue,
+        _CgetReturn,
+        _GetbeamlineparsReturn,
+        _GetSampleParsReturn,
+        _GetspectrumReturn,
+    )
     from genie_python.genie_waitfor import WAITFOR_VALUE
 
 
@@ -922,7 +928,13 @@ class Dae(object):
             self.change_finish()
 
     def change_tcb(
-        self, low: float | None, high: float | None, step: float | None, trange: int, log: bool = False, regime: int = 1
+        self,
+        low: float | None,
+        high: float | None,
+        step: float | None,
+        trange: int,
+        log: bool = False,
+        regime: int = 1,
     ) -> None:
         """Change the time channel boundaries.
 
@@ -1126,7 +1138,12 @@ class API(object):
         )
 
     def get_pv_value(
-        self, name: str, to_string: bool = False, attempts: int = 3, is_local: bool = False, use_numpy: bool = False
+        self,
+        name: str,
+        to_string: bool = False,
+        attempts: int = 3,
+        is_local: bool = False,
+        use_numpy: bool = False,
     ) -> None:
         if is_local:
             name = self.prefix_pv_name(name)

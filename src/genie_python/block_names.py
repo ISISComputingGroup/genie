@@ -1,7 +1,6 @@
 import zlib
 from keyword import iskeyword
 from threading import RLock, Timer
-import numpy as np
 from typing import TYPE_CHECKING, Optional
 
 from .channel_access_exceptions import UnableToConnectToPVException
@@ -13,6 +12,7 @@ DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
 
 if TYPE_CHECKING:
     from genie_python.genie import PVValue
+
 
 class BlockNamesManager:
     """
@@ -84,7 +84,6 @@ class BlockNamesManager:
                 self._timer.daemon = True
                 self._timer.start()
 
-                
     def _update_block_names(self, value: "PVValue", _: Optional[str], _1: Optional[str]) -> None:
         """
         Update the block names from a pv

@@ -1349,7 +1349,13 @@ class Dae(object):
         return out
 
     def change_tcb(
-        self, low: float | None, high: float | None, step: float | None, trange: int, log: bool = False, regime: int = 1
+        self,
+        low: float | None,
+        high: float | None,
+        step: float | None,
+        trange: int,
+        log: bool = False,
+        regime: int = 1,
     ) -> None:
         """
         Change the time channel boundaries.

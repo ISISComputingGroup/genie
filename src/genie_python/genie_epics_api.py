@@ -30,9 +30,13 @@ from genie_python.utilities import (
     remove_field_from_pv,
 )
 
-
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _CgetReturn, _GetSampleParsReturn, _GetbeamlineparsReturn
+    from genie_python.genie import (
+        PVValue,
+        _CgetReturn,
+        _GetbeamlineparsReturn,
+        _GetSampleParsReturn,
+    )
 
 RC_ENABLE = ":RC:ENABLE"
 RC_LOW = ":RC:LOW"
@@ -685,7 +689,9 @@ class API(object):
         except UnableToConnectToPVException:
             return "UNKNOWN", "UNKNOWN", "UNKNOWN"
 
-    def check_alarms(self, blocks: typing.Tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(
+        self, blocks: typing.Tuple[str, ...]
+    ) -> tuple[list[str], list[str], list[str]]:
         """
         Checks whether the specified blocks are in alarm.
 
