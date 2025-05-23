@@ -31,7 +31,12 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+    from genie_python.genie import (
+        PVValue,
+        _CgetReturn,
+        _GetbeamlineparsReturn,
+        _GetSampleParsReturn,
+    )
 
 RC_ENABLE = ":RC:ENABLE"
 RC_LOW = ":RC:LOW"
@@ -735,7 +740,9 @@ class API(object):
         except UnableToConnectToPVException:
             return "UNKNOWN", "UNKNOWN", "UNKNOWN"
 
-    def check_alarms(self, blocks: list[str]) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(
+        self, blocks: typing.Tuple[str, ...]
+    ) -> tuple[list[str], list[str], list[str]]:
         """
         Checks whether the specified blocks are in alarm.
 
@@ -745,22 +752,23 @@ class API(object):
         Returns:
             list, list, list: the blocks in minor, major and invalid alarm
         """
-        alarm_states = self._get_fields_from_blocks(blocks, "SEVR", "alarm state")
+        alarm_states = self._get_fields_from_blocks(list(blocks), "SEVR", "alarm state")
         minor = [t[0] for t in alarm_states if t[1] == "MINOR"]
         major = [t[0] for t in alarm_states if t[1] == "MAJOR"]
         invalid = [t[0] for t in alarm_states if t[1] == "INVALID"]
         return minor, major, invalid
 
-    def check_limit_violations(self, blocks: list[str]) -> list[str]:
+    def check_limit_violations(self, blocks: typing.Iterable[str]) -> list[str]:
         """
         Checks whether the specified blocks have soft limit violations.
 
         Args:
-            blocks (list): the blocks to check
+            blocks (iterable): the blocks to check
 
         Returns:
             list: the blocks which have soft limit violations
         """
+        
         violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
 
         return [t[0] for t in violation_states if t[1]]

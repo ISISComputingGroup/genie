@@ -336,7 +336,7 @@ def check_lowlimit_against_highlimit(lowlimit: float | None, highlimit: float | 
 
 def require_runstate(
     runstates: Iterable[str],
-) -> Callable[[Callable[Concatenate["Dae", P], T]], Callable[Concatenate["Dae", P], T]]:
+) -> Callable[[Callable[Concatenate["Dae", ...], T]], Callable[Concatenate["Dae", ...], T]]:
     """
     Decorator that checks for needed runstates.
     If skip_required_runstates is passed in as a keyword argument to the
@@ -345,8 +345,8 @@ def require_runstate(
     runstates_string = ", ".join(runstates)
 
     def _check_runstate(
-        func: Callable[Concatenate["Dae", P], T],
-    ) -> Callable[Concatenate["Dae", P], T]:
+        func: Callable[Concatenate["Dae", ...], T],
+    ) -> Callable[Concatenate["Dae", ...], T]:
         @wraps(func)
         def _wrapper(self: "Dae", *args: P.args, **kwargs: P.kwargs) -> T:
             if not kwargs.pop("skip_required_runstates", False):

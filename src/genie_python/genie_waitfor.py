@@ -8,16 +8,15 @@ from abc import ABCMeta, abstractmethod
 from builtins import object, str
 from datetime import datetime, timedelta
 from time import sleep, strptime
-from typing import TYPE_CHECKING, Callable, TypeAlias
+from typing import TYPE_CHECKING, Callable
 
 from genie_python.utilities import check_break, get_time_delta
 
 if TYPE_CHECKING:
+    from genie_python.genie import PVValue
     from genie_python.genie_epics_api import API
 
 NUMERIC_TYPE = (float, int)
-
-WAITFOR_VALUE: TypeAlias = bool | int | float | str | None
 
 # The time in a loop to sleep for when waiting for an event, e.g. polling a pv/block value
 DELAY_IN_WAIT_FOR_SLEEP_LOOP = 0.1
@@ -257,7 +256,7 @@ class WaitForController(object):
     def start_waiting(
         self,
         block: str | None = None,
-        value: WAITFOR_VALUE | None = None,
+        value: "PVValue | None" = None,
         lowlimit: float | int | None = None,
         highlimit: float | int | None = None,
         maxwait: float | None = None,
@@ -508,7 +507,7 @@ class WaitForController(object):
     def _init_wait_block(
         self,
         block: str | None,
-        value: WAITFOR_VALUE,
+        value: "PVValue",
         lowlimit: float | int | None,
         highlimit: float | int | None,
         quiet: bool = False,
@@ -533,8 +532,8 @@ class WaitForController(object):
             )
 
     def _get_block_limits(
-        self, value: WAITFOR_VALUE, lowlimit: float | int | None, highlimit: float | int | None
-    ) -> tuple[WAITFOR_VALUE | None, WAITFOR_VALUE | None]:
+        self, value: "PVValue", lowlimit: float | int | None, highlimit: float | int | None
+    ) -> tuple["PVValue | None", "PVValue | None"]:
         low = None
         high = None
         if value is not None:
