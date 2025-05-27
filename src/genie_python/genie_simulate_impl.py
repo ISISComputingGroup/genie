@@ -21,9 +21,9 @@ if TYPE_CHECKING:
     from genie_python.genie import (
         PVValue,
         _CgetReturn,
+        _GetbeamlineparsReturn,
         _GetSampleParsReturn,
         _GetspectrumReturn,
-        _GetbeamlineparsReturn
     )
 
 
@@ -1253,7 +1253,7 @@ class API(object):
         self.sample_pars[name] = value
 
     def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
-        return typing.cast("_GetBeamlineParsReturn", self.beamline_pars)
+        return typing.cast("_GetbeamlineparsReturn", self.beamline_pars)
 
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
