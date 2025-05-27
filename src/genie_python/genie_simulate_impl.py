@@ -19,12 +19,8 @@ from genie_python.utilities import require_runstate
 if TYPE_CHECKING:
     from genie_python.genie import (
         PVValue,
-        _CgetReturn,
-        _GetbeamlineparsReturn,
-        _GetSampleParsReturn,
         _GetspectrumReturn,
     )
-    from genie_python.genie_waitfor import WAITFOR_VALUE
 
 
 class Waitfor(object):
@@ -34,7 +30,7 @@ class Waitfor(object):
     def start_waiting(
         self,
         block: str | None = None,
-        value: "WAITFOR_VALUE | None" = None,
+        value: "PVValue" = None,
         lowlimit: float | None = None,
         highlimit: float | None = None,
         maxwait: float | None = None,
@@ -1218,7 +1214,7 @@ class API(object):
         if wait:
             self.waitfor.start_waiting(block=name, value=value)
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> "_CgetReturn":
+    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, "PVValue"]:
         ans = OrderedDict()
         ans["connected"] = True
 
@@ -1246,13 +1242,13 @@ class API(object):
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
         pass
 
-    def get_sample_pars(self) -> "_GetSampleParsReturn":
+    def get_sample_pars(self) -> dict[str, "PVValue"]:
         return self.sample_pars
 
     def set_sample_par(self, name: str, value: "PVValue") -> None:
         self.sample_pars[name] = value
 
-    def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
+    def get_beamline_pars(self) -> dict[str, "PVValue"]:
         return self.beamline_pars
 
     def set_beamline_par(self, name: str, value: "PVValue") -> None:

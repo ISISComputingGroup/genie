@@ -226,21 +226,10 @@ def cset(
             cshow(block)
 
 
-class _CgetReturn(TypedDict):
-    name: str
-    value: Any
-    unit: str
-    connected: bool
-    runcontrol: bool
-    lowlimit: Any
-    highlimit: Any
-    alarm: str
-
-
 @usercommand
 @helparglist("block")
 @log_command_and_handle_exception
-def cget(block: str) -> _CgetReturn:
+def cget(block: str) -> dict[str, PVValue]:
     """
     Gets the useful values associated with a block.
 
@@ -266,7 +255,7 @@ def cget(block: str) -> _CgetReturn:
     return ans
 
 
-def _log_alarmed_block(block_name: str, alarm_state: str) -> None:
+def _log_alarmed_block(block_name: str, alarm_state: PVValue) -> None:
     _genie_api.logger.log_info_msg("BLOCK {} IN {} ALARM".format(block_name, alarm_state))
     print("Block {} is in alarm: {}".format(block_name, alarm_state), file=sys.stdout)
 
@@ -285,7 +274,7 @@ def _warn_if_block_alarm(block: str) -> None:
             _log_alarmed_block(alarm[0], alarm_type)
 
 
-def _print_from_cget(block_details: _CgetReturn) -> None:
+def _print_from_cget(block_details: dict[str, PVValue]) -> None:
     """
     Prints the values obtained through cget into a
     human readable format, used for cshow.
@@ -829,6 +818,7 @@ def begin(
         Any: return what the begin_postcmd method returns
     """
     # Returns None if we should start the run or the reason why if not
+    assert _genie_api.dae is not None
     pre_post_cmd_return = _genie_api.pre_post_cmd_manager.begin_precmd(quiet=quiet, prepost=prepost)
     if pre_post_cmd_return is None:
         _genie_api.dae.begin_run(
@@ -856,6 +846,7 @@ def abort(verbose: bool = False, prepost: bool = True) -> None:
         verbose (bool, optional): show the messages from the DAE
         prepost (bool, optional): run pre and post commands (default: True)
     """
+    assert _genie_api.dae is not None
     _genie_api.pre_post_cmd_manager.abort_precmd(prepost=prepost)
     _genie_api.dae.abort_run(prepost)
     _genie_api.dae.post_abort_check(verbose)
@@ -878,6 +869,7 @@ def end(
             a period sequence to complete
         prepost (bool, optional): run pre and post commands (default: True)
     """
+    assert _genie_api.dae is not None
     _genie_api.pre_post_cmd_manager.end_precmd(quiet=quiet, prepost=prepost)
     _genie_api.dae.end_run(verbose=verbose, quiet=quiet, immediate=immediate, prepost=prepost)
     waitfor_runstate("SETUP")
@@ -898,6 +890,7 @@ def pause(verbose: bool = False, immediate: bool = False, prepost: bool = True) 
             without waiting for a period sequence to complete
         prepost (bool, optional): run pre and post commands (default: True)
     """
+    assert _genie_api.dae is not None
     _genie_api.pre_post_cmd_manager.pause_precmd(prepost=prepost)
     _genie_api.dae.pause_run(immediate=immediate, prepost=prepost)
     _genie_api.dae.post_pause_check(verbose)
@@ -915,6 +908,7 @@ def resume(verbose: bool = False, prepost: bool = False) -> None:
         verbose (bool, optional): show the messages from the DAE
         prepost (bool, optional): run pre and post commands (default: True)
     """
+    assert _genie_api.dae is not None
     _genie_api.pre_post_cmd_manager.resume_precmd(prepost=prepost)
     _genie_api.dae.resume_run(prepost)
     _genie_api.dae.post_resume_check(verbose)
@@ -934,6 +928,7 @@ def recover(verbose: bool = False) -> None:
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.recover_run()
     waitfor_runstate("SETUP", onexit=True)
     _genie_api.dae.post_recover_check(verbose)
@@ -950,6 +945,7 @@ def updatestore(verbose: bool = False) -> None:
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.update_store_run()
     waitfor_runstate("SAVING", onexit=True)
     _genie_api.dae.post_update_store_check(verbose)
@@ -971,6 +967,7 @@ def update(pause_run: bool = True, verbose: bool = False) -> None:
         pause(verbose=verbose)
 
     # Update
+    assert _genie_api.dae is not None
     _genie_api.dae.update_run()
     waitfor_runstate("UPDATING", onexit=True)
     _genie_api.dae.post_update_check(verbose)
@@ -990,6 +987,7 @@ def store(verbose: bool = False) -> None:
     Args:
         verbose (bool, optional): show the messages from the DAE
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.store_run()
     waitfor_runstate("STORING", onexit=True)
     _genie_api.dae.post_store_check(verbose)
@@ -1011,6 +1009,7 @@ def snapshot_crpt(filename: str = "c:\\Data\\snapshot_crpt.tmp", verbose: bool =
 
         >>> snapshot_crpt("c:\\Data\\my_snapshot")
     """
+    assert _genie_api.dae is not None
     name = get_correct_path(filename)
     _genie_api.dae.snapshot_crpt(name)
     waitfor_runstate("STORING", onexit=True)
@@ -1030,6 +1029,7 @@ def get_uamps(period: bool = False) -> float:
     Returns:
         float: the number of uamps
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_uamps(period)
 
 
@@ -1046,6 +1046,7 @@ def get_frames(period: bool = False) -> int:
     Returns:
         int: the number of frames
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_good_frames(period)
 
 
@@ -1062,6 +1063,7 @@ def get_raw_frames(period: bool = False) -> int:
     Returns:
         int: the number of raw frames
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_raw_frames(period)
 
 
@@ -1077,6 +1079,7 @@ def get_runstate() -> str:
     Returns:
         string: the current run state
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_run_state()
 
 
@@ -1096,7 +1099,7 @@ def get_time_since_begin(get_timedelta: bool = False) -> float | datetime.timede
             or timedelta, the time since begin as a datetime.timedelta object
             (Year-Month-Day  Hour:Minute:Second) if get_datetime is True
     """
-
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_time_since_begin(get_timedelta)
 
 
@@ -1110,6 +1113,7 @@ def get_events() -> int:
     Returns:
         int: the number of events
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_events()
 
 
@@ -1123,6 +1127,7 @@ def get_mevents() -> float:
     Returns:
         float: the number of millions of events
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_mevents()
 
 
@@ -1136,6 +1141,7 @@ def get_period() -> int:
     Returns:
         int: the current period
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_period()
 
 
@@ -1149,6 +1155,7 @@ def get_number_periods() -> int:
     Returns:
         int: the number of periods
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_num_periods()
 
 
@@ -1165,6 +1172,7 @@ def get_number_timechannels() -> int:
     Returns:
         int: the number of time channels
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_num_timechannels()
 
 
@@ -1180,6 +1188,7 @@ def get_number_spectra() -> int:
     Returns:
         int: the number of spectra
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_num_spectra()
 
 
@@ -1200,6 +1209,7 @@ def get_spectrum_integrals(with_spec_zero: bool = True) -> npt.NDArray[np.float3
         numpy int array: spectrum integrals numpy ND array
             this is of dimensions [periods, spectra]
     """
+    assert _genie_api.dae is not None
     data = _genie_api.dae.get_spec_integrals()
     nper = get_number_periods()
     nsp = get_number_spectra()
@@ -1239,6 +1249,7 @@ def get_runnumber() -> str:
     Returns:
         string: the run-number
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_run_number()
 
 
@@ -1252,6 +1263,7 @@ def get_totalcounts() -> int:
     Returns:
         int: the total counts
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_total_counts()
 
 
@@ -1265,6 +1277,7 @@ def get_title() -> str:
     Returns:
         string: the title
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_title()
 
 
@@ -1278,6 +1291,7 @@ def get_display_title() -> bool:
     Returns:
         boolean: the display title status
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_display_title()
 
 
@@ -1291,6 +1305,7 @@ def get_rb() -> str:
     Returns:
         string: the RB number
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_rb_number()
 
 
@@ -1327,6 +1342,7 @@ def get_dashboard() -> _GetdashboardReturn:
     Returns:
         dict: the experiment values
     """
+    assert _genie_api.dae is not None
     data = _GetdashboardReturn(
         status=_genie_api.dae.get_run_state(),
         run_number=_genie_api.dae.get_run_number(),
@@ -1537,6 +1553,7 @@ def change_start() -> None:
     Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_start()
 
 
@@ -1552,6 +1569,7 @@ def change_finish() -> None:
     Between these two calls a sequence of other change commands can be called.
     For example: change_tables, change_tcb etc.
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_finish()
 
 
@@ -1567,6 +1585,7 @@ def change_monitor(spec: int, low: float, high: float) -> None:
         low (float): the low end of the integral
         high (float): the high end of the integral
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_monitor(spec, low, high)
 
 
@@ -1617,6 +1636,8 @@ def change_tables(
                 "Could not find detector table. Did you type the file name correctly? %s" % detector
             )
 
+    assert _genie_api.dae is not None
+
     if errors:
         raise FileNotFoundError(" ".join(errors))
     elif not all(path is None for path in (wiring, detector, spectra)):
@@ -1642,6 +1663,7 @@ def change_sync(source: str) -> None:
          'isis (first ts1)'
     )
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_sync(source)
 
 
@@ -1656,6 +1678,7 @@ def change_tcb_file(tcbfile: str | None = None, default: bool = False) -> None:
         tcbfile (string, optional): the file to load
         default (bool, optional): load the default file
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_tcb_file(tcbfile, default)
 
 
@@ -1691,6 +1714,7 @@ def change_tcb(
 
         >>> change_tcb(step=2, trange=2)
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_tcb(low, high, step, trange, log, regime)
 
 
@@ -1717,6 +1741,7 @@ def get_tcb_settings(trange: int, regime: int = 1) -> dict[str, int]:
 
         >>> get_tcb_settings(2, 3)["Steps"]
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_tcb_settings(trange, regime)
 
 
@@ -1752,6 +1777,7 @@ def change_vetos(**params: bool) -> None:
 
         >>> change_vetos(fifo=False)
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.change_vetos(**params)
 
 
@@ -1767,6 +1793,7 @@ def change_fermi_veto(enable: bool | None = None, delay: float = 1.0, width: flo
         delay (float, optional): the veto delay
         width (float, optional): the veto width
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_fermi_veto(enable, delay, width)
 
 
@@ -1780,6 +1807,7 @@ def enable_soft_periods(nperiods: int | None = None) -> None:
     Args:
         nperiods (int, optional): the number of software periods
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_period_mode("soft")
     if nperiods is not None:
         _genie_api.dae.set_num_soft_periods(nperiods)
@@ -1829,6 +1857,7 @@ def enable_hard_periods(
 
         >>> enable_hard_periods("int", "c:\\myperiods.txt")
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.configure_hard_periods(
         mode,
         period_file,
@@ -1874,6 +1903,7 @@ def configure_internal_periods(
 
     Note: if the period number is unspecified then the settings will be applied to all periods
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.configure_internal_periods(
         sequences, output_delay, period, daq, dwell, unused, frames, output, label
     )
@@ -1974,6 +2004,7 @@ def change_title(title: str) -> None:
     Args:
         title: the new title
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_title(title)
 
 
@@ -1987,6 +2018,7 @@ def set_display_title(display_title: bool) -> None:
     Args:
         display_title: the new display title status
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_display_title(display_title)
 
 
@@ -2000,6 +2032,7 @@ def change_period(period: int) -> None:
     Args:
         period (int): the period to switch to
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_period(period)
 
 
@@ -2014,6 +2047,7 @@ def change_number_soft_periods(number: int, enable: bool = False) -> None:
         number (int): the number of periods to create
         enable (bool, optional): switch to soft period mode
     """
+    assert _genie_api.dae is not None
     if enable:
         _genie_api.dae.set_period_mode("soft")
     _genie_api.dae.set_num_soft_periods(number)
@@ -2029,6 +2063,7 @@ def get_users() -> str:
     Returns:
         str: the users.
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_users()
 
 
@@ -2046,6 +2081,7 @@ def change_users(users: str) -> None:
 
         >>> change_users("Emerson, Lake, Palmer")
     """
+    assert _genie_api.dae is not None
     _genie_api.dae.set_users(users)
 
 
@@ -2059,6 +2095,7 @@ def change_rb(rb: int | str) -> None:
     Args:
         rb (int or string): the new RB number
     """
+    assert _genie_api.dae is not None
     if isinstance(rb, int):
         # If it is an int then that is fine, just cast to str as the PV is a string
         rb = str(rb)
@@ -2092,6 +2129,7 @@ def get_spectrum(spectrum: int, period: int = 1, dist: bool = True) -> _Getspect
     Returns:
         dict: dictionary of values
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_spectrum(spectrum, period, dist)
 
 
@@ -2141,41 +2179,14 @@ def integrate_spectrum(
     Returns:
         float: integral of the spectrum (neutron counts); None spectrum can not be read
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.integrate_spectrum(spectrum, period, t_min, t_max)
-
-
-class GetSampleParsReturnMEAS(TypedDict):
-    ID: int
-    LABEL: str
-    SUBID: int
-    TYPE: int
-
-
-class GetSampleParsReturnSCRIPT(TypedDict):
-    NAME: str
-
-
-class _GetSampleParsReturn(TypedDict):
-    AOI: float
-    COMMENTS: str
-    FIELD_LABEL: str
-    GEOMETRY: str
-    HEIGHT: float
-    ID: int
-    MEAS: GetSampleParsReturnMEAS
-    NAME: str
-    PHI: float
-    SCRIPT: GetSampleParsReturnSCRIPT
-    TEMP_LABEL: str
-    THICK: float
-    TYPE: str
-    WIDTH: float
 
 
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_sample_pars() -> _GetSampleParsReturn:
+def get_sample_pars() -> dict[str, "PVValue"]:
     """
     Get the current sample parameter values.
 
@@ -2200,44 +2211,17 @@ def change_sample_par(name: str, value: PVValue) -> None:
     _genie_api.set_sample_par(name, value)
 
 
-class _GetbeamlineparsReturnBEAMSTOP(TypedDict):
-    POS: str
-
-
-class _GetbeamlineparsReturnCHOPEN(TypedDict):
-    ANG: float
-
-
-class _GetbeamlineparsReturnJOURNAL(TypedDict):
-    BLOCKS: str
-
-
-class _GetbeamlineparsReturn(TypedDict):
-    A1: float
-    A2: float
-    A3: float
-    BCX: float
-    BCY: float
-    BEAMSTOP: _GetbeamlineparsReturnBEAMSTOP
-    CHOPEN: _GetbeamlineparsReturnCHOPEN
-    CURR_CONFIG: str
-    FOEMIRROR: float
-    GEOMETRY: str
-    JOURNAL: _GetbeamlineparsReturnJOURNAL
-    L1: float
-    SDD: float
-
-
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_beamline_pars() -> _GetbeamlineparsReturn:
+def get_beamline_pars() -> dict[str, PVValue]:
     """
     Get the current beamline parameter values.
 
     Returns:
         dict: the beamline parameters
     """
+    assert _genie_api.dae is not None
     names = _genie_api.get_beamline_pars()
     return names
 
@@ -2310,6 +2294,7 @@ def get_wiring_tables() -> list[str]:
     Returns:
         list: the files
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_wiring_tables()
 
 
@@ -2323,6 +2308,7 @@ def get_spectra_tables() -> list[str]:
     Returns:
         list: the files
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_spectra_tables()
 
 
@@ -2336,6 +2322,7 @@ def get_detector_tables() -> list[str]:
     Returns:
         list: the files
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_detector_tables()
 
 
@@ -2349,6 +2336,7 @@ def get_period_files() -> list[str]:
     Returns:
         list: the files
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_period_files()
 
 
@@ -2431,6 +2419,7 @@ def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -
          skip_required_runstates: Ignore all checks, use with caution
     """
     # skip_required_runstates must be passed as a keyword argument for wrapper to catch it.
+    assert _genie_api.dae is not None
     _genie_api.dae.set_simulation_mode(mode, skip_required_runstates=skip_required_runstates)
 
 
@@ -2443,6 +2432,7 @@ def get_dae_simulation_mode() -> bool:
     Returns:
         True if the DAE is in simulation mode, False otherwise.
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_simulation_mode()
 
 
@@ -2470,6 +2460,7 @@ def get_wiring_table() -> str | None:
     Returns:
             The file path of the current wiring table.
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_table_path("Wiring")
 
 
@@ -2481,6 +2472,7 @@ def get_spectra_table() -> str | None:
     Returns:
             The file path of the current spectra table.
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_table_path("Spectra")
 
 
@@ -2492,4 +2484,5 @@ def get_detector_table() -> str | None:
     Returns:
             The file path of the current detector table.
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.get_table_path("Detector")

@@ -22,7 +22,7 @@ from genie_python.genie_logging import GenieLogger
 from genie_python.genie_logging import filter as logging_filter
 from genie_python.genie_pre_post_cmd_manager import PrePostCmdManager
 from genie_python.genie_wait_for_move import WaitForMoveController
-from genie_python.genie_waitfor import WAITFOR_VALUE, WaitForController
+from genie_python.genie_waitfor import WaitForController
 from genie_python.utilities import (
     EnvironmentDetails,
     crc8,
@@ -33,9 +33,6 @@ from genie_python.utilities import (
 if TYPE_CHECKING:
     from genie_python.genie import (
         PVValue,
-        _CgetReturn,
-        _GetbeamlineparsReturn,
-        _GetSampleParsReturn,
     )
 
 RC_ENABLE = ":RC:ENABLE"
@@ -572,8 +569,6 @@ class API(object):
                 self.set_pv_value(full_name, value)
 
         if wait:
-            if not isinstance(value, WAITFOR_VALUE):
-                raise ValueError(f"Wait value is not a WAITFOR_VALUE: {value}")
             assert self.waitfor is not None
             self.waitfor.start_waiting(name, value, lowlimit, highlimit)
             return
@@ -768,8 +763,8 @@ class API(object):
         Returns:
             list: the blocks which have soft limit violations
         """
-        
-        violation_states = self._get_fields_from_blocks(blocks, "LVIO", "limit violation")
+
+        violation_states = self._get_fields_from_blocks(list(blocks), "LVIO", "limit violation")
 
         return [t[0] for t in violation_states if t[1]]
 
