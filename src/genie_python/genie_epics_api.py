@@ -33,6 +33,9 @@ from genie_python.utilities import (
 if TYPE_CHECKING:
     from genie_python.genie import (
         PVValue,
+        _CgetReturn,
+        _GetbeamlineparsReturn,
+        _GetSampleParsReturn,
     )
 
 RC_ENABLE = ":RC:ENABLE"
@@ -639,7 +642,7 @@ class API(object):
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], Any]
-    ) -> dict[str, "PVValue"]:
+    ) -> "dict[str, PVValue]":
         """
         Get the current parameter values for a given pv subset as a dictionary.
         """
@@ -661,12 +664,15 @@ class API(object):
                     )
         return ans
 
-    def get_sample_pars(self) -> dict[str, "PVValue"]:
+    def get_sample_pars(self) -> "_GetSampleParsReturn":
         """
         Get the current sample parameter values as a dictionary.
         """
         assert self.blockserver is not None
-        return self._get_pars("SAMPLE", self.blockserver.get_sample_par_names)
+        sample_pars = typing.cast(
+            "_GetSampleParsReturn", self._get_pars("SAMPLE", self.blockserver.get_sample_par_names)
+        )
+        return sample_pars
 
     def set_sample_par(self, name: str, value: "PVValue") -> None:
         """
@@ -691,12 +697,14 @@ class API(object):
                     return
         raise Exception("Sample parameter %s does not exist" % name)
 
-    def get_beamline_pars(self) -> dict[str, "PVValue"]:
+    def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
         """
         Get the current beamline parameter values as a dictionary.
         """
         assert self.blockserver is not None
-        return self._get_pars("BL", self.blockserver.get_beamline_par_names)
+        return typing.cast(
+            "_GetbeamlineparsReturn", self._get_pars("BL", self.blockserver.get_beamline_par_names)
+        )
 
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         """
@@ -923,7 +931,7 @@ class API(object):
         except Exception:
             return "UNKNOWN"
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, "PVValue"]:
+    def get_block_data(self, block: str, fail_fast: bool = False) -> "_CgetReturn":
         """
         Gets the useful values associated with a block.
 
@@ -974,4 +982,4 @@ class API(object):
         fail_fast_and_disconnected = fail_fast and not ans["connected"]
         ans["alarm"] = "UNKNOWN" if fail_fast_and_disconnected else self.get_alarm_from_block(block)
 
-        return ans
+        return typing.cast("_CgetReturn", ans)

@@ -48,6 +48,74 @@ PVBaseValue = bool | int | float | str
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
 # because we don't want to make PVValue generic
 
+
+class _CgetReturn(TypedDict):
+    name: str
+    value: Any
+    unit: str
+    connected: bool
+    runcontrol: bool
+    lowlimit: Any
+    highlimit: Any
+    alarm: str
+
+
+class GetSampleParsReturnMEAS(TypedDict):
+    ID: int
+    LABEL: str
+    SUBID: int
+    TYPE: int
+
+
+class GetSampleParsReturnSCRIPT(TypedDict):
+    NAME: str
+
+
+class _GetSampleParsReturn(TypedDict):
+    AOI: float
+    COMMENTS: str
+    FIELD_LABEL: str
+    GEOMETRY: str
+    HEIGHT: float
+    ID: int
+    MEAS: GetSampleParsReturnMEAS
+    NAME: str
+    PHI: float
+    SCRIPT: GetSampleParsReturnSCRIPT
+    TEMP_LABEL: str
+    THICK: float
+    TYPE: str
+    WIDTH: float
+
+
+class _GetbeamlineparsReturnBEAMSTOP(TypedDict):
+    POS: str
+
+
+class _GetbeamlineparsReturnCHOPEN(TypedDict):
+    ANG: float
+
+
+class _GetbeamlineparsReturnJOURNAL(TypedDict):
+    BLOCKS: str
+
+
+class _GetbeamlineparsReturn(TypedDict):
+    A1: float
+    A2: float
+    A3: float
+    BCX: float
+    BCY: float
+    BEAMSTOP: _GetbeamlineparsReturnBEAMSTOP
+    CHOPEN: _GetbeamlineparsReturnCHOPEN
+    CURR_CONFIG: str
+    FOEMIRROR: float
+    GEOMETRY: str
+    JOURNAL: _GetbeamlineparsReturnJOURNAL
+    L1: float
+    SDD: float
+
+
 print("\ngenie_python version " + VERSION)
 
 MIN_SUPPORTED_PYTHON_VERSION = (3, 11, 0)
@@ -229,7 +297,7 @@ def cset(
 @usercommand
 @helparglist("block")
 @log_command_and_handle_exception
-def cget(block: str) -> dict[str, PVValue]:
+def cget(block: str) -> _CgetReturn:
     """
     Gets the useful values associated with a block.
 
@@ -274,7 +342,7 @@ def _warn_if_block_alarm(block: str) -> None:
             _log_alarmed_block(alarm[0], alarm_type)
 
 
-def _print_from_cget(block_details: dict[str, PVValue]) -> None:
+def _print_from_cget(block_details: _CgetReturn) -> None:
     """
     Prints the values obtained through cget into a
     human readable format, used for cshow.
@@ -2186,7 +2254,7 @@ def integrate_spectrum(
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_sample_pars() -> dict[str, "PVValue"]:
+def get_sample_pars() -> _GetSampleParsReturn:
     """
     Get the current sample parameter values.
 
@@ -2214,7 +2282,7 @@ def change_sample_par(name: str, value: PVValue) -> None:
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_beamline_pars() -> dict[str, PVValue]:
+def get_beamline_pars() -> _GetbeamlineparsReturn:
     """
     Get the current beamline parameter values.
 

@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import inspect
 import os
 import socket
+import typing
 import xml.etree.ElementTree as ET
 from builtins import object, str
 from collections import OrderedDict
@@ -19,6 +20,9 @@ from genie_python.utilities import require_runstate
 if TYPE_CHECKING:
     from genie_python.genie import (
         PVValue,
+        _CgetReturn,
+        _GetBeamlineParsReturn,
+        _GetSampleParsReturn,
         _GetspectrumReturn,
     )
 
@@ -1214,7 +1218,7 @@ class API(object):
         if wait:
             self.waitfor.start_waiting(block=name, value=value)
 
-    def get_block_data(self, block: str, fail_fast: bool = False) -> dict[str, "PVValue"]:
+    def get_block_data(self, block: str, fail_fast: bool = False) -> "_CgetReturn":
         ans = OrderedDict()
         ans["connected"] = True
 
@@ -1223,7 +1227,7 @@ class API(object):
         ans["runcontrol"], ans["lowlimit"], ans["highlimit"] = self.get_runcontrol_settings(block)
 
         ans["alarm"] = self.get_alarm_from_block(block)
-        return ans
+        return typing.cast("_CgetReturn", ans)
 
     def set_multiple_blocks(self, names: list, values: list) -> None:
         temp = list(zip(names, values))
@@ -1242,14 +1246,14 @@ class API(object):
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
         pass
 
-    def get_sample_pars(self) -> dict[str, "PVValue"]:
-        return self.sample_pars
+    def get_sample_pars(self) -> "_GetSampleParsReturn":
+        return typing.cast("_GetSampleParsReturn", self.sample_pars)
 
     def set_sample_par(self, name: str, value: "PVValue") -> None:
         self.sample_pars[name] = value
 
-    def get_beamline_pars(self) -> dict[str, "PVValue"]:
-        return self.beamline_pars
+    def get_beamline_pars(self) -> "_GetBeamlineParsReturn":
+        return typing.cast("_GetBeamlineParsReturn", self.beamline_pars)
 
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
