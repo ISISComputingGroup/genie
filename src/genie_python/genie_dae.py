@@ -1978,7 +1978,7 @@ class Dae(object):
         )
         return json.loads(raw)
 
-    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict:
+    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict[str, int]:
         """
         Gets a dictionary of the time channel settings.
 

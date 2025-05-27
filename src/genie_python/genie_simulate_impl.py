@@ -445,7 +445,7 @@ class Dae(object):
     def get_events(self) -> int:
         return 0
 
-    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict:
+    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict[str, int]:
         return {}
 
     def get_simulation_mode(self) -> bool:
@@ -585,7 +585,7 @@ class Dae(object):
 
     @require_runstate(["SETUP", "PROCESSING"])
     def set_simulation_mode(self, mode: bool) -> None:
-        return False
+        pass
 
     def change_start(self) -> None:
         """Start a change operation.
