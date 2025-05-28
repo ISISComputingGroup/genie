@@ -5,10 +5,11 @@ This module is used for advanced commands that are for expert users.
 """
 
 import contextlib
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from time import sleep
-from typing import Any, Callable, Iterator, TypedDict
+from typing import Any, Iterator, Protocol, TypedDict
 
+import numpy as np
 import numpy.typing as npt
 
 from genie_python.genie_api_setup import (
@@ -19,6 +20,11 @@ from genie_python.genie_api_setup import (
 )
 from genie_python.genie_waitfor import DELAY_IN_WAIT_FOR_SLEEP_LOOP
 from genie_python.utilities import check_break
+
+
+class PrePostCmd(Protocol):
+    def __call__(self, **kwargs: Any) -> str | None:
+        pass
 
 
 @usercommand
@@ -52,7 +58,7 @@ def assert_in_manager_mode() -> None:
 
 
 @contextlib.contextmanager
-def motor_in_set_mode(pv_name: str) -> Iterator:
+def motor_in_set_mode(pv_name: str) -> Iterator[None]:
     """
     Uses a context to place motor into set mode and ensure that it leaves
     set mode after context has ended. If it can not set the mode correctly
@@ -134,7 +140,7 @@ def get_pv_from_block(block: str) -> str:
 @usercommand
 @helparglist("pv str")
 @log_command_and_handle_exception
-def pv_exists(pv: str, is_local: bool = False) -> None:
+def pv_exists(pv: str, is_local: bool = False) -> bool:
     """
     Check if PV exists.
 
@@ -159,13 +165,13 @@ def wait_for_pv(
         value: The value to wait for
         maxwait (int, optional): The maximum time to wait for in seconds
     """
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
     while True:
         curr_value = __api.get_pv_value(pv)
         if curr_value == value:
             break
         if maxwait is not None:
-            if timedelta(seconds=maxwait) < datetime.utcnow() - start_time:
+            if timedelta(seconds=maxwait) < datetime.now(UTC) - start_time:
                 break
         sleep(DELAY_IN_WAIT_FOR_SLEEP_LOOP)
         check_break(2)
@@ -173,7 +179,7 @@ def wait_for_pv(
 
 @usercommand
 @helparglist("")
-def set_begin_precmd(begin_precmd: Callable[[Any], str | None]) -> None:
+def set_begin_precmd(begin_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the begin command.
 
@@ -186,7 +192,7 @@ def set_begin_precmd(begin_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_begin_postcmd(begin_postcmd: Callable[[Any], str | None]) -> None:
+def set_begin_postcmd(begin_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the begin command.
 
@@ -198,7 +204,7 @@ def set_begin_postcmd(begin_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_abort_precmd(abort_precmd: Callable[[Any], str | None]) -> None:
+def set_abort_precmd(abort_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the abort command.
 
@@ -210,7 +216,7 @@ def set_abort_precmd(abort_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_abort_postcmd(abort_postcmd: Callable[[Any], str | None]) -> None:
+def set_abort_postcmd(abort_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the abort command.
 
@@ -222,7 +228,7 @@ def set_abort_postcmd(abort_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_end_precmd(end_precmd: Callable[[Any], str | None]) -> None:
+def set_end_precmd(end_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the end command.
 
@@ -234,7 +240,7 @@ def set_end_precmd(end_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_end_postcmd(end_postcmd: Callable[[Any], str | None]) -> None:
+def set_end_postcmd(end_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the end command.
 
@@ -246,7 +252,7 @@ def set_end_postcmd(end_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_pause_precmd(pause_precmd: Callable[[Any], str | None]) -> None:
+def set_pause_precmd(pause_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the pause command.
 
@@ -258,7 +264,7 @@ def set_pause_precmd(pause_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_pause_postcmd(pause_postcmd: Callable[[Any], str | None]) -> None:
+def set_pause_postcmd(pause_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the pause command.
 
@@ -270,7 +276,7 @@ def set_pause_postcmd(pause_postcmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_resume_precmd(resume_precmd: Callable[[Any], str | None]) -> None:
+def set_resume_precmd(resume_precmd: PrePostCmd) -> None:
     """
     Set the function to call before the resume command.
 
@@ -282,7 +288,7 @@ def set_resume_precmd(resume_precmd: Callable[[Any], str | None]) -> None:
 
 @usercommand
 @helparglist("")
-def set_resume_postcmd(resume_postcmd: Callable[[Any], str | None]) -> None:
+def set_resume_postcmd(resume_postcmd: PrePostCmd) -> None:
     """
     Set the function to call after the resume command.
 
@@ -400,7 +406,9 @@ def get_exp_data(
 @usercommand
 @helparglist("")
 @log_command_and_handle_exception
-def get_spectrum_data(with_spec_zero: bool = True, with_time_bin_zero: bool = False) -> npt.NDArray:
+def get_spectrum_data(
+    with_spec_zero: bool = True, with_time_bin_zero: bool = False
+) -> npt.NDArray[np.float32]:
     """
     Get the event mode spectrum data as ND array.
 

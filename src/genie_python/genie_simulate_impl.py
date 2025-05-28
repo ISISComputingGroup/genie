@@ -1117,11 +1117,15 @@ class API(object):
         self.sample_pars = {}
         self.strict_block = strict_block
         self.logger = GenieLogger(sim_mode=True)
+        self.exp_data = None
 
     def set_instrument(
         self, pv_prefix: str, globs: dict | None, import_instrument_init: bool
     ) -> None:
         self.inst_prefix = pv_prefix
+
+    def get_instrument(self) -> str | None:
+        return self.inst_prefix
 
     def prefix_pv_name(self, name: str) -> str:
         """Adds the instrument prefix to the specified PV"""
@@ -1156,7 +1160,7 @@ class API(object):
             % (name, to_string, attempts, is_local, use_numpy)
         )
 
-    def pv_exists(self, name: str) -> bool:
+    def pv_exists(self, name: str, is_local: bool = False) -> bool:
         return True
 
     def connected_pvs_in_list(self, pv_list: list[str], is_local: bool = False) -> list[str]:
@@ -1229,7 +1233,10 @@ class API(object):
         ans["alarm"] = self.get_alarm_from_block(block)
         return typing.cast("_CgetReturn", ans)
 
-    def set_multiple_blocks(self, names: list, values: list) -> None:
+    def get_pv_from_block(self, block_name: str) -> str:
+        return block_name
+
+    def set_multiple_blocks(self, names: list[str], values: list["PVValue"]) -> None:
         temp = list(zip(names, values))
         for name, value in temp:
             if name in self.block_dict:
