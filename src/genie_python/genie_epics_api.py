@@ -549,15 +549,13 @@ class API(object):
         full_name = self.get_pv_from_block(name)
 
         if lowlimit is not None and highlimit is not None:
-            if not isinstance(value, (float, int)):
-                raise ValueError("Both limits provided but value is not a number")
             if lowlimit > highlimit:
                 print(
                     "Low limit ({}) higher than high limit ({}), "
                     "swapping them around for you".format(lowlimit, highlimit)
                 )
                 lowlimit, highlimit = highlimit, lowlimit
-            if wait and not lowlimit < value < highlimit:
+            if isinstance(value, (int, float)) and wait and not lowlimit < value < highlimit:
                 # Can only warn as may move through this range whilst changing
                 print(
                     "Warning the range {} to {} does not cover setpoint of {}, "
