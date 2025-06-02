@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from io import open
 from stat import S_IREAD, S_IWUSR
 from time import sleep, strftime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Generator, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -2072,7 +2072,7 @@ class Dae(object):
         return state_attained
 
     @contextmanager
-    def temporarily_kill_icp(self) -> None:
+    def temporarily_kill_icp(self) -> Generator[None, None, None]:
         """
         Context manager to temporarily kill ICP.
         """
