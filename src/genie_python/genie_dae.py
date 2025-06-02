@@ -2080,8 +2080,11 @@ class Dae(object):
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:STOP", "Shutdown"):
                 raise IOError("Could not stop ISISDAE!")
             for p in psutil.process_iter():
-                if p.name().lower() == "isisicp.exe":
-                    p.kill()
+                try:
+                    if p.name().lower() == "isisicp.exe":
+                        p.kill()
+                except psutil.NoSuchProcess:
+                    pass  # ignore, process p had died before p.name() could be called
             yield
         finally:
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:START", "Running"):
