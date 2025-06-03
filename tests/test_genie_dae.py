@@ -20,6 +20,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+import psutil
 from hamcrest import assert_that, calling, close_to, is_, raises
 from parameterized import parameterized_class
 
@@ -660,6 +661,29 @@ class TestGenieDAE(unittest.TestCase):
         self.api.get_pv_value = MagicMock(side_effect=self.get_integrals_or_specdata_pv_value)
         data = self.dae.get_spec_data()
         self.assertTrue((data == SPECDATA).all())
+
+    def test_WHEN_temporarily_kill_isisicp_context_manager_used_THEN_isisicp_killed(self):
+        isisicp = MagicMock(spec=psutil.Process)
+        isisicp.name.return_value = "ISISICP.EXE"
+
+        dead_process = MagicMock(spec=psutil.Process)
+        dead_process.name.side_effect = psutil.NoSuchProcess(0)
+
+        live_process = MagicMock(spec=psutil.Process)
+        live_process.name.return_value = "OTHER_PROCESS.EXE"
+
+        with (
+            patch(
+                "genie_python.genie_dae.psutil.process_iter",
+                return_value=[isisicp, dead_process, live_process],
+            ),
+            patch.object(self.dae, "_isis_dae_triggered_state_was_reached", return_value=True),
+            patch.object(self.dae, "_get_pv_value", return_value="On"),
+        ):
+            with self.dae.temporarily_kill_icp():
+                isisicp.kill.assert_called_once()
+                dead_process.kill.assert_not_called()
+                live_process.kill.assert_not_called()
 
 
 @parameterized_class(
