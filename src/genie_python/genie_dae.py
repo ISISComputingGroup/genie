@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from io import open
 from stat import S_IREAD, S_IWUSR
 from time import sleep, strftime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Generator, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -36,7 +36,7 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+    from genie_python.genie import PVValue, _GetspectrumReturn
     from genie_python.genie_epics_api import API
 
 ## for beginrun etc. there exists both the PV specified here and also a PV with
@@ -1349,7 +1349,13 @@ class Dae(object):
         return out
 
     def change_tcb(
-        self, low: float, high: float, step: float, trange: int, log: bool = False, regime: int = 1
+        self,
+        low: float | None,
+        high: float | None,
+        step: float | None,
+        trange: int,
+        log: bool = False,
+        regime: int = 1,
     ) -> None:
         """
         Change the time channel boundaries.
@@ -1869,7 +1875,7 @@ class Dae(object):
 
     def get_spectrum(
         self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
-    ) -> dict:
+    ) -> "_GetspectrumReturn":
         """
         Gets a spectrum from the DAE via a PV.
 
@@ -1924,7 +1930,7 @@ class Dae(object):
         else:
             return False
 
-    def get_wiring_tables(self) -> str:
+    def get_wiring_tables(self) -> list[str]:
         """
         Gets a list of wiring table choices.
 
@@ -1972,7 +1978,7 @@ class Dae(object):
         )
         return json.loads(raw)
 
-    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict:
+    def get_tcb_settings(self, trange: int, regime: int = 1) -> dict[str, int]:
         """
         Gets a dictionary of the time channel settings.
 
@@ -2066,7 +2072,7 @@ class Dae(object):
         return state_attained
 
     @contextmanager
-    def temporarily_kill_icp(self) -> None:
+    def temporarily_kill_icp(self) -> Generator[None, None, None]:
         """
         Context manager to temporarily kill ICP.
         """
@@ -2074,8 +2080,11 @@ class Dae(object):
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:STOP", "Shutdown"):
                 raise IOError("Could not stop ISISDAE!")
             for p in psutil.process_iter():
-                if p.name().lower() == "isisicp.exe":
-                    p.kill()
+                try:
+                    if p.name().lower() == "isisicp.exe":
+                        p.kill()
+                except psutil.NoSuchProcess:
+                    pass  # ignore, process p had died before p.name() could be called
             yield
         finally:
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:START", "Running"):

@@ -1,45 +1,44 @@
 """
-Useful and slightly more explit exceptions that can be thrown. In general catch the super class of these.
+Useful and slightly more explicit exceptions that can be thrown.
+In general catch the super class of these.
 """
 
 
-class UnableToConnectToPVException(IOError):
+class UnableToConnectToPVException(IOError):  # noqa N818 Historic name
     """
     The system is unable to connect to a PV for some reason.
     """
 
-    def __init__(self, pv_name, err):
+    def __init__(self, pv_name: str, err: str) -> None:
         super(UnableToConnectToPVException, self).__init__(
-            "Unable to connect to PV {0}: {1}".format(pv_name, err)
+            f"Unable to connect to PV {pv_name}: {err}"
         )
 
 
-class InvalidEnumStringException(KeyError):
+class InvalidEnumStringException(KeyError):  # noqa N818 Historic name
     """
     The enum string that is trying to be set is not listed in the pv.
     """
 
-    def __init__(self, pv_name, valid_states):
+    def __init__(self, pv_name: str, valid_states: str) -> None:
         super(InvalidEnumStringException, self).__init__(
-            "Invalid string value entered for {}. Valid strings are {}".format(
-                pv_name, valid_states
-            )
+            f"Invalid string value entered for {pv_name}. Valid strings are {valid_states}"
         )
 
 
-class ReadAccessException(IOError):
+class ReadAccessException(IOError):  # noqa N818 Historic name
     """
     PV exists but its value is unavailable to read.
     """
 
-    def __init__(self, pv_name):
-        super(ReadAccessException, self).__init__("Read access denied for PV {}".format(pv_name))
+    def __init__(self, pv_name: str) -> None:
+        super(ReadAccessException, self).__init__(f"Read access denied for PV {pv_name}")
 
 
-class WriteAccessException(IOError):
+class WriteAccessException(IOError):  # noqa N818 Historic name
     """
     PV was written to but does not allow writes.
     """
 
-    def __init__(self, pv_name):
-        super(WriteAccessException, self).__init__("Write access denied for PV {}".format(pv_name))
+    def __init__(self, pv_name: str) -> None:
+        super(WriteAccessException, self).__init__(f"Write access denied for PV {pv_name}")
