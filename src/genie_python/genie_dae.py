@@ -2085,6 +2085,11 @@ class Dae(object):
                         p.kill()
                 except psutil.NoSuchProcess:
                     pass  # ignore, process p had died before p.name() could be called
+                except psutil.AccessDenied:
+                    self.api.logger.log_error_msg(
+                        f"Got AccessDenied for process {p.name()} running as {p.username()}"
+                    )
+                    raise
             yield
         finally:
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:START", "Running"):
