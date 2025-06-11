@@ -162,7 +162,7 @@ class ScriptChecker(object):
 
         def __enter__(self) -> None:
             self._filename = os.path.join(self.config_path, self.config_name)
-            print(self._filename)
+
             with open(self._filename, "w") as f:
                 f.write(json.dumps(self.json_write))
 
