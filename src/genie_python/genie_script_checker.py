@@ -162,7 +162,6 @@ class ScriptChecker(object):
 
         def __enter__(self) -> None:
             self._filename = os.path.join(self.config_path, self.config_name)
-            print(self._filename)
             with open(self._filename, "w") as f:
                 f.write(json.dumps(self.json_write))
 
@@ -207,15 +206,7 @@ class ScriptChecker(object):
             pr_result = subprocess.run(args=cmd, capture_output=True, text=True, encoding="utf-8")
             json_out = unicodedata.normalize("NFKD", pr_result.stdout)
 
-            try:
-                json_data = json.loads(json_out)
-            except json.decoder.JSONDecodeError:
-                errors.append(
-                    "Failed to check the file with pyright, the user cache is corrupted."
-                    "\nPlease delete the folder "
-                    "C:\\Users\\<User>\\.cache\\pyright-python and try again."
-                )
-                return warnings, errors
+            json_data = json.loads(json_out)
 
             # for each diagnostic, if severity is error then
             # add message to error array else add to warning array
