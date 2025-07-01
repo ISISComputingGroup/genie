@@ -1895,7 +1895,6 @@ class Dae(object):
             self._set_pv_value(
                 self._get_dae_pv_name("updatesettings_sp"),
                 ET.tostring(root),
-                wait=self.wait_for_completion_callback_dae_settings,
             )
 
     def get_spectrum(
