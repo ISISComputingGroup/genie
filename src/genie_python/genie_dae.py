@@ -1201,6 +1201,7 @@ class Dae(object):
             self._change_dae_settings()
             self._change_tcb_settings()
             self._change_period_settings()
+            self._change_autosave_freq()
             self.change_cache = ChangeCache()
 
     def change_tables(
@@ -1884,6 +1885,19 @@ class Dae(object):
                     "set a number that is too large for the DAE memory. Try a smaller number!"
                 )
 
+    def _change_autosave_freq(self):
+
+        root = ET.fromstring(
+            self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True)
+        )
+        changed = self.change_cache.change_autosave_settings(root)
+        if changed:
+            self._set_pv_value(
+                self._get_dae_pv_name("updatesettings_sp"),
+                ET.tostring(root),
+                wait=self.wait_for_completion_callback_dae_settings,
+            )
+
     def get_spectrum(
         self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
     ) -> "_GetspectrumReturn":
@@ -2234,3 +2248,21 @@ class Dae(object):
         # run sum of terms, note in the case that the high and low partials
         # are in the same bin this still works
         return full_count + partial_count_high - partial_count_low
+
+    def change_autosave_freq(
+        self, freq: float
+    ) -> None:
+        """Change the rate of ICP autosave
+
+        Args:
+            freq (float): frequency of autosave
+        """
+        did_change = False
+        if not self.in_change:
+            self.change_start()
+            did_change = True
+
+        self.change_cache.autosave_freq = freq
+
+        if did_change:
+            self.change_finish()

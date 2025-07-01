@@ -30,6 +30,7 @@ class ChangeCache(object):
         self.periods_seq = None
         self.periods_delay = None
         self.periods_settings = []
+        self.autosave_freq = None
 
     def set_monitor(self, spec, low, high):
         self.mon_spect = spec
@@ -125,6 +126,10 @@ class ChangeCache(object):
             changed |= self._change_xml(root, "I32", "Frames %s" % period, frames)
             changed |= self._change_xml(root, "U16", "Output %s" % period, output)
             changed |= self._change_xml(root, "String", "Label %s" % period, label)
+        return changed
+
+    def change_autosave_settings(self, root) -> bool:
+        changed = self._change_xml(root, "U32", " Frequency", self.autosave_freq)
         return changed
 
     def _change_xml(self, xml, node, name, value):
