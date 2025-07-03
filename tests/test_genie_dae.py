@@ -112,6 +112,15 @@ PERIOD_SETTINGS_XML = """<Cluster>
     </DBL>
 </Cluster>"""
 
+UPDATE_SETTINGS_XML = """<Cluster>
+    <Name>DAE Updates</Name>
+    <NumElts>3</NumElts>
+    <U32>
+        <Name> Frequency</Name>
+        <Val>5000</Val>
+    </U32>
+"""
+
 YC_RETURN = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
 Y_RETURN = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
 YC_NORD_RETURN = 4
@@ -139,6 +148,7 @@ def get_mock_pv_value(pv_name, to_string, use_numpy):
         "DAE:DAESETTINGS": DAE_SETTINGS_XML,
         "DAE:TCBSETTINGS": compress_and_hex(TCB_SETTINGS_XML),
         "DAE:HARDWAREPERIODS": PERIOD_SETTINGS_XML,
+        "DAE:UPDATESETTINGS": UPDATE_SETTINGS_XML,
     }
     return mock_data[pv_name]
 
