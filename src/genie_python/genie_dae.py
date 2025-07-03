@@ -1885,8 +1885,7 @@ class Dae(object):
                     "set a number that is too large for the DAE memory. Try a smaller number!"
                 )
 
-    def _change_autosave_freq(self):
-
+    def _change_autosave_freq(self) -> None:
         root = ET.fromstring(
             self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True)
         )
@@ -2248,9 +2247,7 @@ class Dae(object):
         # are in the same bin this still works
         return full_count + partial_count_high - partial_count_low
 
-    def change_autosave_freq(
-        self, freq: float
-    ) -> None:
+    def change_autosave_freq(self, freq: float) -> None:
         """Change the rate of ICP autosave
 
         Args:

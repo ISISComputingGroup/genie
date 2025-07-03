@@ -1,14 +1,19 @@
+import xml.etree.ElementTree as ET
 from builtins import object, str
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from genie_python.genie import PVValue
 
 
 class ChangeCache(object):
-    def __init__(self):
+    def __init__(self) -> None:
         self.wiring = None
         self.detector = None
         self.spectra = None
-        self.mon_spect = None
-        self.mon_from = None
-        self.mon_to = None
+        self.mon_spect: int | None = None
+        self.mon_from: float | None = None
+        self.mon_to: float | None = None
         self.dae_sync = None
         self.tcb_file = None
         self.tcb_tables = []
@@ -32,12 +37,12 @@ class ChangeCache(object):
         self.periods_settings = []
         self.autosave_freq = None
 
-    def set_monitor(self, spec, low, high):
+    def set_monitor(self, spec: int | None, low: float | None, high: float | None) -> None:
         self.mon_spect = spec
         self.mon_from = low
         self.mon_to = high
 
-    def clear_vetos(self):
+    def clear_vetos(self) -> None:
         self.smp_veto = 0
         self.ts2_veto = 0
         self.hz50_veto = 0
@@ -46,12 +51,12 @@ class ChangeCache(object):
         self.ext2_veto = 0
         self.ext3_veto = 0
 
-    def set_fermi(self, enable, delay=1.0, width=1.0):
+    def set_fermi(self, enable: int | bool, delay: float = 1.0, width: float = 1.0) -> None:
         self.fermi_veto = 1 if enable else 0
         self.fermi_delay = delay
         self.fermi_width = width
 
-    def change_dae_settings(self, root):
+    def change_dae_settings(self, root: ET) -> bool:
         changed = self._change_xml(root, "String", "Wiring Table", self.wiring)
         changed |= self._change_xml(root, "String", "Detector Table", self.detector)
         changed |= self._change_xml(root, "String", "Spectra Table", self.spectra)
@@ -69,7 +74,7 @@ class ChangeCache(object):
         changed |= self._change_vetos(root)
         return changed
 
-    def _change_vetos(self, root):
+    def _change_vetos(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "EW", "SMP (Chopper) Veto", self.smp_veto)
         changed |= self._change_xml(root, "EW", " TS2 Pulse Veto", self.ts2_veto)
         changed |= self._change_xml(root, "EW", " ISIS 50Hz Veto", self.hz50_veto)
@@ -79,17 +84,17 @@ class ChangeCache(object):
         changed |= self._change_xml(root, "EW", "Veto 3", self.ext3_veto)
         return changed
 
-    def change_tcb_calculation_method(self, root):
+    def change_tcb_calculation_method(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "U16", "Calculation Method", self.tcb_calculation_method)
         return changed
 
-    def change_tcb_settings(self, root):
+    def change_tcb_settings(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "String", "Time Channel File", self.tcb_file)
         changed |= self.change_tcb_calculation_method(root)
         changed |= self._change_tcb_table(root)
         return changed
 
-    def _change_tcb_table(self, root):
+    def _change_tcb_table(self, root: ET.Element) -> bool:
         changed = False
         for row in self.tcb_tables:
             regime = str(row[0])
@@ -102,7 +107,7 @@ class ChangeCache(object):
         changed |= self.change_tcb_calculation_method(root)
         return changed
 
-    def change_period_settings(self, root):
+    def change_period_settings(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "EW", "Period Type", self.periods_type)
         changed |= self._change_xml(
             root, "I32", "Number Of Software Periods", self.periods_soft_num
@@ -114,7 +119,7 @@ class ChangeCache(object):
         changed |= self._change_period_table(root)
         return changed
 
-    def _change_period_table(self, root):
+    def _change_period_table(self, root: ET.Element) -> bool:
         changed = False
         for row in self.periods_settings:
             period = row[0]
@@ -128,11 +133,11 @@ class ChangeCache(object):
             changed |= self._change_xml(root, "String", "Label %s" % period, label)
         return changed
 
-    def change_autosave_settings(self, root) -> bool:
+    def change_autosave_settings(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "U32", " Frequency", self.autosave_freq)
         return changed
 
-    def _change_xml(self, xml, node, name, value):
+    def _change_xml(self, xml: ET.Element, node: str, name: str, value: PVValue) -> bool:
         """
         Helper func to change the xml.
         Will not be set if the input is None.
