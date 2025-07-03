@@ -35,7 +35,7 @@ class ChangeCache(object):
         self.periods_seq = None
         self.periods_delay = None
         self.periods_settings = []
-        self.autosave_freq = None
+        self.autosave_freq: float | None = None
 
     def set_monitor(self, spec: int | None, low: float | None, high: float | None) -> None:
         self.mon_spect = spec
@@ -56,7 +56,7 @@ class ChangeCache(object):
         self.fermi_delay = delay
         self.fermi_width = width
 
-    def change_dae_settings(self, root: ET) -> bool:
+    def change_dae_settings(self, root: ET.Element) -> bool:
         changed = self._change_xml(root, "String", "Wiring Table", self.wiring)
         changed |= self._change_xml(root, "String", "Detector Table", self.detector)
         changed |= self._change_xml(root, "String", "Spectra Table", self.spectra)

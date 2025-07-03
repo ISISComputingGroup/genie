@@ -1887,13 +1887,13 @@ class Dae(object):
 
     def _change_autosave_freq(self) -> None:
         root = ET.fromstring(
-            self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True)
+            str(self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True))
         )
         changed = self.change_cache.change_autosave_settings(root)
         if changed:
             self._set_pv_value(
                 self._get_dae_pv_name("updatesettings_sp"),
-                ET.tostring(root),
+                str(ET.tostring(root)),
             )
 
     def get_spectrum(

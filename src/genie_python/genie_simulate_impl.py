@@ -1091,6 +1091,22 @@ class Dae(object):
         if table_type == "Spectra":
             return self.change_cache.spectra
 
+    def change_autosave_freq(self, freq: float) -> None:
+        """Change the rate of ICP autosave
+
+        Args:
+            freq (float): frequency of autosave
+        """
+        did_change = False
+        if not self.in_change:
+            self.change_start()
+            did_change = True
+
+        self.change_cache.autosave_freq = freq
+
+        if did_change:
+            self.change_finish()
+
 
 class API(object):
     def __init__(
