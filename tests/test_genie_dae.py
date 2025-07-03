@@ -119,6 +119,7 @@ UPDATE_SETTINGS_XML = """<Cluster>
         <Name> Frequency</Name>
         <Val>5000</Val>
     </U32>
+</Cluster>
 """
 
 YC_RETURN = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
