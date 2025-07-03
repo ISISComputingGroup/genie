@@ -127,6 +127,7 @@ DAE_PVS_LOOKUP = {
     "specintegrals_size": "DAE:SPECINTEGRALS.NORD",
     "specdata": "DAE:SPECDATA",
     "specdata_size": "DAE:SPECDATA.NORD",
+    "updatesettings": "DAE:UPDATESETTINGS",
 }
 
 DAE_CONFIG_FILE_PATHS = [
