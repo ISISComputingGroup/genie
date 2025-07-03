@@ -116,6 +116,7 @@ class ChangeCache(object):
         self.periods_seq = None
         self.periods_delay = None
         self.periods_settings = []
+        self.autosave_freq: float | None = None
 
     def set_monitor(self, spec: int, low: float, high: float) -> None:
         self.mon_spect = spec
@@ -256,6 +257,10 @@ class ChangeCache(object):
                 self._change_xml(root, "String", "Label %s" % period, label)
                 changed = True
         return changed
+
+    def change_autosave_settings(self, root: ET.Element) -> bool:
+        self._change_xml(root, "U32", " Frequency", self.autosave_freq)
+        return True
 
     def _change_xml(
         self, xml: ET.Element, node: str, name: str, value: str | int | float | None
