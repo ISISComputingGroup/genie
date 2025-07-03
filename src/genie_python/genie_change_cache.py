@@ -137,7 +137,7 @@ class ChangeCache(object):
         changed = self._change_xml(root, "U32", " Frequency", self.autosave_freq)
         return changed
 
-    def _change_xml(self, xml: ET.Element, node: str, name: str, value: PVValue) -> bool:
+    def _change_xml(self, xml: ET.Element, node: str, name: str, value: "PVValue") -> bool:
         """
         Helper func to change the xml.
         Will not be set if the input is None.
