@@ -44,7 +44,7 @@ from genie_python.utilities import (  # noqa E402
 )
 from genie_python.version import VERSION  # noqa E402
 
-PVBaseValue = bool | int | float | str
+PVBaseValue = bool | int | float | str | bytes
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
 # because we don't want to make PVValue generic
 
@@ -2554,3 +2554,15 @@ def get_detector_table() -> str | None:
     """
     assert _genie_api.dae is not None
     return _genie_api.dae.get_table_path("Detector")
+
+
+@usercommand
+@log_command_and_handle_exception
+def change_autosave(freq: float) -> None:
+    """Change the rate of ICP autosave
+
+    Args:
+        freq (float): frequency of autosave in Hz.
+    """
+    assert _genie_api.dae is not None
+    _genie_api.dae.change_autosave_freq(freq)

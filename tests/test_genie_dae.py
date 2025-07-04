@@ -112,6 +112,16 @@ PERIOD_SETTINGS_XML = """<Cluster>
     </DBL>
 </Cluster>"""
 
+UPDATE_SETTINGS_XML = """<Cluster>
+    <Name>DAE Updates</Name>
+    <NumElts>3</NumElts>
+    <U32>
+        <Name> Frequency</Name>
+        <Val>5000</Val>
+    </U32>
+</Cluster>
+"""
+
 YC_RETURN = [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]
 Y_RETURN = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0]
 YC_NORD_RETURN = 4
@@ -123,13 +133,19 @@ SPECINT = [1.0, 2.0]
 SPECDATA = [1.0, 2.0, 3.0, 4.0]
 
 
-def get_mock_pv_value(pv_name, to_string, use_numpy):
+def get_mock_pv_value(
+    name: str,
+    to_string: bool = False,
+    attempts: int = 3,
+    is_local: bool = False,
+    use_numpy: bool | None = None,
+):
     """
     Mock method for testing changes to DAE settings. It returns example XML data if the pv name is one of
     DAESETTINGS, TCBSETTINGS or HARDWAREPERIODS.
     Args:
-        pv_name: the name of the pv
-        to_string: whether to convert the value to a string. Not used in this method, but included since the method
+        name: the name of the pv
+        all other args: Not used in this method, but included since the method
         it is mocking is called with this keyword argument.
 
     Returns:
@@ -139,8 +155,9 @@ def get_mock_pv_value(pv_name, to_string, use_numpy):
         "DAE:DAESETTINGS": DAE_SETTINGS_XML,
         "DAE:TCBSETTINGS": compress_and_hex(TCB_SETTINGS_XML),
         "DAE:HARDWAREPERIODS": PERIOD_SETTINGS_XML,
+        "DAE:UPDATESETTINGS": UPDATE_SETTINGS_XML,
     }
-    return mock_data[pv_name]
+    return mock_data[name]
 
 
 class TestGenieDAE(unittest.TestCase):
@@ -407,6 +424,25 @@ class TestGenieDAE(unittest.TestCase):
 
     def test_WHEN_change_vetos_called_with_unknown_veto_THEN_exception_thrown(self):
         self.assertRaises(Exception, self.dae.change_vetos, bad_veto=True)
+
+    def test_WHEN_change_autosave_frequency_called_THEN_freq_is_set(self):
+        self.dae.in_change = False
+        self.dae.get_run_state = MagicMock(return_value="SETUP")
+        self.dae.in_transition = MagicMock(return_value=False)
+        self.dae.api.get_pv_value = get_mock_pv_value
+
+        self.dae.change_autosave_freq(1.0)
+
+        func = self.api.set_pv_value
+
+        check_xml = (
+            b"<Cluster>\n    <Name>DAE Updates</Name>\n    <NumElts>3</NumElts>\n"
+            b"    <U32>\n        <Name> Frequency</Name>\n        <Val>1.0</Val>"
+            b"\n    </U32>\n</Cluster>"
+        )
+
+        func.assert_called_with("DAE:UPDATESETTINGS:SP", check_xml, True)
+        self.assertEqual(self.dae.in_change, False)
 
     def test_WHEN_fifo_veto_enabled_at_runtime_THEN_correct_PV_set_with_correct_value(self):
         self.dae.change_vetos(fifo=True)
