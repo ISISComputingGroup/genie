@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import json
 import os
 import re
+import typing
 import xml.etree.ElementTree as ET
 import zlib
 from binascii import hexlify
@@ -1888,14 +1889,18 @@ class Dae(object):
                 )
 
     def _change_autosave_freq(self) -> None:
-        root = ET.fromstring(
-            str(self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True))
-        )
+
+        update_settings = typing.cast(str, self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True))
+        root = ET.fromstring(update_settings)
+
         changed = self.change_cache.change_autosave_settings(root)
         if changed:
+            update_settings_sp = typing.cast(str, ET.tostring(root).strip())
+
             self._set_pv_value(
                 self._get_dae_pv_name("updatesettings_sp"),
-                str(ET.tostring(root)),
+                update_settings_sp,
+                wait=True
             )
 
     def get_spectrum(

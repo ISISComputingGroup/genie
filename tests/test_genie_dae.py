@@ -436,14 +436,12 @@ class TestGenieDAE(unittest.TestCase):
         func = self.api.set_pv_value
 
         check_xml = (
-            "b'<Cluster>\\n    <Name>DAE Updates</Name>\\n    "
-            "<NumElts>3</NumElts>\\n    <U32>\\n        "
-            "<Name> Frequency</Name>\\n        "
-            "<Val>1.0</Val>\\n    "
-            "</U32>\\n</Cluster>'"
+            b'<Cluster>\n    <Name>DAE Updates</Name>\n    <NumElts>3</NumElts>\n'
+            b'    <U32>\n        <Name> Frequency</Name>\n        <Val>1.0</Val>'
+            b'\n    </U32>\n</Cluster>'
         )
 
-        func.assert_called_with("DAE:UPDATESETTINGS:SP", check_xml, False)
+        func.assert_called_with("DAE:UPDATESETTINGS:SP", check_xml, True)
         self.assertEqual(self.dae.in_change, False)
 
     def test_WHEN_fifo_veto_enabled_at_runtime_THEN_correct_PV_set_with_correct_value(self):
