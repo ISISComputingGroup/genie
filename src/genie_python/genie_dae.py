@@ -1889,8 +1889,9 @@ class Dae(object):
                 )
 
     def _change_autosave_freq(self) -> None:
-
-        update_settings = typing.cast(str, self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True))
+        update_settings = typing.cast(
+            str, self._get_pv_value(self._get_dae_pv_name("updatesettings"), to_string=True)
+        )
         root = ET.fromstring(update_settings)
 
         changed = self.change_cache.change_autosave_settings(root)
@@ -1898,9 +1899,7 @@ class Dae(object):
             update_settings_sp = typing.cast(str, ET.tostring(root).strip())
 
             self._set_pv_value(
-                self._get_dae_pv_name("updatesettings_sp"),
-                update_settings_sp,
-                wait=True
+                self._get_dae_pv_name("updatesettings_sp"), update_settings_sp, wait=True
             )
 
     def get_spectrum(
