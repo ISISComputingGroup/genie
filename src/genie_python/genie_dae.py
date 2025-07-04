@@ -3,7 +3,6 @@ from __future__ import absolute_import, print_function
 import json
 import os
 import re
-import typing
 import xml.etree.ElementTree as ET
 import zlib
 from binascii import hexlify
@@ -1890,8 +1889,7 @@ class Dae(object):
 
     def _change_autosave_freq(self) -> None:
         update_settings: bytes = self._get_pv_value(
-            self._get_dae_pv_name("updatesettings"),
-            to_string=True
+            self._get_dae_pv_name("updatesettings"), to_string=True
         )
         root = ET.fromstring(update_settings)
 
