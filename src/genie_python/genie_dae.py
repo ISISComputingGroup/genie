@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 import json
 import os
 import re
-import typing
+
 import xml.etree.ElementTree as ET
 import zlib
 from binascii import hexlify
