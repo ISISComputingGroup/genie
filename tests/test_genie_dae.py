@@ -419,6 +419,27 @@ class TestGenieDAE(unittest.TestCase):
     def test_WHEN_change_vetos_called_with_unknown_veto_THEN_exception_thrown(self):
         self.assertRaises(Exception, self.dae.change_vetos, bad_veto=True)
 
+    def test_WHEN_change_autosave_frequency_called_THEN_freq_is_set(self):
+        self.dae.in_change = False
+        self.dae.get_run_state = MagicMock(return_value="SETUP")
+        self.dae.in_transition = MagicMock(return_value=False)
+        self.dae.api.get_pv_value = get_mock_pv_value
+
+        self.dae.change_autosave_freq(1.0)
+
+        func = self.api.set_pv_value
+
+        check_xml = (
+            "b'<Cluster>\\n    <Name>DAE Updates</Name>\\n    "
+            "<NumElts>3</NumElts>\\n    <U32>\\n        "
+            "<Name> Frequency</Name>\\n        "
+            "<Val>1.0</Val>\\n    "
+            "</U32>\\n</Cluster>'"
+        )
+
+        func.assert_called_with("DAE:UPDATESETTINGS:SP", check_xml, False)
+        self.assertEqual(self.dae.in_change, False)
+
     def test_WHEN_fifo_veto_enabled_at_runtime_THEN_correct_PV_set_with_correct_value(self):
         self.dae.change_vetos(fifo=True)
 

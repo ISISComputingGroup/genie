@@ -128,6 +128,7 @@ DAE_PVS_LOOKUP = {
     "specdata": "DAE:SPECDATA",
     "specdata_size": "DAE:SPECDATA.NORD",
     "updatesettings": "DAE:UPDATESETTINGS",
+    "updatesettings_sp": "DAE:UPDATESETTINGS:SP",
 }
 
 DAE_CONFIG_FILE_PATHS = [
