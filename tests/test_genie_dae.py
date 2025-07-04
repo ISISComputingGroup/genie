@@ -132,14 +132,13 @@ X_RETURN = [10.0 + sum(WIDTHS[0:i]) for i in range(len(WIDTHS) + 1)]
 SPECINT = [1.0, 2.0]
 SPECDATA = [1.0, 2.0, 3.0, 4.0]
 
-
-def get_mock_pv_value(pv_name, to_string, use_numpy):
+def get_mock_pv_value(name: str, to_string: bool = False, attempts: int = 3, is_local: bool = False, use_numpy: bool | None = None):
     """
     Mock method for testing changes to DAE settings. It returns example XML data if the pv name is one of
     DAESETTINGS, TCBSETTINGS or HARDWAREPERIODS.
     Args:
-        pv_name: the name of the pv
-        to_string: whether to convert the value to a string. Not used in this method, but included since the method
+        name: the name of the pv
+        all other args: Not used in this method, but included since the method
         it is mocking is called with this keyword argument.
 
     Returns:
@@ -151,7 +150,7 @@ def get_mock_pv_value(pv_name, to_string, use_numpy):
         "DAE:HARDWAREPERIODS": PERIOD_SETTINGS_XML,
         "DAE:UPDATESETTINGS": UPDATE_SETTINGS_XML,
     }
-    return mock_data[pv_name]
+    return mock_data[name]
 
 
 class TestGenieDAE(unittest.TestCase):
