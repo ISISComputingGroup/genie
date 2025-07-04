@@ -44,7 +44,7 @@ from genie_python.utilities import (  # noqa E402
 )
 from genie_python.version import VERSION  # noqa E402
 
-PVBaseValue = bool | int | float | str
+PVBaseValue = bool | int | float | str | bytes
 PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
 # because we don't want to make PVValue generic
 
