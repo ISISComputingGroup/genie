@@ -1888,7 +1888,7 @@ class Dae(object):
                 )
 
     def _change_autosave_freq(self) -> None:
-        update_settings: bytes = self._get_pv_value(
+        update_settings = self._get_pv_value(
             self._get_dae_pv_name("updatesettings"), to_string=True
         )
         root = ET.fromstring(update_settings)
