@@ -132,7 +132,14 @@ X_RETURN = [10.0 + sum(WIDTHS[0:i]) for i in range(len(WIDTHS) + 1)]
 SPECINT = [1.0, 2.0]
 SPECDATA = [1.0, 2.0, 3.0, 4.0]
 
-def get_mock_pv_value(name: str, to_string: bool = False, attempts: int = 3, is_local: bool = False, use_numpy: bool | None = None):
+
+def get_mock_pv_value(
+    name: str,
+    to_string: bool = False,
+    attempts: int = 3,
+    is_local: bool = False,
+    use_numpy: bool | None = None,
+):
     """
     Mock method for testing changes to DAE settings. It returns example XML data if the pv name is one of
     DAESETTINGS, TCBSETTINGS or HARDWAREPERIODS.
