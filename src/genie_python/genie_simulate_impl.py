@@ -1095,7 +1095,7 @@ class Dae(object):
     def get_autosave_freq(self) -> "PVValue":
         return self.autosave_freq
 
-    def set_autosave_freq(self, freq: float) -> None:
+    def set_autosave_freq(self, freq: int) -> None:
         print(f"Autosave frequency changed to: {freq}")
         self.autosave_freq = freq
 

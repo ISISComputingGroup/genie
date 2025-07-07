@@ -2239,13 +2239,13 @@ class Dae(object):
 
     def get_autosave_freq(self) -> "PVValue":
         """
-        Gets the ICP autosave frequency.
+        Gets the ICP autosave frequency (Frames).
         """
         return self._get_pv_value(self._get_dae_pv_name("autosave_freq"), to_string=True)
 
-    def set_autosave_freq(self, freq: float) -> None:
+    def set_autosave_freq(self, freq: int) -> None:
         """
-        Sets the ICP autosave frequency.
+        Sets the ICP autosave frequency (Frames).
         """
         self._set_pv_value(self._get_dae_pv_name("autosave_freq_sp"), freq, wait=True)
         self.api.logger.log_info_msg(f"Autosave frequency changed to: {freq}")
