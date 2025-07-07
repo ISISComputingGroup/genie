@@ -745,7 +745,7 @@ class TestGenieDAE(unittest.TestCase):
         self.api.set_pv_value = MagicMock()
         self.dae.set_autosave_freq(10)
 
-        pv_name = self.dae._prefix_pv_name("DAE:AUTOSAVE:FREQ:SP")
+        pv_name = self.dae._get_dae_pv_name("autosave_freq_sp")
         func = self.api.set_pv_value
 
         self.assertTrue(func.called)
