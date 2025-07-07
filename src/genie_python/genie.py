@@ -2572,4 +2572,5 @@ def set_autosave_freq(freq: int) -> None:
     """
     Sets the ICP autosave frequency (Frames).
     """
+    assert _genie_api.dae is not None
     return _genie_api.dae.set_autosave_freq(freq)
