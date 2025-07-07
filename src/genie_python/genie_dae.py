@@ -127,6 +127,8 @@ DAE_PVS_LOOKUP = {
     "specintegrals_size": "DAE:SPECINTEGRALS.NORD",
     "specdata": "DAE:SPECDATA",
     "specdata_size": "DAE:SPECDATA.NORD",
+    "autosave_freq": "DAE:AUTOSAVE:FREQ",
+    "autosave_freq_sp": "DAE:AUTOSAVE:FREQ:SP",
 }
 
 DAE_CONFIG_FILE_PATHS = [
@@ -2234,3 +2236,16 @@ class Dae(object):
         # run sum of terms, note in the case that the high and low partials
         # are in the same bin this still works
         return full_count + partial_count_high - partial_count_low
+
+    def get_autosave_freq(self) -> int | None:
+        """
+        Gets the ICP autosave frequency (Frames).
+        """
+        return self._get_pv_value(self._get_dae_pv_name("autosave_freq"), to_string=True)
+
+    def set_autosave_freq(self, freq: int) -> None:
+        """
+        Sets the ICP autosave frequency (Frames).
+        """
+        self._set_pv_value(self._get_dae_pv_name("autosave_freq_sp"), freq, wait=True)
+        self.api.logger.log_info_msg(f"Autosave frequency changed to: {freq}")
