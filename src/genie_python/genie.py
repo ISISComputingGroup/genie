@@ -2568,7 +2568,7 @@ def get_dae_autosave_freq() -> PVValue:
 
 @usercommand
 @log_command_and_handle_exception
-def set_autosave_freq(freq: int) -> None:
+def set_dae_autosave_freq(freq: int) -> None:
     """
     Sets the ICP autosave frequency (Frames).
     """
