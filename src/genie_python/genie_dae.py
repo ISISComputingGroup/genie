@@ -2237,7 +2237,7 @@ class Dae(object):
         # are in the same bin this still works
         return full_count + partial_count_high - partial_count_low
 
-    def get_autosave_freq(self) -> "PVValue":
+    def get_autosave_freq(self) -> int | None:
         """
         Gets the ICP autosave frequency (Frames).
         """

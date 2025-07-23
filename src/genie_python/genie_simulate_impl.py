@@ -1092,7 +1092,7 @@ class Dae(object):
         if table_type == "Spectra":
             return self.change_cache.spectra
 
-    def get_autosave_freq(self) -> "PVValue":
+    def get_autosave_freq(self) -> int | None:
         return self.autosave_freq
 
     def set_autosave_freq(self, freq: int) -> None:

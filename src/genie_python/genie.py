@@ -2558,7 +2558,7 @@ def get_detector_table() -> str | None:
 
 @usercommand
 @log_command_and_handle_exception
-def get_dae_autosave_freq() -> PVValue:
+def get_dae_autosave_freq() -> int | None:
     """
     Gets the ICP autosave frequency (Frames).
     """
