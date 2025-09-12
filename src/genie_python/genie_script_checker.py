@@ -31,7 +31,7 @@ class ScriptChecker(object):
         Return:
             the string to be used in the regex search function
         """
-        assignment_regex = "[\|\&\^\/\+\-\*\%]?=[^=]"
+        assignment_regex = r"[\|\&\^\/\+\-\*\%]?=[^=]"
         regex = r"\b{0}[.][\w\s]*" + assignment_regex + r"|\b{0}[\s]*" + assignment_regex
         return regex.format(variable)
 
@@ -162,6 +162,7 @@ class ScriptChecker(object):
 
         def __enter__(self) -> None:
             self._filename = os.path.join(self.config_path, self.config_name)
+
             with open(self._filename, "w") as f:
                 f.write(json.dumps(self.json_write))
 
@@ -172,10 +173,10 @@ class ScriptChecker(object):
         self, script_path: str, instrument_name: str, pyright_additional_include: list[str]
     ) -> tuple[list[str], list[str]]:
         """
-        Makes a call to pyright to do a static analyis of the script.
+        Makes a call to pyright to do a static analysis of the script.
 
         Args:
-            script_name: The path to the selected user script
+            script_path: The path to the selected user script
             instrument_name: The instrument name in
                 C:\\Instrument\\Settings\\config\\[instrument_name]\\Python
         Returns:
@@ -206,7 +207,15 @@ class ScriptChecker(object):
             pr_result = subprocess.run(args=cmd, capture_output=True, text=True, encoding="utf-8")
             json_out = unicodedata.normalize("NFKD", pr_result.stdout)
 
-            json_data = json.loads(json_out)
+            try:
+                json_data = json.loads(json_out)
+            except json.decoder.JSONDecodeError:
+                errors.append(
+                    "Failed to check the file with pyright, the user cache is corrupted."
+                    "\nPlease delete the folder "
+                    "C:\\Users\\<User>\\.cache\\pyright-python and try again."
+                )
+                return warnings, errors
 
             # for each diagnostic, if severity is error then
             # add message to error array else add to warning array
@@ -383,7 +392,7 @@ class ScriptChecker(object):
 
         return errors
 
-    def split_warning_errors(self, errors_outputs: Iterable[str]) -> tuple[list[str], list[str]]:
+    def split_warning_errors(self, errors_outputs: StringIO) -> tuple[list[str], list[str]]:
         """
         takes in errors and warning lists and split in two separate list i.e.
         (errors and warnings)
@@ -392,18 +401,18 @@ class ScriptChecker(object):
         """
         warnings = []
         errors = []
-        errors_outputs = errors_outputs.getvalue().split("\n")
+        errors_output_list = errors_outputs.getvalue().split("\n")
         verbose_warning = [
             "Redefining name 'g' from outer scope",
             "Redefining name 'inst' from outer scope",
         ]
         verbose_warning = [
             error
-            for error in errors_outputs
+            for error in errors_output_list
             if any(warning in error for warning in verbose_warning)
         ]
 
-        for message in errors_outputs:
+        for message in errors_output_list:
             if message.startswith("W") and (message not in verbose_warning):
                 warnings.append(message)
             elif message.startswith("E"):
@@ -432,7 +441,7 @@ class ScriptChecker(object):
         except OSError:
             return ""
 
-    def get_all_attributes(self, tree: nodes.Module) -> str | list[str]:
+    def get_all_attributes(self, tree: ast.Module) -> str:
         """
         gets all the attributes of instrument scripts
         :param tree: abstract syntax tree representation of instrument script
@@ -441,7 +450,7 @@ class ScriptChecker(object):
         attributes = self.get_names_of_functions_classes_global_variables(tree.body)
         return attributes
 
-    def get_names_of_functions_classes_global_variables(self, body: Iterable) -> str | list[str]:
+    def get_names_of_functions_classes_global_variables(self, body: list[ast.stmt]) -> str:
         """
         gets the name of function, class and global variable names
         :param body: body to iterate through
@@ -463,7 +472,7 @@ class ScriptChecker(object):
 
         return attributes
 
-    def parse_assignment_target(self, target: ast.AST, descendants: str = "") -> list[str]:
+    def parse_assignment_target(self, target: ast.AST, descendants: str = "") -> str:
         if isinstance(target, ast.Name):
             return "inst.{}{},".format(target.id, descendants)
 
@@ -483,7 +492,7 @@ class ScriptChecker(object):
         # Ignore all other nodes
         return ""
 
-    def get_class_member_names(self, body: Iterable, class_name: str) -> list[str]:
+    def get_class_member_names(self, body: list[ast.stmt], class_name: str) -> str:
         """
         gets the name of all the class members
         :param body: body to iterate through
@@ -500,7 +509,9 @@ class ScriptChecker(object):
                 else:
                     # variables defined inside __init__
                     for variables in function_body.body:
-                        if isinstance(variables, ast.Assign):
+                        if isinstance(variables, ast.Assign) and isinstance(
+                            variables.targets[0], ast.Attribute
+                        ):
                             attributes += "{class_name}.{variable_name},".format(
                                 class_name=class_name, variable_name=variables.targets[0].attr
                             )

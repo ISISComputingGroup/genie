@@ -7,17 +7,17 @@ jobs:
     uses: ISISComputingGroup/reusable-workflows/.github/workflows/linters.yml@main
     with:
       compare-branch: origin/main
-      python-ver: '3.11'
+      python-ver: '3.12'
   unit-tests:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: ["ubuntu-latest", "windows-latest"]
-        version: ['3.11']
+        version: ['3.11', '3.12']
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.version }}
       - name: Install base requirements

@@ -47,7 +47,7 @@ class P4PWrapper(object):
     @staticmethod
     def set_pv_value(
         name: str,
-        value: "PVValue",
+        value: "PVValue|bytes",
         wait: bool = False,
         timeout: float = TIMEOUT,
         safe_not_quick: bool = True,
@@ -124,7 +124,7 @@ class P4PWrapper(object):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, str, str], None]",
+        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: Optional[bool] = None,

@@ -17,10 +17,11 @@
 from __future__ import absolute_import
 
 import unittest
+from unittest.mock import MagicMock, patch
 
 import numpy as np
+import psutil
 from hamcrest import assert_that, calling, close_to, is_, raises
-from mock import MagicMock, patch
 from parameterized import parameterized_class
 
 from genie_python.genie_change_cache import ChangeCache
@@ -285,7 +286,7 @@ class TestGenieDAE(unittest.TestCase):
     ):
         self.dae.in_change = False
 
-        self.assertRaisesRegexp(ValueError, "Change has already finished", self.dae.change_finish)
+        self.assertRaisesRegex(ValueError, "Change has already finished", self.dae.change_finish)
 
     def test_GIVEN_in_transition_WHEN_change_finish_called_THEN_value_error_with_correct_message_thrown(
         self,
@@ -293,10 +294,9 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.in_change = True
         self.dae.in_transition = MagicMock(return_value=True)
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
-            "Another DAE change operation is currently in progress - values will be "
-            "inconsistent",
+            "Another DAE change operation is currently in progress - values will be inconsistent",
             self.dae.change_finish,
         )
 
@@ -306,7 +306,7 @@ class TestGenieDAE(unittest.TestCase):
         self.dae.in_change = True
         self.dae.get_run_state = MagicMock(return_value="RUNNING")
 
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             "Instrument must be in SETUP when changing settings!",
             self.dae.change_finish,
@@ -431,26 +431,76 @@ class TestGenieDAE(unittest.TestCase):
         func.assert_not_called()
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
-    def test_GIVEN_simulation_mode_WHEN_begin_run_THEN_user_is_warned(self, mock_monitor):
+    def test_GIVEN_simulation_mode_AND_test_clock_WHEN_begin_run_THEN_user_is_warned(
+        self, mock_monitor: MagicMock
+    ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
         self.dae.get_simulation_mode = MagicMock(return_value=True)
-        mock_warning = MagicMock()
-        self.dae.simulation_mode_warning = mock_warning
+        self.dae.get_timing_source = MagicMock(return_value="Internal Test Clock")
+        sim_mock_warning = MagicMock()
+        clock_mock_warning = MagicMock()
+        self.dae.test_clock_warning = clock_mock_warning
+        self.dae.simulation_mode_warning = sim_mock_warning
+
         self.dae.begin_run()
 
-        mock_warning.assert_called_once()
+        sim_mock_warning.assert_called_once()
+        clock_mock_warning.assert_not_called()
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
-    def test_GIVEN_not_in_simulation_mode_WHEN_begin_run_THEN_user_is_warned(self, mock_monitor):
+    def test_GIVEN_in_test_clock_AND_not_in_simulation_mode_WHEN_begin_run_THEN_user_is_warned(
+        self, mock_monitor: MagicMock
+    ):
         mock_monitor.return_value = None
         self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
         self.dae.get_simulation_mode = MagicMock(return_value=False)
-        mock_warning = MagicMock()
-        self.dae.simulation_mode_warning = mock_warning
+        self.dae.get_timing_source = MagicMock(return_value="Internal Test Clock")
+        sim_mock_warning = MagicMock()
+        clock_mock_warning = MagicMock()
+        self.dae.test_clock_warning = clock_mock_warning
+        self.dae.simulation_mode_warning = sim_mock_warning
+
         self.dae.begin_run()
 
-        mock_warning.assert_not_called()
+        sim_mock_warning.assert_not_called()
+        clock_mock_warning.assert_called_once()
+
+    @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
+    def test_GIVEN_simulation_mode_AND_not_test_clock_WHEN_begin_run_THEN_user_is_warned(
+        self, mock_monitor: MagicMock
+    ):
+        mock_monitor.return_value = None
+        self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
+        self.dae.get_simulation_mode = MagicMock(return_value=True)
+        self.dae.get_timing_source = MagicMock(return_value="isis")
+        sim_mock_warning = MagicMock()
+        clock_mock_warning = MagicMock()
+        self.dae.test_clock_warning = clock_mock_warning
+        self.dae.simulation_mode_warning = sim_mock_warning
+
+        self.dae.begin_run()
+
+        sim_mock_warning.assert_called_once()
+        clock_mock_warning.assert_not_called()
+
+    @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
+    def test_GIVEN_not_in_test_clock_not_in_simulation_mode_WHEN_begin_run_THEN_user_is_warned(
+        self, mock_monitor: MagicMock
+    ):
+        mock_monitor.return_value = None
+        self.dae.api.get_pv_value = MagicMock(return_value="SETUP")
+        self.dae.get_simulation_mode = MagicMock(return_value=False)
+        self.dae.get_timing_source = MagicMock(return_value="isis")
+        sim_mock_warning = MagicMock()
+        clock_mock_warning = MagicMock()
+        self.dae.test_clock_warning = clock_mock_warning
+        self.dae.simulation_mode_warning = sim_mock_warning
+
+        self.dae.begin_run()
+
+        sim_mock_warning.assert_not_called()
+        clock_mock_warning.assert_not_called()
 
     def get_y_or_yc_pv_value(self, pv, _, use_numpy=False):
         if "X" in pv:
@@ -662,6 +712,29 @@ class TestGenieDAE(unittest.TestCase):
         data = self.dae.get_spec_data()
         self.assertTrue((data == SPECDATA).all())
 
+    def test_WHEN_temporarily_kill_isisicp_context_manager_used_THEN_isisicp_killed(self):
+        isisicp = MagicMock(spec=psutil.Process)
+        isisicp.name.return_value = "ISISICP.EXE"
+
+        dead_process = MagicMock(spec=psutil.Process)
+        dead_process.name.side_effect = psutil.NoSuchProcess(0)
+
+        live_process = MagicMock(spec=psutil.Process)
+        live_process.name.return_value = "OTHER_PROCESS.EXE"
+
+        with (
+            patch(
+                "genie_python.genie_dae.psutil.process_iter",
+                return_value=[isisicp, dead_process, live_process],
+            ),
+            patch.object(self.dae, "_isis_dae_triggered_state_was_reached", return_value=True),
+            patch.object(self.dae, "_get_pv_value", return_value="On"),
+        ):
+            with self.dae.temporarily_kill_icp():
+                isisicp.kill.assert_called_once()
+                dead_process.kill.assert_not_called()
+                live_process.kill.assert_not_called()
+
 
 @parameterized_class(
     [
@@ -692,7 +765,7 @@ class TestGenieAndSimulateDAEParity(unittest.TestCase):
 
     @patch("genie_python.genie_cachannel_wrapper.CaChannelWrapper.add_monitor")
     def test_GIVEN_in_setup_state_WHEN_begin_run_called_THEN_no_exception_thrown(
-        self, mock_monitor
+        self, mock_monitor: MagicMock
     ):
         mock_monitor.return_value = None
         self.set_run_state("SETUP")

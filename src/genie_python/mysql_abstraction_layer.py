@@ -156,7 +156,9 @@ class SQLAbstraction(AbstractSQLCommands):
         """
         return "DBSVR_%s_%s_%s" % (self._host, self._dbid, self._user)
 
-    def _close_handles(self, curs: MySQLCursorAbstract, conn: MySQLConnectionAbstract) -> None:
+    def _close_handles(
+        self, curs: MySQLCursorAbstract | None, conn: MySQLConnectionAbstract | None
+    ) -> None:
         """Several methods need to close the cursor and connection handles.
         It's a bit complicated and it has been seperated out here.
         """

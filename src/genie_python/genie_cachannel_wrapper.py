@@ -19,6 +19,7 @@ try:
         AlarmSeverity,
         dbf_type_to_DBR_STS,
         dbf_type_to_DBR_TIME,
+        dbf_type_to_text,
     )
 except ImportError:
     # Note: caffi dynamically added to dependencies by CaChannel if not using built backend.
@@ -27,6 +28,7 @@ except ImportError:
         AlarmSeverity,
         dbf_type_to_DBR_STS,
         dbf_type_to_DBR_TIME,
+        dbf_type_to_text,
     )
 
 if TYPE_CHECKING:
@@ -155,7 +157,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def set_pv_value(
         name: str,
-        value: "PVValue",
+        value: "PVValue|bytes",
         wait: bool = False,
         timeout: float = TIMEOUT,
         safe_not_quick: bool = True,
@@ -252,8 +254,10 @@ class CaChannelWrapper(object):
                 chan = pv_map[name]
             else:
                 chan = CaChannel(name)
-                # noinspection PyTypeChecker
-                CaChannelWrapper.installHandlers(chan)
+                # do not install handlers if server
+                if os.getenv("EPICS_CAS_INTF_ADDR_LIST") is None:
+                    # noinspection PyTypeChecker
+                    CaChannelWrapper.installHandlers(chan)
                 chan.setTimeout(timeout)
                 # Try to connect - throws if cannot
                 CaChannelWrapper.connect_to_pv(chan)
@@ -399,7 +403,7 @@ class CaChannelWrapper(object):
             raise UnableToConnectToPVException(ca_channel.name(), "Connection timeout (state)")
 
     @staticmethod
-    def check_for_enum_value(value: "PVValue", chan: CaChannel, name: str) -> "PVValue":
+    def check_for_enum_value(value: "PVValue|bytes", chan: CaChannel, name: str) -> "PVValue|bytes":
         """
         Check for string input for MBBI/BI records and replace with the equivalent index value.
 
@@ -431,7 +435,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, str, str], None]",
+        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: bool | None = None,
@@ -473,8 +477,8 @@ class CaChannelWrapper(object):
                     value = waveform_to_string(value)
                 else:
                     value = str(value)
-
             chan.last_value = value
+
             call_back_function(
                 value,
                 epics_args.get("pv_severity", AlarmSeverity.No),
@@ -549,3 +553,19 @@ class CaChannelWrapper(object):
 
         if not event.is_set():
             raise UnableToConnectToPVException(chan.name(), "Pend event timeout")
+
+    @staticmethod
+    def dbf_type_to_string(typ: int) -> str:
+        """
+        Return DB field type as text
+
+        Args:
+            typ: DB field type as integer
+
+        Returns: DB field type as string
+            Valid values:
+            DBF_STRING, DBF_CHAR, DBF_UCHAR, DBF_SHORT, DBF_USHORT, DBF_LONG,
+            DBF_ULONG, DBF_INT64, DBF_UINT64, DBF_FLOAT, DBF_DOUBLE, DBF_ENUM,
+            DBF_MENU, DBF_DEVICE, DBF_INLINK, DBF_OUTLINK, DBF_FWDLINK, DBF_NOACCESS
+        """
+        return dbf_type_to_text(typ)
