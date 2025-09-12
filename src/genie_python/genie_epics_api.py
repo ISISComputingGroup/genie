@@ -689,7 +689,7 @@ class API(object):
             self._sample_par_names_cache = names
         except Exception:
             names = self._sample_par_names_cache
-        if names is not None:
+        if names is not None and isinstance(names, list):
             for n in names:
                 if isinstance(n, str):
                     m = re.match(".+:SAMPLE:%s" % name.upper(), n)
