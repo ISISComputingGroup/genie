@@ -77,6 +77,8 @@ class API(object):
         self.motion_suffix = "CS:MOT:MOVING"
         self.pre_post_cmd_manager = PrePostCmdManager()
         self.logger = GenieLogger()
+        self._sample_par_names_cache = None
+        self._beamline_par_names_cache = None
 
         if environment_details is None:
             self._environment_details = EnvironmentDetails()
@@ -680,19 +682,21 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
+
         assert self.blockserver is not None
-        names = self.blockserver.get_sample_par_names()
-        if (
-            names is not None
-            and isinstance(names, list)
-            and all(isinstance(elem, str) for elem in names)
-        ):
+        try:
+            names = self.blockserver.get_sample_par_names()
+            self._sample_par_names_cache = names
+        except Exception:
+            names = self._sample_par_names_cache
+        if names is not None and isinstance(names, list):
             for n in names:
-                m = re.match(".+:SAMPLE:%s" % name.upper(), n)
-                if m is not None:
-                    # Found it!
-                    self.set_pv_value(self.prefix_pv_name(n), value)
-                    return
+                if isinstance(n, str):
+                    m = re.match(".+:SAMPLE:%s" % name.upper(), n)
+                    if m is not None:
+                        # Found it!
+                        self.set_pv_value(self.prefix_pv_name(n), value)
+                        return
         raise Exception("Sample parameter %s does not exist" % name)
 
     def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
@@ -712,8 +716,14 @@ class API(object):
             name: the name of the parameter to change
             value: the new value
         """
+
         assert self.blockserver is not None
-        names = self.blockserver.get_beamline_par_names()
+        try:
+            names = self.blockserver.get_beamline_par_names()
+            self._beamline_par_names_cache = names
+        except Exception:
+            names = self._beamline_par_names_cache
+
         if names is not None:
             for n in names:
                 m = re.match(".+:BL:%s" % name.upper(), n)

@@ -859,9 +859,9 @@ def connected_pvs_in_list(pv_list: list[str], is_local: bool = False) -> list[st
 def begin(
     period: int = 1,
     meas_id: str | None = None,
-    meas_type: str = "",
-    meas_subid: str = "",
-    sample_id: str = "",
+    meas_type: str | None = None,
+    meas_subid: str | None = None,
+    sample_id: str | None = None,
     delayed: bool = False,
     quiet: bool = False,
     paused: bool = False,
