@@ -1,7 +1,8 @@
 from __future__ import absolute_import, print_function
 
 import datetime
-import imp
+import importlib
+import importlib.util
 import os
 import re
 import sys
