@@ -2241,7 +2241,9 @@ class Dae(object):
         """
         Gets the ICP autosave frequency (Frames).
         """
-        return self._get_pv_value(self._get_dae_pv_name("autosave_freq"), to_string=True)
+        val = self._get_pv_value(self._get_dae_pv_name("autosave_freq"))
+        assert isinstance(val, (int, float, type(None)))
+        return int(val) if val is not None else None
 
     def set_autosave_freq(self, freq: int) -> None:
         """
