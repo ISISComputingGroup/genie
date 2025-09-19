@@ -305,6 +305,7 @@ class Dae(object):
             "mode": "distribution",
         }
         self.change_cache = ChangeCache()
+        self.autosave_freq = 10
 
     @require_runstate(["SETUP"])
     def begin_run(
@@ -1090,6 +1091,13 @@ class Dae(object):
             return self.change_cache.detector
         if table_type == "Spectra":
             return self.change_cache.spectra
+
+    def get_autosave_freq(self) -> int | None:
+        return self.autosave_freq
+
+    def set_autosave_freq(self, freq: int) -> None:
+        print(f"Autosave frequency changed to: {freq}")
+        self.autosave_freq = freq
 
 
 class API(object):

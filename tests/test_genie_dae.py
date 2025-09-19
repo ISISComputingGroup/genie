@@ -735,6 +735,22 @@ class TestGenieDAE(unittest.TestCase):
                 dead_process.kill.assert_not_called()
                 live_process.kill.assert_not_called()
 
+    def test_WHEN_get_autosave_frequency_THEN_reads_from_PV(self):
+        self.api.get_pv_value = MagicMock(return_value=10)
+        result = self.dae.get_autosave_freq()
+
+        assert result == 10
+
+    def test_WHEN_set_autosave_frequency_THEN_writes_to_PV(self):
+        self.api.set_pv_value = MagicMock()
+        self.dae.set_autosave_freq(10)
+
+        pv_name = self.dae._get_dae_pv_name("autosave_freq_sp")
+        func = self.api.set_pv_value
+
+        self.assertTrue(func.called)
+        func.assert_called_with(pv_name, 10, True)
+
 
 @parameterized_class(
     [

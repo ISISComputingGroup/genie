@@ -2554,3 +2554,23 @@ def get_detector_table() -> str | None:
     """
     assert _genie_api.dae is not None
     return _genie_api.dae.get_table_path("Detector")
+
+
+@usercommand
+@log_command_and_handle_exception
+def get_dae_autosave_freq() -> int | None:
+    """
+    Gets the ICP autosave frequency (Frames).
+    """
+    assert _genie_api.dae is not None
+    return _genie_api.dae.get_autosave_freq()
+
+
+@usercommand
+@log_command_and_handle_exception
+def set_dae_autosave_freq(freq: int) -> None:
+    """
+    Sets the ICP autosave frequency (Frames).
+    """
+    assert _genie_api.dae is not None
+    return _genie_api.dae.set_autosave_freq(freq)
