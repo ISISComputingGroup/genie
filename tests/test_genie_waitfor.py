@@ -92,5 +92,5 @@ class TestGenieWaitFor(unittest.TestCase):
             self.genie_waitfor.start_waiting(block=intBlock)
         self.assertEqual(
             str(context.exception),
-            "First argument must be valid block name or None, not {}".format(intBlock),
+            "First argument must be a valid block name or None, not {}".format(intBlock),
         )
