@@ -82,3 +82,15 @@ class TestGenieWaitFor(unittest.TestCase):
         self.genie_waitfor.start_waiting(mevents=0, quiet=False)
         sys.stdout = sys.__stdout__
         self.assertIsNot("", capturedOutput.getvalue())
+
+    def test_GIVEN_waitfor_block_WHEN_waitfor_block_integer_THEN_error_output(self):
+        capturedOutput = StringIO()
+        sys.stdout = capturedOutput
+        # Exception condition
+        with self.assertRaises(TypeError) as context:
+            intBlock = 10
+            self.genie_waitfor.start_waiting(block=intBlock)
+        self.assertEqual(
+            str(context.exception),
+            "The very first argument must be valid block name or None, not {}".format(intBlock),
+        )
