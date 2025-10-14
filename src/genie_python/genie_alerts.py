@@ -167,6 +167,7 @@ def _print_block(block: str, only_if_enabled: bool = False) -> None:
 def status(block: str | None = None, all: bool = False) -> None:
     """
     Prints the emails and mobiles used for alerts and the current status of specified block.
+
     Args:
         block (string): The block to print information about
         all (bool): If True information about all the blocks is printed
