@@ -6,10 +6,6 @@
 
 *Which ticket does this PR fix?*
 
-### Acceptance criteria
-
-*List the acceptance criteria for the PR*
-
 ---
 
 #### Code Review
