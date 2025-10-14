@@ -13,7 +13,6 @@ from typing import Any, Callable, TypedDict
 
 import numpy as np
 import numpy.typing as npt
-from typing_extensions import Unpack
 
 from genie_python.genie_api_setup import __api as _genie_api
 
@@ -2006,16 +2005,15 @@ def define_hard_period(
     configure_internal_periods(None, None, period, daq, dwell, unused, frames, output, label)
 
 
-class ChangeParams(TypedDict):
-    title: str
-    period: int
-    nperiods: int
-    user: str
-    rb: int
-
-
 @log_command_and_handle_exception
-def change(**params: Unpack[ChangeParams]) -> None:
+def change(
+    title: str | None = None,
+    period: int | None = None,
+    nperiods: int | None = None,
+    user: str | None = None,
+    users: str | None = None,
+    rb: int | None = None,
+) -> None:
     """
     Change experiment parameters.
 
@@ -2026,7 +2024,8 @@ def change(**params: Unpack[ChangeParams]) -> None:
         period (int, optional): the new period (must be in a non-running state)
         nperiods (int, optional): the new number of software periods
             (must be in a non-running state)
-        user (string, optional): the new user(s) as a comma-separated list
+        user (string, optional): the new user
+        users (string, optional): the new user(s) as a comma-separated list
         rb (int, optional): the new RB number
 
     Examples:
@@ -2040,26 +2039,24 @@ def change(**params: Unpack[ChangeParams]) -> None:
 
         Set multiple users:
 
-        >>> change(user="Thouless, Haldane, Kosterlitz")
+        >>> change(users="Thouless, Haldane, Kosterlitz")
 
         Change the RB number and the users:
 
         >>> change(rb=123456, user="Smith, Jones")
     """
-    for k in params:
-        key = k.lower().strip()
-        if key == "title":
-            change_title(params[k])
-        elif key == "period":
-            change_period(params[k])
-        elif key == "nperiods":
-            change_number_soft_periods(params[k])
-        elif key == "user" or key == "users":
-            change_users(params[k])
-        elif key == "rb":
-            change_rb(params[k])
-        else:
-            raise KeyError("Unknown parameter supplied. Type help(change) for more information")
+    if title is not None:
+        change_title(title)
+    if period is not None:
+        change_period(period)
+    if nperiods is not None:
+        change_number_soft_periods(nperiods)
+    if user is not None:
+        change_users(user)
+    if users is not None:
+        change_users(users)
+    if rb is not None:
+        change_rb(rb)
 
 
 @usercommand
