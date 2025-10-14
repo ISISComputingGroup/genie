@@ -177,7 +177,7 @@ def get_block_units(block_name: str) -> str | None:
     Args:
         block_name: name of the block
 
-    Returns
+    Returns:
         string: units of the block
     """
     return _genie_api.get_block_units(block_name)
@@ -1162,10 +1162,10 @@ def get_time_since_begin(get_timedelta: bool = False) -> float | datetime.timede
         get_timedelta (bool): If true return the value as a datetime object,
             otherwise return seconds (defaults to false)
 
-    Returns
-        integer: the time since start in seconds if get_datetime is False,
-            or timedelta, the time since begin as a datetime.timedelta object
-            (Year-Month-Day  Hour:Minute:Second) if get_datetime is True
+    Returns:
+        integer: The time since start in seconds if get_datetime is False,
+        or timedelta, the time since begin as a datetime.timedelta object
+        (Year-Month-Day  Hour:Minute:Second) if get_datetime is True
     """
     assert _genie_api.dae is not None
     return _genie_api.dae.get_time_since_begin(get_timedelta)
@@ -1460,7 +1460,7 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
 
     Args:
         name (string): the name of the file to load. If this is not a
-            full path the file is assumed to be in C:\\scripts
+            full path, the file is assumed to be in `C:\\\\scripts`
         check_script: When True run the script checker on the script;
             False otherwise (default True)
         warnings_as_error: When true throw an exception on a warning;
@@ -1665,7 +1665,9 @@ def change_tables(
 ) -> None:
     """
     Load the wiring, detector and/or spectra tables.
+
     Checks that the file paths are valid, throws exception if not.
+
     Args:
         wiring (string, optional): the filename of the wiring table file
         detector (string, optional): the filename of the detector table file
@@ -1729,7 +1731,7 @@ def change_sync(source: str) -> None:
          'muon cerenkov',
          'muon ms',
          'isis (first ts1)'
-    )
+        )
     """
     assert _genie_api.dae is not None
     _genie_api.dae.change_sync(source)
@@ -1765,7 +1767,7 @@ def change_tcb(
     Change the time channel boundaries.
     If None is specified for low, high or step then the values are left unchanged.
 
-    Args
+    Args:
         low (float, optional): the lower limit. Default is no change from the current value.
         high (float, optional): the upper limit. Default is no change from the current value.
         step (float,optional): the step size. Default is no change from the current value.
@@ -2314,7 +2316,8 @@ def change_beamline_par(name: str, value: PVValue) -> None:
 def send_sms(phone_num: str, message: str) -> None:
     """
     Sends an SMS message to a phone number.
-    If you are sending to messages to the same number often consider using g.alerts.send()
+
+    If you are sending to messages to the same number often, consider using `g.alerts.send()`
 
     Args:
         phone_num (string): the phone number to send the SMS to
@@ -2497,6 +2500,7 @@ def set_dae_simulation_mode(mode: bool, skip_required_runstates: bool = False) -
 def get_dae_simulation_mode() -> bool:
     """
     Gets the DAE simulation mode.
+
     Returns:
         True if the DAE is in simulation mode, False otherwise.
     """
@@ -2523,7 +2527,7 @@ def load(name: str) -> None:
 @usercommand
 @log_command_and_handle_exception
 def get_wiring_table() -> str | None:
-    """Gets the current wiring table path"
+    """Gets the current wiring table path.
 
     Returns:
             The file path of the current wiring table.
@@ -2535,7 +2539,7 @@ def get_wiring_table() -> str | None:
 @usercommand
 @log_command_and_handle_exception
 def get_spectra_table() -> str | None:
-    """Gets the current spectra table path"
+    """Gets the current spectra table path.
 
     Returns:
             The file path of the current spectra table.
@@ -2547,7 +2551,7 @@ def get_spectra_table() -> str | None:
 @usercommand
 @log_command_and_handle_exception
 def get_detector_table() -> str | None:
-    """Gets the current detector table path"
+    """Gets the current detector table path.
 
     Returns:
             The file path of the current detector table.
@@ -2571,6 +2575,9 @@ def get_dae_autosave_freq() -> int | None:
 def set_dae_autosave_freq(freq: int) -> None:
     """
     Sets the ICP autosave frequency (Frames).
+
+    Args:
+        freq: The autosave frequency in frames.
     """
     assert _genie_api.dae is not None
     return _genie_api.dae.set_autosave_freq(freq)

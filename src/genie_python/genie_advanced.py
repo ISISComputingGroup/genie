@@ -34,7 +34,7 @@ def get_manager_mode() -> bool:
     Returns whether you are in manager mode or not.
 
     Returns:
-        manager_mode (Bool): Manager mode on or off.
+        manager_mode (bool): Manager mode on or off.
 
     """
 
@@ -47,9 +47,8 @@ def assert_in_manager_mode() -> None:
     """
     Checks that the user is in manager mode so can use advanced functions.
 
-    Args:
-
-    Returns:
+    Raises:
+        RuntimeError: If the user is not in manager mode.
 
     """
 
@@ -67,7 +66,6 @@ def motor_in_set_mode(pv_name: str) -> Iterator[None]:
     Args:
         pv_name: pv of motor on which to set the mode
 
-    Returns:
     """
 
     if not __api.pv_exists(pv_name):
@@ -100,8 +98,6 @@ def redefine_motor_position(name: str, value: float | int) -> None:
     Args:
         name: Name of the motor. e.g MTR0101
         value: The new value of Move Abs.
-
-    Returns:
 
     """
 
@@ -144,7 +140,7 @@ def pv_exists(pv: str, is_local: bool = False) -> bool:
     """
     Check if PV exists.
 
-    Params:
+    Args:
         pv (str): The address of the PV
         is_local (bool, optional): is it a local PV i.e. needs prefix adding
     """
@@ -160,7 +156,7 @@ def wait_for_pv(
     """
     Wait until a PV has reached a given value.
 
-    Params:
+    Args:
         pv (str): The address of the PV
         value: The value to wait for
         maxwait (int, optional): The maximum time to wait for in seconds
@@ -305,7 +301,8 @@ def open_plot_window(
 ) -> None:
     """
     Open the plot window in a locally running client
-    (even if this is called in a standalone genie_python)
+    (even if this is called in a standalone genie_python).
+
     Args:
         is_primary: True to open primary plotting window; False open secondaty window
         host: host to open plot from; Default None is localhost
