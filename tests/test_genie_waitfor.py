@@ -28,69 +28,68 @@ class TestGenieWaitFor(unittest.TestCase):
         self.genie_waitfor = WaitForController(API())
 
     def test_GIVEN_silent_waitfor_time_WHEN_waitfor_time_THEN_no_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(seconds=0, quiet=True)
         sys.stdout = sys.__stdout__
-        self.assertIs("", capturedOutput.getvalue())
+        self.assertIs("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_time_WHEN_waitfor_time_THEN_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(seconds=0, quiet=False)
         sys.stdout = sys.__stdout__
-        self.assertIsNot("", capturedOutput.getvalue())
+        self.assertIsNot("", capturedoutput.getvalue())
 
     def test_GIVEN_silent_waitfor_uamps_WHEN_waitfor_uamps_THEN_no_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(uamps=0, quiet=True)
         sys.stdout = sys.__stdout__
-        self.assertIs("", capturedOutput.getvalue())
+        self.assertIs("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_uamps_WHEN_waitfor_uamps_THEN_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(uamps=0, quiet=False)
         sys.stdout = sys.__stdout__
-        self.assertIsNot("", capturedOutput.getvalue())
+        self.assertIsNot("", capturedoutput.getvalue())
 
     def test_GIVEN_silent_waitfor_raw_frames_WHEN_waitfor_raw_frames_THEN_no_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(raw_frames=0, quiet=True)
         sys.stdout = sys.__stdout__
-        self.assertIs("", capturedOutput.getvalue())
+        self.assertIs("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_raw_frames_WHEN_waitfor_raw_frames_THEN_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(raw_frames=0, quiet=False)
         sys.stdout = sys.__stdout__
-        self.assertIsNot("", capturedOutput.getvalue())
+        self.assertIsNot("", capturedoutput.getvalue())
 
     def test_GIVEN_silent_waitfor_mevents_WHEN_waitfor_mevents_THEN_no_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(mevents=0, quiet=True)
         sys.stdout = sys.__stdout__
-        self.assertIs("", capturedOutput.getvalue())
+        self.assertIs("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_mevents_WHEN_waitfor_mevents_THEN_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         self.genie_waitfor.start_waiting(mevents=0, quiet=False)
         sys.stdout = sys.__stdout__
-        self.assertIsNot("", capturedOutput.getvalue())
+        self.assertIsNot("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_block_WHEN_waitfor_block_integer_THEN_error_output(self):
-        capturedOutput = StringIO()
-        sys.stdout = capturedOutput
+        capturedoutput = StringIO()
+        sys.stdout = capturedoutput
         # Exception condition
         with self.assertRaises(TypeError) as context:
-            intBlock = 10
-            self.genie_waitfor.start_waiting(block=intBlock)
+            self.genie_waitfor.start_waiting(block=10)
         self.assertEqual(
             str(context.exception),
-            "First argument must be a valid block name or None, not {}".format(intBlock),
+            "First argument must be a valid block name or None, not {}".format(10),
         )
