@@ -84,10 +84,9 @@ class TestGenieWaitFor(unittest.TestCase):
         self.assertIsNot("", capturedoutput.getvalue())
 
     def test_GIVEN_waitfor_block_WHEN_waitfor_block_integer_THEN_error_output(self):
-        capturedoutput = StringIO()
-        sys.stdout = capturedoutput
         # Exception condition
         with self.assertRaises(TypeError) as context:
+            # pyright: ignore
             self.genie_waitfor.start_waiting(block=10)
         self.assertEqual(
             str(context.exception),
