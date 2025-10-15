@@ -357,9 +357,8 @@ class WaitForController(object):
 
         if block is not None:
             if not isinstance(block, str):
-                raise TypeError(
-                    "First argument must be a valid block name or None, not {}".format(block)
-                )
+                error = "First argument must be a valid block name or None, not {}".format(block)
+                raise TypeError(error)
 
             if not self.api.block_exists(block):
                 raise NameError('No block with the name "{}" exists'.format(block))
