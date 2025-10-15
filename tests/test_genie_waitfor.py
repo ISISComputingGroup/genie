@@ -86,8 +86,7 @@ class TestGenieWaitFor(unittest.TestCase):
     def test_GIVEN_waitfor_block_WHEN_waitfor_block_integer_THEN_error_output(self):
         # Exception condition
         with self.assertRaises(TypeError) as context:
-            # pyright: ignore
-            self.genie_waitfor.start_waiting(block=10)
+            self.genie_waitfor.start_waiting(block=10) # pyright: ignore
         self.assertEqual(
             str(context.exception),
             "First argument must be a valid block name or None, not {}".format(10),
