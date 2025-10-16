@@ -2009,6 +2009,7 @@ def define_hard_period(
 
 @log_command_and_handle_exception
 def change(
+    *,
     title: str | None = None,
     period: int | None = None,
     nperiods: int | None = None,
