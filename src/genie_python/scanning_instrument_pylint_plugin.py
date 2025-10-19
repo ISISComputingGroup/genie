@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
-import astroid
 from astroid import MANAGER
+from astroid.nodes import Arguments, ClassDef, FunctionDef, Module
 
 if TYPE_CHECKING:
     from pylint.lint import PyLinter
@@ -11,7 +11,7 @@ def register(linter: "PyLinter") -> None:
     """Register the plugin."""
 
 
-def transform(node: astroid.ClassDef, *args: Any, **kwargs: Any) -> None:
+def transform(node: ClassDef, *args: Any, **kwargs: Any) -> None:
     """Add ScanningInstrument methods to the declaring module.
 
     If the given class is derived from ScanningInstrument,
@@ -22,8 +22,8 @@ def transform(node: astroid.ClassDef, *args: Any, **kwargs: Any) -> None:
     if node.basenames and "ScanningInstrument" in node.basenames:
         public_methods = filter(lambda method: not method.name.startswith("__"), node.methods())
         for public_method in public_methods:
-            if isinstance(node.parent, astroid.Module):
-                new_func = astroid.FunctionDef(
+            if isinstance(node.parent, Module):
+                new_func = FunctionDef(
                     name=public_method.name,
                     lineno=0,
                     col_offset=0,
@@ -31,7 +31,7 @@ def transform(node: astroid.ClassDef, *args: Any, **kwargs: Any) -> None:
                     end_lineno=0,
                     end_col_offset=0,
                 )
-                arguments = astroid.Arguments(
+                arguments = Arguments(
                     vararg=None,
                     kwarg=None,
                     parent=new_func,
@@ -50,4 +50,4 @@ def transform(node: astroid.ClassDef, *args: Any, **kwargs: Any) -> None:
                 node.parent.locals[public_method.name] = [new_func]
 
 
-MANAGER.register_transform(astroid.ClassDef, transform)
+MANAGER.register_transform(ClassDef, transform)

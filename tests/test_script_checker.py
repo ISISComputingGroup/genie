@@ -24,7 +24,7 @@ import sys
 import tempfile
 import unittest
 
-import astroid
+from astroid.nodes import Module
 
 from genie_python.genie_epics_api import API
 from genie_python.genie_script_checker import ScriptChecker
@@ -405,17 +405,17 @@ class TestScriptChecker(unittest.TestCase):
     def test_GIVEN_site_packages_module_THEN_it_can_safely_be_cached(self):
         import numpy
 
-        mod = astroid.Module(numpy.__name__, numpy.__file__)
+        mod = Module(numpy.__name__, numpy.__file__)
         self.assertTrue(self.checker._can_cache_module("numpy", mod))
 
     def test_GIVEN_user_script_THEN_it_should_not_be_cached(self):
         name = "my_user_script"
-        mod = astroid.Module(name, os.path.join("C:\\", "scripts", "my_user_script.py"))
+        mod = Module(name, os.path.join("C:\\", "scripts", "my_user_script.py"))
         self.assertFalse(self.checker._can_cache_module(name, mod))
 
     def test_GIVEN_instrument_script_THEN_it_should_not_be_cached(self):
         name = "my_inst_script"
-        mod = astroid.Module(
+        mod = Module(
             name,
             os.path.join(
                 "C:\\",
