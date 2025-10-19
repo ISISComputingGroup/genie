@@ -1570,12 +1570,14 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     )
 
     try:
-        module_location = str(module.__file__)
+        module_file = module.__file__
     except AttributeError:
         raise ValueError(err_msg) from None
 
-    if module_location is None:
+    if module_file is None:
         raise ValueError(err_msg)
+
+    module_location = str(module_file)
 
     if os.path.normpath(os.path.dirname(module_location)) != os.path.normpath(directory):
         raise ValueError(err_msg)
