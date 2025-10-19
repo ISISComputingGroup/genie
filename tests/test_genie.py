@@ -34,9 +34,9 @@ from genie_python.genie_waitfor import (
 )
 
 invalid_module_msg = (
-    f"Cannot load script test as its name clashes with a standard python module "
+    f"Cannot load script 'test' as its name clashes with a standard python module "
     f"or with a module accessible elsewhere on the python path.\nThe conflicting "
-    f"module was at '{test.__file__}'.\nIf this is a user script, rename the "
+    f"module was '{test}'.\nIf this is a user script, rename the "
     f"user script to avoid the clash."
 )
 
@@ -60,8 +60,10 @@ class TestGenie(unittest.TestCase):
         script = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test_scripts", "test.py")
 
         # Act
-        with self.assertRaises(ValueError, msg=invalid_module_msg):
+        with self.assertRaises(ValueError) as ex:
             genie.load_script(script)
+
+        self.assertEqual(str(ex.exception), invalid_module_msg)
 
     def test_GIVEN_valid_script_WHEN_load_script_THEN_can_call_script(self):
         # Arrange
