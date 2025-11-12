@@ -9,7 +9,7 @@ import sys
 import types
 from builtins import FileNotFoundError, str
 from io import open
-from typing import Any, Callable, TypedDict
+from typing import Any, Callable, TypedDict, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -2175,11 +2175,17 @@ def change_rb(rb: int | str) -> None:
 
 
 class _GetspectrumReturn(TypedDict):
-    time: list[float]
-    signal: list[float]
+    time: Union[list[float], None]
+    signal: Union[list[float], None]
     sum: None
     mode: str
 
+
+class _GetspectrumReturnNumpy(TypedDict):
+    time: Union[npt.NDArray[float], None]
+    signal: Union[npt.NDArray[float], None]
+    sum: None
+    mode: str
 
 @usercommand
 @helparglist("spectrum[, period][, dist]")

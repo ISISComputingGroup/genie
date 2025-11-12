@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 import json
 import os
 import re
+import typing
 import xml.etree.ElementTree as ET
 import zlib
 from binascii import hexlify
@@ -36,7 +37,7 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn
+    from genie_python.genie import PVValue, _GetspectrumReturn, _GetspectrumReturnNumpy
     from genie_python.genie_epics_api import API
 
 ## for beginrun etc. there exists both the PV specified here and also a PV with
@@ -201,6 +202,22 @@ class Dae(object):
             return self._prefix_pv_name(DAE_PVS_LOOKUP[name.lower()]) + "_"
         else:
             return self._prefix_pv_name(DAE_PVS_LOOKUP[name.lower()])
+
+    @typing.overload
+    def _get_pv_value(
+        self,
+        name: str,
+        to_string: typing.Literal[False] = False,
+        use_numpy: bool | None = None
+    ) -> "PVValue": ...
+
+    @typing.overload
+    def _get_pv_value(
+        self,
+        name: str,
+        to_string: typing.Literal[True],
+        use_numpy: bool | None = None
+    ) -> str: ...
 
     def _get_pv_value(
         self, name: str, to_string: bool = False, use_numpy: bool | None = None
@@ -1886,9 +1903,27 @@ class Dae(object):
                     "set a number that is too large for the DAE memory. Try a smaller number!"
                 )
 
+
+    @typing.overload
     def get_spectrum(
-        self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
-    ) -> "_GetspectrumReturn":
+            self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: typing.Literal[
+                False] = False
+    ) -> "_GetspectrumReturn": ...
+
+    @typing.overload
+    def get_spectrum(
+            self, spectrum: int, period: int = 1, dist: bool = True, *, use_numpy: typing.Literal[
+                True]
+    ) -> "_GetspectrumReturnNumpy": ...
+
+    @typing.overload
+    def get_spectrum(
+            self, spectrum: int, period: int = 1, dist: bool = True, *, use_numpy: bool
+    ) -> typing.Union["_GetspectrumReturnNumpy", "_GetspectrumReturn"]: ...
+
+    def get_spectrum(
+        self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool = False
+    ) -> typing.Union["_GetspectrumReturnNumpy", "_GetspectrumReturn"]:
         """
         Gets a spectrum from the DAE via a PV.
 
@@ -1909,6 +1944,10 @@ class Dae(object):
             y_size = self._get_pv_value(
                 self._get_dae_pv_name("getspectrum_y_size").format(period, spectrum)
             )
+            if use_numpy:
+                assert isinstance(y_data, npt.NDArray[float])
+            else:
+                assert isinstance(y_data, list)
             y_data = y_data[:y_size]
             mode = "distribution"
             x_size = y_size
@@ -1920,12 +1959,20 @@ class Dae(object):
             y_size = self._get_pv_value(
                 self._get_dae_pv_name("getspectrum_yc_size").format(period, spectrum)
             )
+            if use_numpy:
+                assert isinstance(y_data, npt.NDArray[float])
+            else:
+                assert isinstance(y_data, list)
             y_data = y_data[:y_size]
             mode = "non-distribution"
             x_size = y_size + 1
         x_data = self._get_pv_value(
             self._get_dae_pv_name("getspectrum_x").format(period, spectrum), use_numpy=use_numpy
         )
+        if use_numpy:
+            assert isinstance(x_data, npt.NDArray[float])
+        else:
+            assert isinstance(x_data, list)
         x_data = x_data[:x_size]
 
         return {"time": x_data, "signal": y_data, "sum": None, "mode": mode}
@@ -2009,20 +2056,22 @@ class Dae(object):
 
         for top in root.iter("DBL"):
             n = top.find("Name")
-            match = regex.search(n.text)
-            if match is not None:
+            if isinstance(n, ET.Element) and n.text is not None:
+                match = regex.search(n.text)
                 v = top.find("Val")
-                out[match.group(1)] = v.text
-
+                if match is not None and isinstance(v, ET.Element) and v.text is not None:
+                    out[match.group(1)] = v.text
         return out
 
     def get_table_path(self, table_type: str) -> str:
         dae_xml = self._get_dae_settings_xml()
         for top in dae_xml.iter("String"):
             n = top.find("Name")
-            if n.text == "{} Table".format(table_type):
+            if isinstance(n, ET.Element) and n.text == "{} Table".format(table_type):
                 val = top.find("Val")
+                assert val is not None and val.text is not None
                 return val.text
+        raise Exception("No tables found in DAE settings XML")
 
     def _get_dae_settings_xml(self) -> ET.Element:
         xml_value = self._get_pv_value(self._get_dae_pv_name("daesettings"))
@@ -2039,7 +2088,7 @@ class Dae(object):
         state_attained = False
         current_state = ""
         for _ in range(timeout):
-            current_state = self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STATUS"))
+            current_state = str(self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:STATUS")))
             if current_state == state:
                 state_attained = True
                 break
@@ -2053,7 +2102,7 @@ class Dae(object):
         state: str,
         timeout_per_trigger: int = 20,
         max_number_of_triggers: int = 5,
-    ) -> str:
+    ) -> bool:
         """
         Trigger a state and wait for the state to be reached. For example stop the
         ISIS DAE and wait for it to be
@@ -2152,7 +2201,7 @@ class Dae(object):
 
     def integrate_spectrum(
         self, spectrum: int, period: int = 1, t_min: float | None = None, t_max: float | None = None
-    ) -> float:
+    ) -> float | None:
         """
         Integrates the spectrum within the time period and returns neutron counts.
 
@@ -2168,9 +2217,9 @@ class Dae(object):
         Returns:
             float: integral of the spectrum (neutron counts)
         """
-        spectrum = self.get_spectrum(spectrum, period, False, use_numpy=True)
-        time = spectrum["time"]
-        count = spectrum["signal"]
+        spectrum_dict = self.get_spectrum(spectrum, period, False, use_numpy=True)
+        time = spectrum_dict["time"]
+        count = spectrum_dict["signal"]
 
         if time is None or count is None:
             return None
@@ -2200,6 +2249,9 @@ class Dae(object):
                     )
                 )
             last_complete_bin = time.searchsorted(t_max, side="left")
+
+        assert t_max is not None
+        assert t_min is not None
 
         # Error check
         if t_max < t_min:
