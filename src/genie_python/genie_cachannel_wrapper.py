@@ -9,7 +9,7 @@ import threading
 from builtins import object
 from collections.abc import Callable
 from threading import Event
-from typing import TYPE_CHECKING, Optional, Tuple, TypeVar
+from typing import TYPE_CHECKING, Optional, Tuple, TypeVar, TypeGuard, overload, Literal
 
 from CaChannel import CaChannel, CaChannelException, ca
 
@@ -32,7 +32,10 @@ except ImportError:
     )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+    from genie_python.genie import PVValue, PVBaseValue
+
+    def is_int_or_str_list(val: list[PVBaseValue]) -> TypeGuard[list[int | str]]:
+        return all(isinstance(x, int) or isinstance(x, str) for x in val)
 
 from .channel_access_exceptions import (
     InvalidEnumStringException,
@@ -306,6 +309,8 @@ class CaChannelWrapper(object):
                 value = chan.getw(ca.DBR_CHAR)
             # Could see if the element count is > 1 instead
             if isinstance(value, list):
+                if TYPE_CHECKING:
+                    assert is_int_or_str_list(value)
                 return waveform_to_string(value)
             else:
                 return str(value)
@@ -384,7 +389,7 @@ class CaChannelWrapper(object):
         try:
             ca_channel.search_and_connect(None, CaChannelWrapper.putCB, event)
         except CaChannelException as e:
-            raise UnableToConnectToPVException(ca_channel.name(), e)
+            raise UnableToConnectToPVException(ca_channel.name(), str(e))
 
         ca_channel.flush_io()
 
@@ -451,6 +456,8 @@ class CaChannelWrapper(object):
                 when the pv disconnects
             use_numpy (bool, optional): True use numpy to return arrays,
                  False return a list; None for use the default
+            to_string: if set to true, will ensure anything passed to call_back_function's value
+                 is a string
         Returns:
             unsubscribe event function
         """
