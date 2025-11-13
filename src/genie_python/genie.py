@@ -7,6 +7,7 @@ import os
 import re
 import sys
 import types
+import typing
 from builtins import FileNotFoundError, str
 from io import open
 from typing import Any, Callable, TypedDict, Union
@@ -2182,8 +2183,8 @@ class _GetspectrumReturn(TypedDict):
 
 
 class _GetspectrumReturnNumpy(TypedDict):
-    time: Union[npt.NDArray[float], None]
-    signal: Union[npt.NDArray[float], None]
+    time: Union[npt.NDArray[np.float64], None]
+    signal: Union[npt.NDArray[np.float64], None]
     sum: None
     mode: str
 

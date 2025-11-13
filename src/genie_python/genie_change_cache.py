@@ -2,6 +2,34 @@ from builtins import object, str
 
 
 class ChangeCache(object):
+    wiring: None | str
+    detector: None | str
+    spectra: None | str
+    mon_spect: None
+    mon_from: None
+    mon_to: None
+    dae_sync: None | int
+    tcb_file: None | str
+    tcb_tables: list
+    tcb_calculation_method: None | int
+    smp_veto: None | int
+    ts2_veto: None | int
+    hz50_veto: None | int
+    ext0_veto: None | int
+    ext1_veto: None | int
+    ext2_veto: None | int
+    ext3_veto: None | int
+    fermi_veto: None | int
+    fermi_delay: None
+    fermi_width: None
+    periods_soft_num: None | float | int
+    periods_type: None | int
+    periods_src: None | int
+    periods_file: None  | str
+    periods_seq: None | int
+    periods_delay: None | int
+    periods_settings: list
+
     def __init__(self):
         self.wiring = None
         self.detector = None

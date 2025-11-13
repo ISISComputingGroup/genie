@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from io import open
 from stat import S_IREAD, S_IWUSR
 from time import sleep, strftime
-from typing import TYPE_CHECKING, Generator, cast
+from typing import TYPE_CHECKING, Generator, cast, TypeGuard
 
 import numpy as np
 import numpy.typing as npt
@@ -37,8 +37,15 @@ from genie_python.utilities import (
 )
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn, _GetspectrumReturnNumpy
+    from genie_python.genie import PVValue, PVBaseValue, _GetspectrumReturn, _GetspectrumReturnNumpy
     from genie_python.genie_epics_api import API
+
+    def is_int_or_str_list(val: list[PVBaseValue]) -> TypeGuard[list[int | str]]:
+        return all(isinstance(x, int) or isinstance(x, str) for x in val)
+
+    def is_float_list(val: list[PVBaseValue]) -> TypeGuard[list[float]]:
+        return all(isinstance(x, float) for x in val)
+
 
 ## for beginrun etc. there exists both the PV specified here and also a PV with
 ## an '_' appended that skips the additional pre/post commands defined in
@@ -149,6 +156,8 @@ EXT2_VETO = "ext2"
 EXT3_VETO = "ext3"
 FIFO_VETO = "fifo"
 
+table_path = namedtuple("table_path", "table_type cache_value correctly_written")
+
 
 class Dae(object):
     """
@@ -183,7 +192,7 @@ class Dae(object):
         Returns:
             string: the full PV name
         """
-        if self.inst_prefix is not None:
+        if self.inst_prefix is not None:  # pyright: ignore
             name = self.inst_prefix + name
         return name
 
@@ -205,22 +214,24 @@ class Dae(object):
 
     @typing.overload
     def _get_pv_value(
-        self,
-        name: str,
-        to_string: typing.Literal[False] = False,
-        use_numpy: bool | None = None
-    ) -> "PVValue": ...
+            self,
+            name: str,
+            to_string: typing.Literal[False] = False,
+            use_numpy: bool | None = None
+    ) -> "PVValue":
+        ...
 
     @typing.overload
     def _get_pv_value(
-        self,
-        name: str,
-        to_string: typing.Literal[True],
-        use_numpy: bool | None = None
-    ) -> str: ...
+            self,
+            name: str,
+            to_string: typing.Literal[True],
+            use_numpy: bool | None = None
+    ) -> str:
+        ...
 
     def _get_pv_value(
-        self, name: str, to_string: bool = False, use_numpy: bool | None = None
+            self, name: str, to_string: bool = False, use_numpy: bool | None = None
     ) -> "PVValue":
         """
         Gets a PV's value.
@@ -296,7 +307,7 @@ class Dae(object):
         Raise:
             Exception: if the supplied value is not a bool
         """
-        if isinstance(verbose, bool):
+        if isinstance(verbose, bool):  # pyright: ignore
             self.verbose = verbose
             if verbose:
                 print("Setting DAE messages to verbose mode")
@@ -307,16 +318,16 @@ class Dae(object):
 
     @require_runstate(["SETUP"])
     def begin_run(
-        self,
-        period: int | None = None,
-        meas_id: str | None = None,
-        meas_type: str | None = None,
-        meas_subid: str | None = None,
-        sample_id: str | None = None,
-        delayed: bool = False,
-        quiet: bool = False,
-        paused: bool = False,
-        prepost: bool = True,
+            self,
+            period: int | None = None,
+            meas_id: str | None = None,
+            meas_type: str | None = None,
+            meas_subid: str | None = None,
+            sample_id: str | None = None,
+            delayed: bool = False,
+            quiet: bool = False,
+            paused: bool = False,
+            prepost: bool = True,
     ) -> None:
         """Starts a data collection run.
 
@@ -391,7 +402,7 @@ class Dae(object):
         try:
 
             def callback_function(
-                message: str, severity: AlarmSeverity, status: AlarmCondition
+                    message: PVValue, severity: AlarmSeverity, status: AlarmCondition
             ) -> None:
                 """
                 Args:
@@ -399,7 +410,12 @@ class Dae(object):
                     severity: required by the CaChannelWrapper.add_monitor
                     status: required by the CaChannelWrapper.add_monitor
                 """
-                message = waveform_to_string(message)
+                if isinstance(message, list):
+                    if TYPE_CHECKING:
+                        assert is_int_or_str_list(message)
+                    message = waveform_to_string(message)
+                else:
+                    message = str(message)
                 if message:
                     print("ISISICP error: {}".format(message))
 
@@ -472,11 +488,11 @@ class Dae(object):
 
     @require_runstate(["RUNNING", "VETOING", "WAITING", "PAUSED", "ENDING"])
     def end_run(
-        self,
-        verbose: bool = False,
-        quiet: bool = False,
-        immediate: bool = False,
-        prepost: bool = True,
+            self,
+            verbose: bool = False,
+            quiet: bool = False,
+            immediate: bool = False,
+            prepost: bool = True,
     ) -> None:
         """
         End the current run.
@@ -707,7 +723,7 @@ class Dae(object):
         Returns:
             string: the current run number
         """
-        return self._get_pv_value(self._get_dae_pv_name("runnumber"))
+        return cast(str, self._get_pv_value(self._get_dae_pv_name("runnumber")))
 
     def get_period_type(self) -> str:
         """
@@ -716,7 +732,7 @@ class Dae(object):
         Returns:
             string: the period type
         """
-        return self._get_pv_value(self._get_dae_pv_name("periodtype"))
+        return cast(str, self._get_pv_value(self._get_dae_pv_name("periodtype")))
 
     def get_period_seq(self) -> int:
         """
@@ -725,7 +741,7 @@ class Dae(object):
         Returns:
             object: the period sequence
         """
-        return self._get_pv_value(self._get_dae_pv_name("periodseq"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("periodseq")))
 
     def get_period(self) -> int:
         """
@@ -734,7 +750,7 @@ class Dae(object):
         Returns:
             int: the current period
         """
-        return self._get_pv_value(self._get_dae_pv_name("period"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("period")))
 
     def get_num_periods(self) -> int:
         """
@@ -775,9 +791,9 @@ class Dae(object):
             period: whether to return the micro-amp hours for the current period [optional]
         """
         if period:
-            return self._get_pv_value(self._get_dae_pv_name("uampsperiod"))
+            return cast(float, self._get_pv_value(self._get_dae_pv_name("uampsperiod")))
         else:
-            return self._get_pv_value(self._get_dae_pv_name("uamps"))
+            return cast(float, self._get_pv_value(self._get_dae_pv_name("uamps")))
 
     def get_events(self) -> int:
         """
@@ -786,7 +802,7 @@ class Dae(object):
         Returns:
             int: the total number of events
         """
-        return self._get_pv_value(self._get_dae_pv_name("events"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("events")))
 
     def get_mevents(self) -> float:
         """
@@ -795,7 +811,7 @@ class Dae(object):
         Returns:
             float: the total number of millions of events
         """
-        return self._get_pv_value(self._get_dae_pv_name("mevents"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("mevents")))
 
     def get_total_counts(self) -> int:
         """
@@ -804,7 +820,7 @@ class Dae(object):
         Returns:
             int: the total counts
         """
-        return self._get_pv_value(self._get_dae_pv_name("totalcounts"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("totalcounts")))
 
     def get_good_frames(self, period: bool = False) -> int:
         """
@@ -817,9 +833,9 @@ class Dae(object):
             int: the number of good frames
         """
         if period:
-            return self._get_pv_value(self._get_dae_pv_name("goodframesperiod"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("goodframesperiod")))
         else:
-            return self._get_pv_value(self._get_dae_pv_name("goodframes"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("goodframes")))
 
     def get_raw_frames(self, period: bool = False) -> int:
         """
@@ -832,9 +848,9 @@ class Dae(object):
             int: the number of raw frames
         """
         if period:
-            return self._get_pv_value(self._get_dae_pv_name("rawframesperiod"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("rawframesperiod")))
         else:
-            return self._get_pv_value(self._get_dae_pv_name("rawframes"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("rawframes")))
 
     def sum_all_dae_memory(self) -> int:
         """
@@ -843,7 +859,7 @@ class Dae(object):
         Returns:
             int: the sum
         """
-        return self._get_pv_value(self._get_dae_pv_name("histmemory"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("histmemory")))
 
     def get_memory_used(self) -> int:
         """
@@ -852,7 +868,7 @@ class Dae(object):
         Returns:
             int: the memory used
         """
-        return self._get_pv_value(self._get_dae_pv_name("memoryused"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("memoryused")))
 
     def sum_all_spectra(self) -> int:
         """
@@ -861,7 +877,7 @@ class Dae(object):
         Returns:
             int: the sum of spectra
         """
-        return self._get_pv_value(self._get_dae_pv_name("spectrasum"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("spectrasum")))
 
     def get_num_spectra(self) -> int:
         """
@@ -879,7 +895,7 @@ class Dae(object):
         Returns:
             string: the current RB number
         """
-        return self._get_pv_value(self._get_dae_pv_name("rbnum"))
+        return cast(str, self._get_pv_value(self._get_dae_pv_name("rbnum")))
 
     def set_rb_number(self, rbno: str) -> None:
         """
@@ -917,7 +933,7 @@ class Dae(object):
         Returns
             boolean: the current display title status
         """
-        return self._get_pv_value(self._get_dae_pv_name("display_title"))
+        return cast(bool, self._get_pv_value(self._get_dae_pv_name("display_title")))
 
     def set_display_title(self, display_title: bool) -> None:
         """
@@ -961,7 +977,9 @@ class Dae(object):
         table_data = json.dumps([{"name": user.strip()} for user in split_users])
         # Send just the username and database server will clear the table if only user is set
         self._set_pv_value(
-            self._get_dae_pv_name("users_table_sp"), compress_and_hex(table_data), True
+            self._get_dae_pv_name("users_table_sp"),
+            compress_and_hex(table_data).decode('utf-8'),
+            True
         )
         self.api.logger.log_info_msg(f"Users set to: {users}")
 
@@ -972,7 +990,7 @@ class Dae(object):
         Returns
             string: the start time
         """
-        return self._get_pv_value(self._get_dae_pv_name("starttime"))
+        return cast(str, self._get_pv_value(self._get_dae_pv_name("starttime")))
 
     @require_runstate(
         ["PAUSING", "BEGINNING", "ABORTING", "RESUMING", "RUNNING", "VETOING", "WAITING", "PAUSED"]
@@ -1007,7 +1025,7 @@ class Dae(object):
         Returns:
             float: the ratio
         """
-        return self._get_pv_value(self._get_dae_pv_name("npratio"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("npratio")))
 
     def get_timing_source(self) -> str:
         """
@@ -1016,7 +1034,7 @@ class Dae(object):
         Returns:
             string: the current timing source being used
         """
-        return self._get_pv_value(self._get_dae_pv_name("timingsource"))
+        return cast(str, self._get_pv_value(self._get_dae_pv_name("timingsource")))
 
     def get_run_duration(self, period: bool = False) -> int:
         """
@@ -1029,9 +1047,9 @@ class Dae(object):
             int: the run duration in seconds
         """
         if period:
-            return self._get_pv_value(self._get_dae_pv_name("rundurationperiod"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("rundurationperiod")))
         else:
-            return self._get_pv_value(self._get_dae_pv_name("runduration"))
+            return cast(int, self._get_pv_value(self._get_dae_pv_name("runduration")))
 
     def get_num_timechannels(self) -> int:
         """
@@ -1049,7 +1067,7 @@ class Dae(object):
         Returns:
             int: the number of monitor counts
         """
-        return self._get_pv_value(self._get_dae_pv_name("monitorcounts"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("monitorcounts")))
 
     def get_monitor_spectrum(self) -> int:
         """
@@ -1058,7 +1076,7 @@ class Dae(object):
         Returns:
             int: the detector number of the monitor
         """
-        return self._get_pv_value(self._get_dae_pv_name("monitorspectrum"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("monitorspectrum")))
 
     def get_monitor_to(self) -> float:
         """
@@ -1067,7 +1085,7 @@ class Dae(object):
         Returns:
             float: the 'to' time for the monitor
         """
-        return self._get_pv_value(self._get_dae_pv_name("monitorto"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("monitorto")))
 
     def get_monitor_from(self) -> float:
         """
@@ -1076,7 +1094,7 @@ class Dae(object):
         Returns:
             float: the 'from' time for the monitor
         """
-        return self._get_pv_value(self._get_dae_pv_name("monitorfrom"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("monitorfrom")))
 
     def get_beam_current(self) -> float:
         """
@@ -1085,7 +1103,7 @@ class Dae(object):
         Returns:
             float: the current value
         """
-        return self._get_pv_value(self._get_dae_pv_name("beamcurrent"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("beamcurrent")))
 
     def get_total_uamps(self) -> float:
         """
@@ -1094,7 +1112,7 @@ class Dae(object):
         Returns:
             float: the total micro-amp hours.
         """
-        return self._get_pv_value(self._get_dae_pv_name("totaluamps"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("totaluamps")))
 
     def get_total_dae_counts(self) -> int:
         """
@@ -1103,7 +1121,7 @@ class Dae(object):
         Returns:
             int: the total count
         """
-        return self._get_pv_value(self._get_dae_pv_name("totaldaecounts"))
+        return cast(int, self._get_pv_value(self._get_dae_pv_name("totaldaecounts")))
 
     def get_countrate(self) -> float:
         """
@@ -1112,7 +1130,7 @@ class Dae(object):
         Returns:
             float: the count rate
         """
-        return self._get_pv_value(self._get_dae_pv_name("countrate"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("countrate")))
 
     def get_eventmode_fraction(self) -> float:
         """
@@ -1121,9 +1139,9 @@ class Dae(object):
         Returns:
             float: the fraction
         """
-        return self._get_pv_value(self._get_dae_pv_name("eventmodefraction"))
+        return cast(float, self._get_pv_value(self._get_dae_pv_name("eventmodefraction")))
 
-    def get_spec_integrals(self) -> npt.NDArray:
+    def get_spec_integrals(self) -> npt.NDArray[np.float64]:
         """
         Gets the event mode spectrum integrals.
         This includes spectrum 0
@@ -1133,7 +1151,8 @@ class Dae(object):
         """
         # this return waveform NELM elements, but only NORD are valid
         data = cast(
-            npt.NDArray, self._get_pv_value(self._get_dae_pv_name("specintegrals"), use_numpy=True)
+            npt.NDArray[np.float64], self._get_pv_value(self._get_dae_pv_name("specintegrals"),
+                                               use_numpy=True)
         )
         spec_size = self._get_pv_value(self._get_dae_pv_name("specintegrals_size"))
         assert isinstance(spec_size, (int, float))
@@ -1143,7 +1162,7 @@ class Dae(object):
             data.resize(size)
         return data
 
-    def get_spec_data(self) -> npt.NDArray:
+    def get_spec_data(self) -> npt.NDArray[np.float64]:
         """
         Gets the event mode spectrum data.
         This includes spectrum 0 and time bin 0
@@ -1154,7 +1173,8 @@ class Dae(object):
         self._set_pv_value(self._get_dae_pv_name("specdata") + ".PROC", 1, wait=True)
         # this return waveform NELM elements, but only NORD are valid
         data = cast(
-            npt.NDArray, self._get_pv_value(self._get_dae_pv_name("specdata"), use_numpy=True)
+            npt.NDArray[np.float64], self._get_pv_value(self._get_dae_pv_name("specdata"),
+                                                   use_numpy=True)
         )
         spec_size = self._get_pv_value(self._get_dae_pv_name("specdata_size"))
         assert isinstance(spec_size, (int, float))
@@ -1223,7 +1243,7 @@ class Dae(object):
             self.change_cache = ChangeCache()
 
     def change_tables(
-        self, wiring: str | None = None, detector: str | None = None, spectra: str | None = None
+            self, wiring: str | None = None, detector: str | None = None, spectra: str | None = None
     ) -> None:
         """
         Load the wiring, detector and/or spectra tables.
@@ -1343,7 +1363,12 @@ class Dae(object):
         if did_change:
             self.change_finish()
 
-    def _create_tcb_return_string(self, low: float, high: float, step: float, log: bool) -> str:
+    def _create_tcb_return_string(
+            self,
+            low: float | None,
+            high: float | None,
+            step: float | None,
+            log: bool) -> str:
         """
         Creates a human readable string when the tcb is changed.
 
@@ -1379,13 +1404,13 @@ class Dae(object):
         return out
 
     def change_tcb(
-        self,
-        low: float | None,
-        high: float | None,
-        step: float | None,
-        trange: int,
-        log: bool = False,
-        regime: int = 1,
+            self,
+            low: float | None,
+            high: float | None,
+            step: float | None,
+            trange: int,
+            log: bool = False,
+            regime: int = 1,
     ) -> None:
         """
         Change the time channel boundaries.
@@ -1454,7 +1479,7 @@ class Dae(object):
         for k, v in params.items():
             if k not in valid_vetoes:
                 raise Exception("Invalid veto name: {}".format(k))
-            if not isinstance(v, bool):
+            if not isinstance(v, bool):  # pyright: ignore
                 not_bool.append(k)
         if len(not_bool) > 0:
             raise Exception(
@@ -1474,34 +1499,27 @@ class Dae(object):
 
         # Clearall must be done first.
         if CLEAR_VETO in params:
-            if isinstance(params[CLEAR_VETO], bool) and params[CLEAR_VETO]:
+            if params[CLEAR_VETO]:
                 self.change_cache.clear_vetos()
         if SMP_VETO in params:
-            if isinstance(params[SMP_VETO], bool):
-                self.change_cache.smp_veto = int(params[SMP_VETO])
+            self.change_cache.smp_veto = int(params[SMP_VETO])
         if TS2_VETO in params:
-            if isinstance(params[TS2_VETO], bool):
-                self.change_cache.ts2_veto = int(params[TS2_VETO])
+            self.change_cache.ts2_veto = int(params[TS2_VETO])
         if HZ50_VETO in params:
-            if isinstance(params[HZ50_VETO], bool):
-                self.change_cache.hz50_veto = int(params[HZ50_VETO])
+            self.change_cache.hz50_veto = int(params[HZ50_VETO])
         if EXT0_VETO in params:
-            if isinstance(params[EXT0_VETO], bool):
-                self.change_cache.ext0_veto = int(params[EXT0_VETO])
+            self.change_cache.ext0_veto = int(params[EXT0_VETO])
         if EXT1_VETO in params:
-            if isinstance(params[EXT1_VETO], bool):
-                self.change_cache.ext1_veto = int(params[EXT1_VETO])
+            self.change_cache.ext1_veto = int(params[EXT1_VETO])
         if EXT2_VETO in params:
-            if isinstance(params[EXT2_VETO], bool):
-                self.change_cache.ext2_veto = int(params[EXT2_VETO])
+            self.change_cache.ext2_veto = int(params[EXT2_VETO])
         if EXT3_VETO in params:
-            if isinstance(params[EXT3_VETO], bool):
-                self.change_cache.ext3_veto = int(params[EXT3_VETO])
+            self.change_cache.ext3_veto = int(params[EXT3_VETO])
 
         if did_change:
             self.change_finish()
 
-    def _change_runtime_vetos(self, params: dict) -> None:
+    def _change_runtime_vetos(self, params: dict[str, bool]) -> dict[str, bool]:
         """
         Change the DAE veto settings whilst the DAE is running.
 
@@ -1512,26 +1530,23 @@ class Dae(object):
             dict : The params passed in minus the ones set in this method.
         """
         if FIFO_VETO in params:
-            if isinstance(params[FIFO_VETO], bool):
-                self._set_pv_value(
-                    self._get_dae_pv_name("set_veto_" + ("true" if params[FIFO_VETO] else "false")),
-                    "FIFO",
-                )
+            self._set_pv_value(
+                self._get_dae_pv_name("set_veto_" + ("true" if params[FIFO_VETO] else "false")),
+                "FIFO",
+            )
 
-                # Check if in SETUP, if not SETUP warn the user that the setting will be set
-                # to True automatically when a run begins.
-                if self.get_run_state() == "SETUP" and not params[FIFO_VETO]:
-                    print(
-                        "FIFO veto will automatically revert to ENABLED when next run begins.\n"
-                        "Run this command again during the run to disable FIFO vetos."
-                    )
-                del params[FIFO_VETO]
-            else:
-                raise Exception("FIFO veto must be set to True or False")
+            # Check if in SETUP, if not SETUP warn the user that the setting will be set
+            # to True automatically when a run begins.
+            if self.get_run_state() == "SETUP" and not params[FIFO_VETO]:
+                print(
+                    "FIFO veto will automatically revert to ENABLED when next run begins.\n"
+                    "Run this command again during the run to disable FIFO vetos."
+                )
+            del params[FIFO_VETO]
         return params
 
     def set_fermi_veto(
-        self, enable: bool | None = None, delay: float = 1.0, width: float = 1.0
+            self, enable: bool | None = None, delay: float = 1.0, width: float = 1.0
     ) -> None:
         """
         Configure the fermi chopper veto.
@@ -1546,9 +1561,9 @@ class Dae(object):
         """
         if not isinstance(enable, bool):
             raise Exception("Fermi veto: enable must be a boolean value")
-        if not isinstance(delay, float) and not isinstance(delay, int):
+        if not isinstance(delay, float) and not isinstance(delay, int): # pyright: ignore
             raise Exception("Fermi veto: delay must be a numeric value")
-        if not isinstance(width, float) and not isinstance(width, int):
+        if not isinstance(width, float) and not isinstance(width, int): # pyright: ignore
             raise Exception("Fermi veto: width must be a numeric value")
         did_change = False
         if not self.in_change:
@@ -1575,7 +1590,7 @@ class Dae(object):
         Raises:
             Exception: if wrongly typed value supplied
         """
-        if not isinstance(number, float) and not isinstance(number, int):
+        if not isinstance(number, float) and not isinstance(number, int): # pyright: ignore
             raise Exception("Number of soft periods must be a numeric value")
         did_change = False
         if not self.in_change:
@@ -1605,18 +1620,18 @@ class Dae(object):
             self.change_finish()
 
     def configure_hard_periods(
-        self,
-        mode: str,
-        period_file: str | None = None,
-        sequences: int | None = None,
-        output_delay: int | None = None,
-        period: int | None = None,
-        daq: bool = False,
-        dwell: bool = False,
-        unused: bool = False,
-        frames: int | None = None,
-        output: int | None = None,
-        label: str | None = None,
+            self,
+            mode: str,
+            period_file: str | None = None,
+            sequences: int | None = None,
+            output_delay: int | None = None,
+            period: int | None = None,
+            daq: bool = False,
+            dwell: bool = False,
+            unused: bool = False,
+            frames: int | None = None,
+            output: int | None = None,
+            label: str | None = None,
     ) -> None:
         """
         Configures the DAE's hardware periods.
@@ -1675,16 +1690,16 @@ class Dae(object):
             self.change_finish()
 
     def configure_internal_periods(
-        self,
-        sequences: int | None = None,
-        output_delay: int | None = None,
-        period: int | None = None,
-        daq: bool = False,
-        dwell: bool = False,
-        unused: bool = False,
-        frames: int | None = None,
-        output: int | None = None,
-        label: str | None = None,
+            self,
+            sequences: int | None = None,
+            output_delay: int | None = None,
+            period: int | None = None,
+            daq: bool = False,
+            dwell: bool = False,
+            unused: bool = False,
+            frames: int | None = None,
+            output: int | None = None,
+            label: str | None = None,
     ) -> None:
         """
         Configure the internal periods without switching to internal period mode.
@@ -1710,12 +1725,12 @@ class Dae(object):
             self.change_start()
             did_change = True
         if sequences is not None:
-            if isinstance(sequences, int):
+            if isinstance(sequences, int):  # pyright: ignore
                 self.change_cache.periods_seq = sequences
             else:
                 raise Exception("Number of period sequences must be an integer")
         if output_delay is not None:
-            if isinstance(output_delay, int):
+            if isinstance(output_delay, int):  # pyright: ignore
                 self.change_cache.periods_delay = output_delay
             else:
                 raise Exception("Output delay of periods must be an integer (microseconds)")
@@ -1724,14 +1739,14 @@ class Dae(object):
             self.change_finish()
 
     def define_hard_period(
-        self,
-        period: int | None = None,
-        daq: bool = False,
-        dwell: bool = False,
-        unused: bool = False,
-        frames: int | None = None,
-        output: int | None = None,
-        label: str | None = None,
+            self,
+            period: int | None = None,
+            daq: bool = False,
+            dwell: bool = False,
+            unused: bool = False,
+            frames: int | None = None,
+            output: int | None = None,
+            label: str | None = None,
     ) -> None:
         """
         Define the hardware periods.
@@ -1748,7 +1763,7 @@ class Dae(object):
         Note: if the period number is unspecified then the settings will be applied to all periods.
 
         Raises:
-            Exception: if supplied period is not a integer between 0 and 9
+            Exception: if supplied period is not an integer between 0 and 9
         """
         did_change = False
         if not self.in_change:
@@ -1758,29 +1773,29 @@ class Dae(object):
             # Do for all periods (1 to 8)
             for i in range(1, 9):
                 self.define_hard_period(i, daq, dwell, unused, frames, output, label)
+        elif isinstance(period, int) and 0 < period < 9:  # pyright: ignore - this function can
+            # be used in a console and have all sorts of junk passed to it
+            p_type = None  # unchanged
+            if unused:
+                p_type = 0
+            elif daq:
+                p_type = 1
+            elif dwell:
+                p_type = 2
+            p_frames = None  # unchanged
+            if isinstance(frames, int):
+                p_frames = frames
+            p_output = None  # unchanged
+            if isinstance(output, int):
+                p_output = output
+            p_label = None  # unchanged
+            if label is not None:
+                p_label = label
+            self.change_cache.periods_settings.append(
+                (period, p_type, p_frames, p_output, p_label)
+            )
         else:
-            if isinstance(period, int) and 0 < period < 9:
-                p_type = None  # unchanged
-                if unused:
-                    p_type = 0
-                elif daq:
-                    p_type = 1
-                elif dwell:
-                    p_type = 2
-                p_frames = None  # unchanged
-                if frames is not None and isinstance(frames, int):
-                    p_frames = frames
-                p_output = None  # unchanged
-                if output is not None and isinstance(output, int):
-                    p_output = output
-                p_label = None  # unchanged
-                if label is not None:
-                    p_label = label
-                self.change_cache.periods_settings.append(
-                    (period, p_type, p_frames, p_output, p_label)
-                )
-            else:
-                raise Exception("Period number must be an integer from 1 to 8")
+            raise Exception("Period number must be an integer from 1 to 8")
         if did_change:
             self.change_finish()
 
@@ -1795,7 +1810,7 @@ class Dae(object):
         if changed:
             self._set_pv_value(
                 self._get_dae_pv_name("daesettings_sp"),
-                ET.tostring(root),
+                ET.tostring(root, encoding='utf-8'),
                 wait=self.wait_for_completion_callback_dae_settings,
             )
 
@@ -1815,7 +1830,7 @@ class Dae(object):
                         errors = "{}{} : {}, ".format(errors, item.table_type, item.cache_value)
                 raise ValueError("{} table(s) failed to write.".format(errors))
 
-    def _check_table_file_paths_correct(self, tables_to_check: list[str]) -> None:
+    def _check_table_file_paths_correct(self, tables_to_check: list[table_path]) -> bool:
         """Checks the wiring, detector and spectra tables in
         the dae settings against those provided in tables_to_check
 
@@ -1834,7 +1849,7 @@ class Dae(object):
                 written = False
         return written
 
-    def _check_tables_not_empty(self) -> list[str]:
+    def _check_tables_not_empty(self) -> list[table_path]:
         """Checks the wiring, detector and spectra tables in change_cache
         are not empty.
 
@@ -1843,7 +1858,6 @@ class Dae(object):
         indicate whether the file is correct in the dae settings.
         """
         tables_to_check = []
-        table_path = namedtuple("table_path", "table_type cache_value correctly_written")
 
         if self.change_cache.wiring is not None:
             wiring = table_path("Wiring", self.change_cache.wiring, False)
@@ -1878,7 +1892,11 @@ class Dae(object):
         changed = self.change_cache.change_tcb_settings(root)
         if changed:
             ans = zlib.compress(ET.tostring(root))
-            self._set_pv_value(self._get_dae_pv_name("tcbsettings_sp"), hexlify(ans), wait=True)
+            self._set_pv_value(
+                self._get_dae_pv_name("tcbsettings_sp"),
+                hexlify(ans).decode('utf-8'),
+                wait=True
+            )
 
     def _change_period_settings(self) -> None:
         """
@@ -1893,7 +1911,9 @@ class Dae(object):
         changed = self.change_cache.change_period_settings(root)
         if changed:
             self._set_pv_value(
-                self._get_dae_pv_name("periodsettings_sp"), ET.tostring(root).strip(), wait=True
+                self._get_dae_pv_name("periodsettings_sp"),
+                ET.tostring(root, encoding='utf-8').strip(),
+                wait=True
             )
 
             if self.api.get_pv_alarm(self._get_dae_pv_name("periodsettings_sp")) == "INVALID":
@@ -1903,26 +1923,28 @@ class Dae(object):
                     "set a number that is too large for the DAE memory. Try a smaller number!"
                 )
 
-
     @typing.overload
     def get_spectrum(
             self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: typing.Literal[
                 False] = False
-    ) -> "_GetspectrumReturn": ...
+    ) -> "_GetspectrumReturn":
+        ...
 
     @typing.overload
     def get_spectrum(
             self, spectrum: int, period: int = 1, dist: bool = True, *, use_numpy: typing.Literal[
                 True]
-    ) -> "_GetspectrumReturnNumpy": ...
+    ) -> "_GetspectrumReturnNumpy":
+        ...
 
     @typing.overload
     def get_spectrum(
             self, spectrum: int, period: int = 1, dist: bool = True, *, use_numpy: bool
-    ) -> typing.Union["_GetspectrumReturnNumpy", "_GetspectrumReturn"]: ...
+    ) -> typing.Union["_GetspectrumReturnNumpy", "_GetspectrumReturn"]:
+        ...
 
     def get_spectrum(
-        self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool = False
+            self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool = False
     ) -> typing.Union["_GetspectrumReturnNumpy", "_GetspectrumReturn"]:
         """
         Gets a spectrum from the DAE via a PV.
@@ -1939,15 +1961,17 @@ class Dae(object):
         """
         if dist:
             y_data = self._get_pv_value(
-                self._get_dae_pv_name("getspectrum_y").format(period, spectrum), use_numpy=use_numpy
+                self._get_dae_pv_name("getspectrum_y").format(period, spectrum),
+                use_numpy=use_numpy,
             )
-            y_size = self._get_pv_value(
+            y_size = typing.cast(int, self._get_pv_value(
                 self._get_dae_pv_name("getspectrum_y_size").format(period, spectrum)
-            )
-            if use_numpy:
-                assert isinstance(y_data, npt.NDArray[float])
-            else:
-                assert isinstance(y_data, list)
+            ))
+            if TYPE_CHECKING:
+                if use_numpy:
+                    assert isinstance(y_data, np.ndarray)
+                else:
+                    assert isinstance(y_data, list)
             y_data = y_data[:y_size]
             mode = "distribution"
             x_size = y_size
@@ -1956,26 +1980,40 @@ class Dae(object):
                 self._get_dae_pv_name("getspectrum_yc").format(period, spectrum),
                 use_numpy=use_numpy,
             )
-            y_size = self._get_pv_value(
+            y_size = typing.cast(int, self._get_pv_value(
                 self._get_dae_pv_name("getspectrum_yc_size").format(period, spectrum)
-            )
-            if use_numpy:
-                assert isinstance(y_data, npt.NDArray[float])
-            else:
-                assert isinstance(y_data, list)
+            ))
+            if TYPE_CHECKING:
+                if use_numpy:
+                    assert isinstance(y_data, np.ndarray)
+                else:
+                    assert isinstance(y_data, list)
             y_data = y_data[:y_size]
             mode = "non-distribution"
             x_size = y_size + 1
         x_data = self._get_pv_value(
-            self._get_dae_pv_name("getspectrum_x").format(period, spectrum), use_numpy=use_numpy
+            self._get_dae_pv_name("getspectrum_x").format(period, spectrum),
+            use_numpy=use_numpy,
         )
-        if use_numpy:
-            assert isinstance(x_data, npt.NDArray[float])
-        else:
-            assert isinstance(x_data, list)
+        if TYPE_CHECKING:
+            if use_numpy:
+                assert isinstance(x_data, np.ndarray)
+            else:
+                assert isinstance(x_data, list)
         x_data = x_data[:x_size]
 
-        return {"time": x_data, "signal": y_data, "sum": None, "mode": mode}
+        if use_numpy:
+            if TYPE_CHECKING:
+                assert isinstance(x_data, np.ndarray)
+                assert isinstance(y_data, np.ndarray)
+            return {"time": x_data, "signal": y_data, "sum": None, "mode": mode}
+        else:
+            if TYPE_CHECKING:
+                assert isinstance(x_data, list)
+                assert is_float_list(x_data)
+                assert isinstance(y_data, list)
+                assert is_float_list(y_data)
+            return {"time": x_data, "signal": y_data, "sum": None, "mode": mode}
 
     def in_transition(self) -> bool:
         """
@@ -2097,11 +2135,11 @@ class Dae(object):
         return state_attained, current_state
 
     def _isis_dae_triggered_state_was_reached(
-        self,
-        trigger_pv: str,
-        state: str,
-        timeout_per_trigger: int = 20,
-        max_number_of_triggers: int = 5,
+            self,
+            trigger_pv: str,
+            state: str,
+            timeout_per_trigger: int = 20,
+            max_number_of_triggers: int = 5,
     ) -> bool:
         """
         Trigger a state and wait for the state to be reached. For example stop the
@@ -2200,7 +2238,8 @@ class Dae(object):
         return self._get_pv_value(self._prefix_pv_name(DAE_PVS_LOOKUP["state_changing"])) == "Yes"
 
     def integrate_spectrum(
-        self, spectrum: int, period: int = 1, t_min: float | None = None, t_max: float | None = None
+            self, spectrum: int, period: int = 1, t_min: float | None = None,
+            t_max: float | None = None
     ) -> float | None:
         """
         Integrates the spectrum within the time period and returns neutron counts.
