@@ -8,7 +8,7 @@ name = "genie_python"
 dynamic = ["version"]
 description = "Instrument control & scripting for the ISIS Neutron & Muon source"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 
@@ -22,8 +22,8 @@ maintainers = [
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -56,7 +56,7 @@ dependencies = [
 # - It depends on a couple of heavyweight libs (py4j and tornado) that aren't necessary otherwise
 plot = [
   # When updating, check plotting works in GUI. Must keep pinned to a specific, tested version.
-  "matplotlib==3.10.1",
+  "matplotlib==3.10.7",
   # Python <-> Java communication, to spawn matplotlib plots in GUI
   "py4j",
   # Tornado webserver used by custom backend
