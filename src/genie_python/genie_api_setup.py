@@ -284,8 +284,8 @@ class PyDevComplete:
     def just_path_on_load(self, text: str, act_tok: Any) -> list[str]:
         """
         Returns completions for load on a path if load_script in path otherwise returns as before.
-        Will replace .metadata\.plugins\org.eclipse.pde.core\.bundle_pool\plugins\
-        org.python.pydev_5.9.2.201708151115\pysrc\_pydev_bundle\pydev_ipython_console_011.py
+        Will replace .metadata\\.plugins\\org.eclipse.pde.core\\.bundle_pool\\plugins\\
+        org.python.pydev_5.9.2.201708151115\\pysrc\\_pydev_bundle\\pydev_ipython_console_011.py
 
         This functions will filter out the pydev completions if the line contains load_script. 
         It know which are the pydev ones because they are marked with the type '11'.
