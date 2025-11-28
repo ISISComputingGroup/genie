@@ -118,7 +118,7 @@ class _GetbeamlineparsReturn(TypedDict):
 print("\ngenie_python version " + VERSION)
 
 MIN_SUPPORTED_PYTHON_VERSION = (3, 11, 0)
-MAX_SUPPORTED_PYTHON_VERSION = (3, 12, 999)
+MAX_SUPPORTED_PYTHON_VERSION = (3, 13, 999)
 
 if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_PYTHON_VERSION):
     message = (
