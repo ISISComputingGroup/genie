@@ -1475,7 +1475,6 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
             full_name = get_correct_filepath_existing(name)
         except Exception:
             # Try with default script directory prepended
-
             full_name = get_correct_filepath_existing(os.path.join(get_user_script_dir(), name))
     except Exception:
         raise Exception("Script file was not found (%s)" % get_correct_path(name))
@@ -1559,7 +1558,10 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
     """
     spec = importlib.util.find_spec(name, directory)
     if spec is None:
-        raise ValueError(f"Cannot find spec for module {name} in {directory}")
+        raise ValueError(
+            f"Cannot find spec for module {name} in {directory}. "
+            f"Check that the module name is correct (note: module names are case sensitive)."
+        )
     module = importlib.util.module_from_spec(spec)
 
     err_msg = (
