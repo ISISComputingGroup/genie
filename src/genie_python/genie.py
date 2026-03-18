@@ -1581,7 +1581,10 @@ def __load_module(name: str, directory: str) -> types.ModuleType:
 
     module_location = str(module_file)
 
-    if os.path.normpath(os.path.dirname(module_location)) != os.path.normpath(directory):
+    if (
+        os.path.normpath(os.path.dirname(module_location)).lower()
+        != os.path.normpath(directory).lower()
+    ):
         raise ValueError(err_msg)
 
     sys.modules[name] = module
