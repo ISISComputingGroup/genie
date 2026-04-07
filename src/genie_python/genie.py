@@ -131,7 +131,7 @@ if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_P
 
 
 @log_command_and_handle_exception
-def set_instrument(pv_prefix: str, import_instrument_init: bool = True) -> None:
+def set_instrument(pv_prefix: str | None, import_instrument_init: bool = True) -> None:
     """
     Sets the instrument this session is communicating with.
     Used for remote access - do not delete.
