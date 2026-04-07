@@ -1,0 +1,22 @@
+name: Check PR has release labels
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - labeled
+      - unlabeled
+
+jobs:
+  has_label:
+    name: Check PR has release labels
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo "PR does not have a release label."
+          exit 1
+        if: |
+          !contains(github.event.pull_request.labels.*.name, 'release-minor') &&
+          !contains(github.event.pull_request.labels.*.name, 'release-major') &&
+          !contains(github.event.pull_request.labels.*.name, 'ignore-for-release')
