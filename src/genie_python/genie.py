@@ -599,7 +599,7 @@ def waitfor_time(
 
         >>> waitfor_time(time="1:30:15")
 
-        Waits until 1:30:15
+        Waits for 1 hour, 30 minutes and 15 seconds
     """
     if all(t is None for t in (seconds, minutes, hours, time)):
         raise TypeError(
