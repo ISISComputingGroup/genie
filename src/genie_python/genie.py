@@ -524,18 +524,31 @@ def waitfor_block(
         lowlimit: waits for the block to be >= this value (numeric only)
         highlimit: waits for the block to be <= this value (numeric only)
         maxwait: wait no longer that the specified number of seconds
-        early_exit: stop waiting if the exception evaluates to True
+        early_exit: A continuously called function which will interrupt waiting if it returns True
         quiet (bool, optional): suppress normal output messages to the console
 
     Examples:
 
         >>> waitfor_block("myblock", value=123)
+
+        wait for a block's value to be 123
+
         >>> waitfor_block("myblock", value=True, maxwait=15)
+
+        wait for a block's value to be True, for up to 15 seconds, otherwise continue
+
         >>> waitfor_block("myblock", lowlimit=100, highlimit=110)
         >>> waitfor_block("myblock", highlimit=1.0, maxwait=60)
+
+        Wait for a block's value to fall between the specified limits
+
         >>> waitfor_block(
         ...     "myblock", value=123, early_exit=lambda: cget("myblock_limit_reached")["value"] != 0
         ... )
+
+        Wait until either the value is either 123 (explicitly)
+        or if the value of "myblock_limit_reached" is not 0
+
     """
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
@@ -577,8 +590,16 @@ def waitfor_time(
     Examples:
 
         >>> waitfor_time(seconds=10)
+
+        Waits for 10 seconds
+
         >>> waitfor_time(hours=1, minutes=30, seconds=15)
+
+        Waits for 1 hour, 30 minutes and 15 seconds
+
         >>> waitfor_time(time="1:30:15")
+
+        Waits for 1 hour, 30 minutes and 15 seconds
     """
     if all(t is None for t in (seconds, minutes, hours, time)):
         raise TypeError(
@@ -610,6 +631,7 @@ def waitfor_frames(frames: int | None = None, quiet: bool = False) -> None:
     Example:
 
         >>> waitfor_frames(4000)
+        waits for 4000 frames
     """
     if frames is None:
         raise TypeError(
@@ -798,7 +820,7 @@ def waitfor_move(*blocks: str, **kwargs: int | None) -> None:
 @log_command_and_handle_exception
 def get_pv(
     name: str, to_string: bool = False, is_local: bool = False, use_numpy: bool = False
-) -> Any:
+) -> Any:  # noqa: ANN401
     """
     Get the value for the specified PV.
 
