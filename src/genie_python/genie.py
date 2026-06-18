@@ -384,6 +384,7 @@ def cshow(block: str | None = None) -> None:
 
 @log_command_and_handle_exception
 def waitfor(
+    *,
     block: str | None = None,
     value: PVValue = None,
     lowlimit: float | None = None,
