@@ -30,6 +30,8 @@ classifiers = [
 dependencies = [
   # EPICS Channel access lib
   "CaChannel",
+  # decorator metaprogramming
+  "decorator",
   # Send log messages to graylog
   "graypy",
   # genie_python will install ipython completers
