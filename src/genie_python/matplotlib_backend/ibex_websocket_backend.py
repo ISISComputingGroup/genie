@@ -336,6 +336,30 @@ class _FigureManager(core.FigureManagerWebAgg):
 class _FigureCanvas(backend_webagg.FigureCanvasWebAgg):
     manager_class = _FigureManager
 
+    def draw(self) -> None:
+        """
+        Draw the figure.
+
+        This method takes the IBEX_BACKEND_LOCK, to avoid multiple threads
+        attempting to draw concurrently. This can happen if a draw triggered
+        from Python code happens at the same time as one triggered from
+        an incoming websocket request.
+        """
+        with IBEX_BACKEND_LOCK:
+            super().draw()
+
+    def print_figure(self, *args: Any, **kwargs: Any) -> Any:
+        """
+        Print the figure.
+
+        This method takes the IBEX_BACKEND_LOCK, to avoid multiple threads
+        attempting to draw concurrently. This can happen if a draw triggered
+        from Python code happens at the same time as one triggered from
+        an incoming websocket request.
+        """
+        with IBEX_BACKEND_LOCK:
+            return super().print_figure(*args, **kwargs)
+
     def set_image_mode(self, mode: str) -> None:
         """
         Always send full images to ibex.
