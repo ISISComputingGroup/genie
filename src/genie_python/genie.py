@@ -306,22 +306,15 @@ def cget(block: str) -> _CgetReturn:
         block (string): the name of the block
 
     Returns:
-        dict: details about about the block. Contains:
-            `name` - name of the block
-
-            `value` - value of the block
-
-            `unit` - physical units of the block
-
-            `connected` - True if connected; False otherwise
-
-            `runcontrol` - NO not in runcontrol, YES otherwise
-
-            `lowlimit` - run control low limit set
-            
-            `highlimit` - run control high limit set
-
-            `alarm` - the alarm status of the block
+        dict: details about the block. Contains:
+            - `name` - name of the block
+            - `value` - value of the block
+            - `unit` - physical units of the block
+            - `connected` - True if connected; False otherwise
+            - `runcontrol` - NO not in runcontrol, YES otherwise
+            - `lowlimit` - run control low limit set
+            - `highlimit` - run control high limit set
+            - `alarm` - the alarm status of the block
     """
     ans = _genie_api.get_block_data(block)
     if ans["alarm"] != "NO_ALARM":
