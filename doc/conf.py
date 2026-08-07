@@ -46,7 +46,7 @@ master_doc = "genie_python"
 
 # General information about the project.
 project = "genie_python"
-copyright = "2014, ISIS Computing Group"
+copyright = "2026, ISIS Computing Group"
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -100,12 +100,15 @@ pygments_style = "sphinx"
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-html_theme = "sphinxdoc"
+html_theme = "sphinx_rtd_theme"
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
 # documentation.
-html_theme_options = {"nosidebar": True}
+html_theme_options = {
+    'logo_only': False,
+    "style_nav_header_background": "#29B9AB",
+}
 
 # Add any paths that contain custom themes here, relative to this directory.
 # html_theme_path = []

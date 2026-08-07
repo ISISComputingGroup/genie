@@ -305,16 +305,23 @@ def cget(block: str) -> _CgetReturn:
     Args:
         block (string): the name of the block
 
-    Returns
+    Returns:
         dict: details about about the block. Contains:
-            name - name of the block
-            value - value of the block
-            unit - physical units of the block
-            connected - True if connected; False otherwise
-            runcontrol - NO not in runcontrol, YES otherwise
-            lowlimit - run control low limit set
-            highlimit - run control high limit set
-            alarm - the alarm status of the block
+            `name` - name of the block
+
+            `value` - value of the block
+
+            `unit` - physical units of the block
+
+            `connected` - True if connected; False otherwise
+
+            `runcontrol` - NO not in runcontrol, YES otherwise
+
+            `lowlimit` - run control low limit set
+            
+            `highlimit` - run control high limit set
+
+            `alarm` - the alarm status of the block
     """
     ans = _genie_api.get_block_data(block)
     if ans["alarm"] != "NO_ALARM":
@@ -1636,9 +1643,9 @@ def change_script_dir(*directory: str) -> None:
     Args:
         directory (string|List(string)): the directory to load user scripts from,
             either as a single entry or as multiple arguments
-    Example:
-        g.change_script_dir(r"c/scrips/mydir")
-        g.change_script_dir(r"c/scrips", "mydir")
+    Examples:
+        >>> g.change_script_dir(r"c:\\scripts\\mydir")
+        >>> g.change_script_dir(r"c:\\scripts", "mydir")
 
 
     """
