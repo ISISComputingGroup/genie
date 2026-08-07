@@ -106,7 +106,7 @@ html_theme = "sphinx_rtd_theme"
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-    'logo_only': False,
+    "logo_only": False,
     "style_nav_header_background": "#29B9AB",
 }
 
