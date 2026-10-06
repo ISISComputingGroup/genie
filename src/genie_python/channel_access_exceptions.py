@@ -11,7 +11,7 @@ class UnableToConnectToPVException(IOError):  # noqa N818 Historic name
 
     def __init__(self, pv_name: str, err: str) -> None:
         super(UnableToConnectToPVException, self).__init__(
-            f"Unable to connect to PV {pv_name}: {err}"
+            f"Unable to connect to PV '{pv_name}': {err}"
         )
 
 
