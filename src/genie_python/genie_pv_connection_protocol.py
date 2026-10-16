@@ -1,8 +1,7 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional, Protocol, Tuple, runtime_checkable
+from typing import Optional, Protocol, Tuple, runtime_checkable
 
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+from ibex_non_ca_helpers import PVValue
 
 
 @runtime_checkable

@@ -5,9 +5,9 @@ from builtins import object
 from typing import TYPE_CHECKING, Any, Callable, ParamSpec, TypeVar
 
 from genie_python.utilities import compress_and_hex, dehex_decompress_and_dejson
+from ibex_non_ca_helpers.typing import PVValue
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue
     from genie_python.genie_epics_api import API
 
 Param = ParamSpec("Param")

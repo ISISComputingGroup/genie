@@ -13,6 +13,7 @@ from typing import Any, Callable, TypedDict
 
 import numpy as np
 import numpy.typing as npt
+from ibex_non_ca_helpers.typing import PVValue
 
 from genie_python.genie_api_setup import __api as _genie_api
 
@@ -42,10 +43,6 @@ from genie_python.utilities import (  # noqa E402
     get_correct_path,
 )
 from genie_python.version import VERSION  # noqa E402
-
-PVBaseValue = bool | int | float | str | bytes
-PVValue = PVBaseValue | list[PVBaseValue] | npt.NDArray | None  # pyright: ignore
-# because we don't want to make PVValue generic
 
 
 class _CgetReturn(TypedDict):

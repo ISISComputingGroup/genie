@@ -34,9 +34,10 @@ from genie_python.utilities import (
     require_runstate,
     waveform_to_string,
 )
+from ibex_non_ca_helpers.typing import PVValue
 
 if TYPE_CHECKING:
-    from genie_python.genie import PVValue, _GetspectrumReturn
+    from genie_python.genie import _GetspectrumReturn
     from genie_python.genie_epics_api import API
 
 ## for beginrun etc. there exists both the PV specified here and also a PV with

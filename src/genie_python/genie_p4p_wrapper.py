@@ -7,7 +7,7 @@ from __future__ import absolute_import, print_function
 import threading
 from builtins import object
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional, Tuple
+from typing import Optional, Tuple
 
 from p4p import Value
 from p4p.client.thread import Context, Subscription
@@ -15,8 +15,7 @@ from p4p.client.thread import Context, Subscription
 from .channel_access_exceptions import WriteAccessException
 from .utilities import waveform_to_string
 
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+from ibex_non_ca_helpers.typing import PVValue
 
 TIMEOUT = 15  # Default timeout for PV set/get
 EXIST_TIMEOUT = 3  # Separate smaller timeout for pv_exists() and searchw() operations

@@ -9,7 +9,7 @@ import threading
 from builtins import object
 from collections.abc import Callable
 from threading import Event
-from typing import TYPE_CHECKING, Optional, Tuple, TypeVar
+from typing import Optional, Tuple, TypeVar
 
 from CaChannel import CaChannel, CaChannelException, ca
 
@@ -31,8 +31,7 @@ except ImportError:
         dbf_type_to_text,
     )
 
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+from ibex_non_ca_helpers.typing import PVValue
 
 from .channel_access_exceptions import (
     InvalidEnumStringException,

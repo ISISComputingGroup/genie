@@ -10,8 +10,7 @@ from .utilities import dehex_decompress_and_dejson
 
 DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
 
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+from ibex_non_ca_helpers.typing import PVValue
 
 
 class BlockNamesManager:
