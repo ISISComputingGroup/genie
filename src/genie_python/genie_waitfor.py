@@ -2,18 +2,17 @@
 Classes allowing you to wait for states
 """
 
-from __future__ import absolute_import, print_function
-
 from abc import ABCMeta, abstractmethod
-from builtins import object, str
+from collections.abc import Callable
 from datetime import datetime, timedelta
 from time import sleep, strptime
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 from genie_python.utilities import check_break, get_time_delta
 
 if TYPE_CHECKING:
     from ibex_non_ca_helpers import PVValue
+
     from genie_python.genie_epics_api import API
 
 NUMERIC_TYPE = (float, int)
@@ -31,7 +30,7 @@ SECONDS_UNTIL_RENOTIFY_EXCEPTION = 5 * 60
 # When the exception disappears pv reconnected is printed once
 
 
-class WaitForControllerState(object, metaclass=ABCMeta):
+class WaitForControllerState(metaclass=ABCMeta):
     """
     The abstract class for the exception state of the
      WaitForController when it is in the loop in the start_waiting method.
@@ -99,7 +98,6 @@ class WaitForControllerState(object, metaclass=ABCMeta):
         :param exception: The exception to handle
         :return: The state the context is now in (could be the same or a transition)
         """
-        pass
 
     @abstractmethod
     def exception_cleared(self) -> "WaitForControllerState|None":
@@ -107,7 +105,6 @@ class WaitForControllerState(object, metaclass=ABCMeta):
         When there is no exception handle it.
         :return: The state the context is now in (could be the same or a transition)
         """
-        pass
 
     @abstractmethod
     def enter(self) -> None:
@@ -115,7 +112,6 @@ class WaitForControllerState(object, metaclass=ABCMeta):
         When this state is first entered handle it.
         :return: None
         """
-        pass
 
 
 class WaitForControllerExceptionState(WaitForControllerState):
@@ -160,8 +156,9 @@ class WaitForControllerExceptionState(WaitForControllerState):
         :param exception: The exception to print
         :return: None
         """
-        message = "{}: Exception in waitfor loop: {}: {}".format(
-            str(datetime.now()), exception.__class__.__name__, exception
+        message = (
+            f"{datetime.now()!s}: "
+            f"Exception in waitfor loop: {exception.__class__.__name__}: {exception}"
         )
         print(message)
         self._api.logger.log_info_msg(message)
@@ -204,7 +201,7 @@ class WaitForControllerConnectedState(WaitForControllerState):
         Print to the console that the pv is connected.
         :return: None
         """
-        message = "{}: Exception cleared".format(str(datetime.now()))
+        message = f"{datetime.now()!s}: Exception cleared"
         print(message)
         self._api.logger.log_info_msg(message)
 
@@ -216,7 +213,7 @@ class WaitForControllerConnectedState(WaitForControllerState):
         self.print_exception_cleared()
 
 
-class WaitForControllerExceptionContext(object):
+class WaitForControllerExceptionContext:
     """
     The exception context of the WaitForController when it is
     in the loop in the start_waiting method
@@ -240,7 +237,7 @@ class WaitForControllerExceptionContext(object):
             self._state = self._state.process_exception(exception)
 
 
-class WaitForController(object):
+class WaitForController:
     """
     Controller for waiting for states
     """
@@ -257,8 +254,8 @@ class WaitForController(object):
         self,
         block: str | None = None,
         value: "PVValue | None" = None,
-        lowlimit: float | int | None = None,
-        highlimit: float | int | None = None,
+        lowlimit: float | None = None,
+        highlimit: float | None = None,
         maxwait: float | None = None,
         wait_all: bool = False,
         seconds: float | None = None,
@@ -307,15 +304,15 @@ class WaitForController(object):
         self.api.logger.log_info_msg("WAITFOR STARTED")
         if maxwait is not None:
             if not isinstance(maxwait, NUMERIC_TYPE):
-                raise Exception("The value entered for maxwait was invalid, it should be numeric.")
+                raise ValueError("The value entered for maxwait was invalid, it should be numeric.")
             else:
-                timeout_msg = "[timeout={}]".format(timedelta(seconds=maxwait).total_seconds())
+                timeout_msg = f"[timeout={timedelta(seconds=maxwait).total_seconds()}]"
         if seconds is not None and not isinstance(seconds, NUMERIC_TYPE):
-            raise Exception("Invalid value entered for seconds")
+            raise ValueError("Invalid value entered for seconds")
         if minutes is not None and not isinstance(minutes, NUMERIC_TYPE):
-            raise Exception("Invalid value entered for minutes")
+            raise ValueError("Invalid value entered for minutes")
         if hours is not None and not isinstance(hours, NUMERIC_TYPE):
-            raise Exception("Invalid value entered for hours")
+            raise ValueError("Invalid value entered for hours")
         if time is not None:
             try:
                 ans = strptime(time, "%H:%M:%S")
@@ -323,50 +320,48 @@ class WaitForController(object):
                 minutes = ans.tm_min
                 hours = ans.tm_hour
             except Exception:
-                raise Exception(
+                raise ValueError(
                     "Time string entered was invalid. It should be of the form HH:MM:SS"
                 )
         if frames is not None:
             if not isinstance(frames, int):
-                raise Exception("Invalid value entered for frames")
+                raise ValueError("Invalid value entered for frames")
             else:
-                self._print_if_not_quiet(
-                    "Waiting for {} frames {}".format(frames, timeout_msg), quiet
-                )
+                self._print_if_not_quiet(f"Waiting for {frames} frames {timeout_msg}", quiet)
         if raw_frames is not None:
             if not isinstance(raw_frames, int):
-                raise Exception("Invalid value entered for raw_frames")
+                raise ValueError("Invalid value entered for raw_frames")
             else:
                 self._print_if_not_quiet(
-                    "Waiting for {} raw frames {}".format(raw_frames, timeout_msg), quiet
+                    f"Waiting for {raw_frames} raw frames {timeout_msg}", quiet
                 )
         if uamps is not None:
             if not (isinstance(uamps, NUMERIC_TYPE)):
-                raise Exception("Invalid value entered for uamps")
+                raise ValueError("Invalid value entered for uamps")
             else:
-                self._print_if_not_quiet(
-                    "Waiting for {} uamps {}".format(uamps, timeout_msg), quiet
-                )
+                self._print_if_not_quiet(f"Waiting for {uamps} uamps {timeout_msg}", quiet)
         if mevents is not None:
             if not (isinstance(mevents, NUMERIC_TYPE)):
-                raise Exception("Invalid value entered for mevents")
+                raise ValueError("Invalid value entered for mevents")
             else:
                 self._print_if_not_quiet(
-                    "Waiting for {} million events {}".format(mevents, timeout_msg), quiet
+                    f"Waiting for {mevents} million events {timeout_msg}", quiet
                 )
 
         if block is not None:
             if not self.api.block_exists(block):
-                raise NameError('No block with the name "{}" exists'.format(block))
+                raise NameError(f'No block with the name "{block}" exists')
             block = self.api.correct_blockname(block, add_prefix=False)
             if value is not None and (not isinstance(value, NUMERIC_TYPE + (str,))):
-                raise Exception(
+                raise ValueError(
                     "The value entered for the block was invalid, it should be numeric or a string."
                 )
             if lowlimit is not None and (not isinstance(lowlimit, NUMERIC_TYPE)):
-                raise Exception("The value entered for lowlimit was invalid, it should be numeric.")
+                raise ValueError(
+                    "The value entered for lowlimit was invalid, it should be numeric."
+                )
             if highlimit is not None and (not isinstance(highlimit, NUMERIC_TYPE)):
-                raise Exception(
+                raise ValueError(
                     "The value entered for highlimit was invalid, it should be numeric."
                 )
 
@@ -379,12 +374,11 @@ class WaitForController(object):
         context = WaitForControllerExceptionContext(self.api)
 
         while True:
-            if maxwait is not None:
-                if datetime.now() - start_time >= timedelta(seconds=maxwait):
-                    print("Waitfor timed out after {} seconds".format(maxwait))
-                    print("End time: {}".format(datetime.now().time().strftime("%H:%M:%S")))
-                    self.api.logger.log_info_msg("WAITFOR TIMED OUT")
-                    return
+            if maxwait is not None and datetime.now() - start_time >= timedelta(seconds=maxwait):
+                print(f"Waitfor timed out after {maxwait} seconds")
+                print("End time: {}".format(datetime.now().time().strftime("%H:%M:%S")))
+                self.api.logger.log_info_msg("WAITFOR TIMED OUT")
+                return
 
             if early_exit():
                 print("Early exit handler evaluated to true in waitfor - stopping wait")
@@ -479,9 +473,9 @@ class WaitForController(object):
 
     def _init_wait_time(
         self,
-        seconds: float | int | None,
-        minutes: float | int | None,
-        hours: float | int | None,
+        seconds: float | None,
+        minutes: float | None,
+        hours: float | None,
         quiet: bool = False,
         timeout_msg: str = "",
     ) -> None:
@@ -489,7 +483,7 @@ class WaitForController(object):
         if self.time_delta is not None:
             self.start_time = datetime.now()
             self._print_if_not_quiet(
-                "Waiting for {} seconds {}".format(self.time_delta.total_seconds(), timeout_msg),
+                f"Waiting for {self.time_delta.total_seconds()} seconds {timeout_msg}",
                 quiet,
             )
         else:
@@ -497,19 +491,16 @@ class WaitForController(object):
 
     def _waiting_for_time(self) -> bool:
         if (self.start_time is None) or (self.time_delta is None):
-            raise Exception("start_time and time_delta must not be None")
+            raise ValueError("start_time and time_delta must not be None")
         else:
-            if datetime.now() - self.start_time >= self.time_delta:
-                return False
-            else:
-                return True
+            return not datetime.now() - self.start_time >= self.time_delta
 
     def _init_wait_block(
         self,
         block: str | None,
         value: "PVValue",
-        lowlimit: float | int | None,
-        highlimit: float | int | None,
+        lowlimit: float | None,
+        highlimit: float | None,
         quiet: bool = False,
         timeout_msg: str = "",
     ) -> None:
@@ -518,21 +509,18 @@ class WaitForController(object):
             return
         self.low, self.high = self._get_block_limits(value, lowlimit, highlimit)
         if self.low is None and self.high is None:
-            raise Exception("No limit(s) set for {0}".format(block))
+            raise ValueError(f"No limit(s) set for {block}")
         if self.low == self.high:
-            self._print_if_not_quiet(
-                "Waiting for {0}={1}{2}".format(str(block), str(self.low), timeout_msg), quiet
-            )
+            self._print_if_not_quiet(f"Waiting for {block!s}={self.low!s}{timeout_msg}", quiet)
         else:
             self._print_if_not_quiet(
-                "Waiting for {0} (lowlimit={1}, highlimit={2}){3}".format(
-                    str(block), str(self.low), str(self.high), timeout_msg
-                ),
+                f"Waiting for {block!s} (lowlimit={self.low!s}, "
+                f"highlimit={self.high!s}){timeout_msg}",
                 quiet,
             )
 
     def _get_block_limits(
-        self, value: "PVValue", lowlimit: float | int | None, highlimit: float | int | None
+        self, value: "PVValue", lowlimit: float | None, highlimit: float | None
     ) -> tuple["PVValue | None", "PVValue | None"]:
         low = None
         high = None
@@ -546,8 +534,8 @@ class WaitForController(object):
         if isinstance(low, NUMERIC_TYPE) and isinstance(high, NUMERIC_TYPE) and low > high:
             low, high = high, low
             print(
-                "WARNING: The highlimit and lowlimit have been \
-                swapped to lowlimit({}) and highlimit({})".format(low, high)
+                f"WARNING: The highlimit and lowlimit have been \
+                swapped to lowlimit({low}) and highlimit({high})"
             )
         return low, high
 

@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import
 
 import datetime
 import unittest
@@ -47,8 +46,10 @@ class TestGetExperimentData(unittest.TestCase):
                 [1, "a", "%"],
                 [1, None, None],
                 True,
-                'User with name "a" was not found. Please make sure the title and'
-                ' name are correct (e.g. "Dr John Smith").',
+                (
+                    'User with name "a" was not found. Please make sure the title and'
+                    ' name are correct (e.g. "Dr John Smith").'
+                ),
             ),
             ([1, "a", "b"], [1, "a", "b"], False, "%"),
             ([1, "a", "b"], [1, "a", None], True, 'Role "{role}" was not found. Existing roles: '),
@@ -57,8 +58,10 @@ class TestGetExperimentData(unittest.TestCase):
                 ["%", "a", "%"],
                 [None, None, None],
                 True,
-                'User with name "a" was not found. Please make sure the title and'
-                ' name are correct (e.g. "Dr John Smith").',
+                (
+                    'User with name "a" was not found. Please make sure the title and'
+                    ' name are correct (e.g. "Dr John Smith").'
+                ),
             ),
             (["%", "%", "b"], [None, None, "b"], False, "%"),
             (
@@ -88,57 +91,73 @@ class TestGetExperimentData(unittest.TestCase):
                 "%",
                 "%",
                 "%",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND u.name LIKE '%' AND r.name LIKE '%' "
-                f"ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND u.name LIKE '%' AND r.name LIKE '%' "
+                    f"ORDER BY experimentID DESC"
+                ),
             ),
             (
                 123,
                 "%",
                 "%",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND u.name LIKE '%' AND r.name LIKE '%' "
-                f"ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND u.name LIKE '%' AND r.name LIKE '%' "
+                    f"ORDER BY experimentID DESC"
+                ),
             ),
             (
                 "%",
                 "name",
                 "%",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND upper(u.name) = upper(%s) "
-                f"AND r.name LIKE '%' ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND upper(u.name) = upper(%s) "
+                    f"AND r.name LIKE '%' ORDER BY experimentID DESC"
+                ),
             ),
             (
                 "%",
                 "%",
                 "role",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND u.name LIKE '%' AND "
-                f"upper(r.name) = upper(%s) ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND u.name LIKE '%' AND "
+                    f"upper(r.name) = upper(%s) ORDER BY experimentID DESC"
+                ),
             ),
             (
                 123,
                 "user",
                 "%",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND upper(u.name) = upper(%s) AND r.name LIKE '%' "
-                f"ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND upper(u.name) = upper(%s) AND r.name LIKE '%' "
+                    f"ORDER BY experimentID DESC"
+                ),
             ),
             (
                 123,
                 "%",
                 "role",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND u.name LIKE '%' AND upper(r.name) = upper(%s) "
-                f"ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND u.name LIKE '%' AND upper(r.name) = upper(%s) "
+                    f"ORDER BY experimentID DESC"
+                ),
             ),
             (
                 "%",
                 "name",
                 "role",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND upper(u.name) = upper(%s) "
-                f"AND upper(r.name) = upper(%s) ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID LIKE '%' AND upper(u.name) = upper(%s) "
+                    f"AND upper(r.name) = upper(%s) ORDER BY experimentID DESC"
+                ),
             ),
             (
                 123,
                 "name",
                 "role",
-                f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND upper(u.name) = upper(%s) "
-                f"AND upper(r.name) = upper(%s) ORDER BY experimentID DESC",
+                (
+                    f"{SELECT_FOR_EXP_DETAILS} WHERE e.experimentID = %s AND upper(u.name) = upper(%s) "
+                    f"AND upper(r.name) = upper(%s) ORDER BY experimentID DESC"
+                ),
             ),
         ]
     )
@@ -304,18 +323,30 @@ class TestGetExperimentData(unittest.TestCase):
                     },
                 ],
                 [
-                    "Experiment RB number: 1    | User: user_name_-      | Role: role_name_-       | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_1",
-                    "Experiment RB number: 22   | User: user_name_--     | Role: role_name_--      | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_22",
-                    "Experiment RB number: 332  | User: user_name_---    | Role: role_name_--      | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_332",
-                    "Experiment RB number: 4413 | User: user_name_-      | Role: role_name_---     | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_4413",
-                    "Experiment RB number: 167  | User: user_name_------ | Role: role_name_------- | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_167",
-                    "Experiment RB number: 1    | User: user_name_-      | Role: role_name_-       | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_1",
+                    (
+                        "Experiment RB number: 1    | User: user_name_-      | Role: role_name_-       | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_1"
+                    ),
+                    (
+                        "Experiment RB number: 22   | User: user_name_--     | Role: role_name_--      | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_22"
+                    ),
+                    (
+                        "Experiment RB number: 332  | User: user_name_---    | Role: role_name_--      | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_332"
+                    ),
+                    (
+                        "Experiment RB number: 4413 | User: user_name_-      | Role: role_name_---     | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_4413"
+                    ),
+                    (
+                        "Experiment RB number: 167  | User: user_name_------ | Role: role_name_------- | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_167"
+                    ),
+                    (
+                        "Experiment RB number: 1    | User: user_name_-      | Role: role_name_-       | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_1"
+                    ),
                 ],
             ),
             (
@@ -329,8 +360,10 @@ class TestGetExperimentData(unittest.TestCase):
                     },
                 ],
                 [
-                    "Experiment RB number: 1 | User: user_name_- | Role: role_name_- | Start date: 2020-09-15 08:30:00"
-                    " | Duration: duration_1"
+                    (
+                        "Experiment RB number: 1 | User: user_name_- | Role: role_name_- | Start date: 2020-09-15 08:30:00"
+                        " | Duration: duration_1"
+                    )
                 ],
             ),
             (
@@ -351,10 +384,14 @@ class TestGetExperimentData(unittest.TestCase):
                     },
                 ],
                 [
-                    "Experiment RB number: 167 | User: user_name_------ | Role: role_name_------- | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_167",
-                    "Experiment RB number: 1   | User: user_name_-      | Role: role_name_-       | Start date: "
-                    "2020-09-15 08:30:00 | Duration: duration_1",
+                    (
+                        "Experiment RB number: 167 | User: user_name_------ | Role: role_name_------- | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_167"
+                    ),
+                    (
+                        "Experiment RB number: 1   | User: user_name_-      | Role: role_name_-       | Start date: "
+                        "2020-09-15 08:30:00 | Duration: duration_1"
+                    ),
                 ],
             ),
             (
@@ -375,10 +412,14 @@ class TestGetExperimentData(unittest.TestCase):
                     },
                 ],
                 [
-                    "Experiment RB number: 1  | User: user_name_-  | Role: role_name_-  | Start date: 2020-09-15 "
-                    "08:30:00 | Duration: duration_1",
-                    "Experiment RB number: 22 | User: user_name_-- | Role: role_name_-- | Start date: 2020-09-15 "
-                    "08:30:00 | Duration: duration_22",
+                    (
+                        "Experiment RB number: 1  | User: user_name_-  | Role: role_name_-  | Start date: 2020-09-15 "
+                        "08:30:00 | Duration: duration_1"
+                    ),
+                    (
+                        "Experiment RB number: 22 | User: user_name_-- | Role: role_name_-- | Start date: 2020-09-15 "
+                        "08:30:00 | Duration: duration_22"
+                    ),
                 ],
             ),
         ]

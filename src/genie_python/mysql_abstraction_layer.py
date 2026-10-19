@@ -18,8 +18,8 @@ Abstracting out the SQL connection.
 # http://opensource.org/licenses/eclipse-1.0.php
 
 from abc import abstractmethod
-from collections.abc import Iterable
-from typing import Generator, List, Optional, TypeAlias
+from collections.abc import Generator, Iterable
+from typing import TypeAlias
 
 import mysql.connector
 from mysql.connector.abstracts import MySQLCursorAbstract
@@ -27,7 +27,6 @@ from mysql.connector.connection import MySQLConnection
 from mysql.connector.pooling import PooledMySQLConnection
 from mysql.connector.types import ParamsSequenceOrDictType, RowType
 
-ParamsSequenceOrDictType = ParamsSequenceOrDictType
 MySQLConnectionAbstract: TypeAlias = MySQLConnection | PooledMySQLConnection
 
 
@@ -37,10 +36,10 @@ class DatabaseError(IOError):
     """
 
     def __init__(self, message: str) -> None:
-        super(DatabaseError, self).__init__(message)
+        super().__init__(message)
 
 
-class AbstractSQLCommands(object):
+class AbstractSQLCommands:
     """
     Abstract base class for sql commands for testing
     """
@@ -75,8 +74,8 @@ class AbstractSQLCommands(object):
 
     @abstractmethod
     def _execute_command(
-        self, command: str, is_query: bool, bound_variables: Optional[ParamsSequenceOrDictType]
-    ) -> Optional[List[RowType]]:
+        self, command: str, is_query: bool, bound_variables: ParamsSequenceOrDictType | None
+    ) -> list[RowType] | None:
         """Executes a command on the database, and returns all values
 
         Args:
@@ -89,8 +88,8 @@ class AbstractSQLCommands(object):
         raise NotImplementedError()
 
     def query(
-        self, command: str, bound_variables: Optional[ParamsSequenceOrDictType] = None
-    ) -> Optional[List[RowType]]:
+        self, command: str, bound_variables: ParamsSequenceOrDictType | None = None
+    ) -> list[RowType] | None:
         """Executes a query on the database, and returns all values
 
         Args:
@@ -103,9 +102,7 @@ class AbstractSQLCommands(object):
         """
         return self._execute_command(command, True, bound_variables)
 
-    def update(
-        self, command: str, bound_variables: Optional[ParamsSequenceOrDictType] = None
-    ) -> None:
+    def update(self, command: str, bound_variables: ParamsSequenceOrDictType | None = None) -> None:
         """Executes an update on the database, and returns all values
 
         Args:
@@ -134,7 +131,7 @@ class SQLAbstraction(AbstractSQLCommands):
             password: The password to use to connect to the database
             host: The host address to use, defaults to local host
         """
-        super(SQLAbstraction, self).__init__()
+        super().__init__()
         self._dbid = dbid
         self._user = user
         self._password = password
@@ -154,7 +151,7 @@ class SQLAbstraction(AbstractSQLCommands):
         a connection in the pool is made with the frist set of credentials passed, so we
         have to make sure a pool name is not used with different credentials
         """
-        return "DBSVR_%s_%s_%s" % (self._host, self._dbid, self._user)
+        return f"DBSVR_{self._host}_{self._dbid}_{self._user}"
 
     def _close_handles(
         self, curs: MySQLCursorAbstract | None, conn: MySQLConnectionAbstract | None
@@ -190,7 +187,7 @@ class SQLAbstraction(AbstractSQLCommands):
         curs.execute("SHOW TABLES")
         if len(curs.fetchall()) == 0:
             # Database does not exist
-            raise Exception("Requested Database %s does not exist" % self._dbid)
+            raise OSError(f"Requested Database {self._dbid} does not exist")
         self._close_handles(curs, conn)
 
     def _get_connection(self) -> MySQLConnectionAbstract:
@@ -199,11 +196,11 @@ class SQLAbstraction(AbstractSQLCommands):
             assert isinstance(conn, MySQLConnectionAbstract)
             return conn
         except Exception as err:
-            raise Exception("Unable to get connection from pool: %s" % str(err))
+            raise OSError(f"Unable to get connection from pool: {err!s}")
 
     def _execute_command(
-        self, command: str, is_query: bool, bound_variables: Optional[ParamsSequenceOrDictType]
-    ) -> Optional[List[RowType]]:
+        self, command: str, is_query: bool, bound_variables: ParamsSequenceOrDictType | None
+    ) -> list[RowType] | None:
         """Executes a command on the database, and returns all values
 
         Args:
@@ -226,7 +223,7 @@ class SQLAbstraction(AbstractSQLCommands):
             if is_query:
                 values = curs.fetchall()
                 if values is not None and len(values) > 0:
-                    isinstance(values[0], List)
+                    isinstance(values[0], list)
 
             # Commit as part of the query or results won't be updated between subsequent
             # transactions. Can lead to values not auto-updating in the GUI.
@@ -260,8 +257,7 @@ class SQLAbstraction(AbstractSQLCommands):
             assert isinstance(curs, Iterable)
             curs.execute(command, bound_variables)
 
-            for row in curs:
-                yield row
+            yield from curs
 
             # Commit as part of the query or results won't be updated between subsequent
             #  transactions. Can lead to values not auto-updating in the GUI.

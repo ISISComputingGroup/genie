@@ -1,19 +1,16 @@
-from __future__ import absolute_import, print_function
-
 import json
 import os
 import re
 import xml.etree.ElementTree as ET
 import zlib
 from binascii import hexlify
-from builtins import str
 from collections import namedtuple
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime, timedelta
-from io import open
 from stat import S_IREAD, S_IWUSR
 from time import sleep, strftime
-from typing import TYPE_CHECKING, Generator, cast
+from typing import TYPE_CHECKING, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -25,6 +22,8 @@ except ImportError:
     # Note: caffi dynamically added to dependencies by CaChannel if not using built backend.
     from caffi.ca import AlarmCondition, AlarmSeverity  # type: ignore[reportMissingImports]
 
+from ibex_non_ca_helpers.typing import PVValue
+
 from genie_python.genie_cachannel_wrapper import CaChannelWrapper
 from genie_python.genie_change_cache import ChangeCache
 from genie_python.utilities import (
@@ -34,7 +33,6 @@ from genie_python.utilities import (
     require_runstate,
     waveform_to_string,
 )
-from ibex_non_ca_helpers.typing import PVValue
 
 if TYPE_CHECKING:
     from genie_python.genie import _GetspectrumReturn
@@ -150,7 +148,7 @@ EXT3_VETO = "ext3"
 FIFO_VETO = "fifo"
 
 
-class Dae(object):
+class Dae:
     """
     Communications with the DAE pvs.
     """
@@ -245,7 +243,7 @@ class Dae(object):
         """
         status = self._get_pv_value(pv + ".STAT", to_string=True)
         if status != "NO_ALARM":
-            raise Exception(
+            raise OSError(
                 "{} {}".format(
                     header.strip(),
                     self._get_pv_value(self._get_dae_pv_name("errormessage"), to_string=True),
@@ -287,7 +285,7 @@ class Dae(object):
             else:
                 print("Setting DAE messages to non-verbose mode")
         else:
-            raise Exception("Value must be boolean")
+            raise TypeError("Value must be boolean")
 
     @require_runstate(["SETUP"])
     def begin_run(
@@ -316,7 +314,7 @@ class Dae(object):
             prepost - run pre and post commands [optional]
         """
         if self.in_change:
-            raise Exception("Cannot start in CHANGE mode, type change_finish()")
+            raise ValueError("Cannot start in CHANGE mode, type change_finish()")
 
         # Set sample parameters
         sample_pars = {
@@ -332,7 +330,7 @@ class Dae(object):
         # Check PV exists
         val = self._get_pv_value(self._get_dae_pv_name("beginrun"))
         if val is None:
-            raise Exception("begin_run: could not connect to DAE")
+            raise OSError("begin_run: could not connect to DAE")
 
         if period is not None:
             # Set the period before starting the run
@@ -351,8 +349,8 @@ class Dae(object):
                     "The following details will currently be used to determine"
                     "ownership of the data file"
                 )
-                print("*  Proposal Number: {}".format(self.get_rb_number()))
-                print("*  Experiment Team: {}".format(self.get_users()))
+                print(f"*  Proposal Number: {self.get_rb_number()}")
+                print(f"*  Experiment Team: {self.get_users()}")
                 print("If this is incorrect, you can change it any time before the run is ENDed\n")
             except Exception as e:
                 print(f"WARNING: Unable to read RB/Users from service: {e}")
@@ -385,7 +383,7 @@ class Dae(object):
                 """
                 message = waveform_to_string(message)
                 if message:
-                    print("ISISICP error: {}".format(message))
+                    print(f"ISISICP error: {message}")
 
             _cancel_monitor_fn = CaChannelWrapper.add_monitor(
                 self._get_dae_pv_name("errormessage"), callback_function
@@ -434,11 +432,9 @@ class Dae(object):
             prepost - run pre and post commands [optional]
         """
         print(
-            (
-                "** Aborting Run {} at {} "
-                "(the run will not be saved, call g.recover() to undo this)".format(
-                    self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")
-                )
+            "** Aborting Run {} at {} "
+            "(the run will not be saved, call g.recover() to undo this)".format(
+                self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")
             )
         )
         self._set_pv_value(self._get_dae_pv_name("abortrun", base=not prepost), 1, wait=True)
@@ -477,7 +473,7 @@ class Dae(object):
 
         run_number = self.get_run_number()
         if not quiet:
-            print(("** Ending Run {} at {}".format(run_number, strftime("%H:%M:%S %d/%m/%y "))))
+            print("** Ending Run {} at {}".format(run_number, strftime("%H:%M:%S %d/%m/%y ")))
 
         self.api.logger.log_info_msg(f"END: run number: {run_number}")
         try:
@@ -532,7 +528,7 @@ class Dae(object):
         This is more efficient than doing the commands separately.
         """
         print(
-            ("** Saving Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")))
+            "** Saving Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         )
         self._set_pv_value(self._get_dae_pv_name("saverun"), 1, wait=True)
 
@@ -618,11 +614,7 @@ class Dae(object):
             return
 
         print(
-            (
-                "** Pausing Run {} at {}".format(
-                    self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")
-                )
-            )
+            "** Pausing Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         )
 
         if immediate:
@@ -648,11 +640,7 @@ class Dae(object):
             prepost - run pre and post commands [optional]
         """
         print(
-            (
-                "** Resuming Run {} at {}".format(
-                    self.get_run_number(), strftime("%H:%M:%S %d/%m/%y ")
-                )
-            )
+            "** Resuming Run {} at {}".format(self.get_run_number(), strftime("%H:%M:%S %d/%m/%y "))
         )
         self._set_pv_value(self._get_dae_pv_name("resumerun", base=not prepost), 1, wait=True)
 
@@ -681,8 +669,8 @@ class Dae(object):
         """
         try:
             return self._get_pv_value(self._get_dae_pv_name("runstate"), to_string=True)
-        except IOError:
-            raise IOError("get_run_state: could not get run state")
+        except OSError:
+            raise OSError("get_run_state: could not get run state")
 
     def get_run_number(self) -> str:
         """
@@ -744,7 +732,7 @@ class Dae(object):
             self._set_pv_value(self._get_dae_pv_name("period_sp"), period, wait=True)
 
             if self.api.get_pv_alarm(self._get_dae_pv_name("period_sp")) == "INVALID":
-                raise IOError(
+                raise OSError(
                     f"You are trying to set an invalid period number {period}! "
                     f"The number must be between 1 and {self.get_num_periods()}."
                 )
@@ -1293,7 +1281,7 @@ class Dae(object):
         elif source == "isis (ts1 only)":
             value = 6
         else:
-            raise Exception("Invalid timing source entered, try help(change_sync)!")
+            raise ValueError("Invalid timing source entered, try help(change_sync)!")
         self.change_cache.dae_sync = value
         if did_change:
             self.change_finish()
@@ -1315,13 +1303,13 @@ class Dae(object):
             did_change = True
         if tcb_file is not None:
             tcb_file = get_correct_path(tcb_file)
-            print(("Reading TCB boundaries from {}".format(tcb_file)))
+            print(f"Reading TCB boundaries from {tcb_file}")
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
         else:
-            raise Exception("No tcb file specified")
+            raise ValueError("No tcb file specified")
         if not os.path.exists(tcb_file):
-            raise Exception("Tcb file could not be found")
+            raise OSError("Tcb file could not be found")
         self.change_cache.tcb_file = tcb_file
         self.change_cache.tcb_calculation_method = 1
         if did_change:
@@ -1346,19 +1334,19 @@ class Dae(object):
         low_changed, high_changed, step_changed = (c is not None for c in [low, high, step])
 
         if low_changed and high_changed:
-            out += "range {} to {} ".format(low, high)
+            out += f"range {low} to {high} "
         elif low_changed:
-            out += "low limit to {} ".format(low)
+            out += f"low limit to {low} "
         elif high_changed:
-            out += "high limit to {} ".format(high)
+            out += f"high limit to {high} "
 
         if step_changed:
-            out += "step {} ".format(step)
+            out += f"step {step} "
 
         if not any([low_changed, high_changed, step_changed]):
-            out += "to {}".format(binning)
+            out += f"to {binning}"
         else:
-            out += "({})".format(binning)
+            out += f"({binning})"
 
         return out
 
@@ -1382,7 +1370,7 @@ class Dae(object):
             log: whether to use LOG binning [optional]
             regime: the time regime to set (1 to 6)[optional]
         """
-        print((self._create_tcb_return_string(low, high, step, log)))
+        print(self._create_tcb_return_string(low, high, step, log))
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1431,17 +1419,17 @@ class Dae(object):
         ]
 
         # Change keys to be case insensitive
-        params = dict((k.lower(), v) for k, v in params.items())
+        params = {k.lower(): v for k, v in params.items()}
 
         # Check for invalid veto names and invalid (non-boolean) values
         not_bool = []
         for k, v in params.items():
             if k not in valid_vetoes:
-                raise Exception("Invalid veto name: {}".format(k))
+                raise ValueError(f"Invalid veto name: {k}")
             if not isinstance(v, bool):
                 not_bool.append(k)
         if len(not_bool) > 0:
-            raise Exception(
+            raise TypeError(
                 "Vetoes must be set to True or False, "
                 "the following vetoes were incorrect: {}".format(" ".join(not_bool))
             )
@@ -1457,30 +1445,22 @@ class Dae(object):
             did_change = True
 
         # Clearall must be done first.
-        if CLEAR_VETO in params:
-            if isinstance(params[CLEAR_VETO], bool) and params[CLEAR_VETO]:
-                self.change_cache.clear_vetos()
-        if SMP_VETO in params:
-            if isinstance(params[SMP_VETO], bool):
-                self.change_cache.smp_veto = int(params[SMP_VETO])
-        if TS2_VETO in params:
-            if isinstance(params[TS2_VETO], bool):
-                self.change_cache.ts2_veto = int(params[TS2_VETO])
-        if HZ50_VETO in params:
-            if isinstance(params[HZ50_VETO], bool):
-                self.change_cache.hz50_veto = int(params[HZ50_VETO])
-        if EXT0_VETO in params:
-            if isinstance(params[EXT0_VETO], bool):
-                self.change_cache.ext0_veto = int(params[EXT0_VETO])
-        if EXT1_VETO in params:
-            if isinstance(params[EXT1_VETO], bool):
-                self.change_cache.ext1_veto = int(params[EXT1_VETO])
-        if EXT2_VETO in params:
-            if isinstance(params[EXT2_VETO], bool):
-                self.change_cache.ext2_veto = int(params[EXT2_VETO])
-        if EXT3_VETO in params:
-            if isinstance(params[EXT3_VETO], bool):
-                self.change_cache.ext3_veto = int(params[EXT3_VETO])
+        if CLEAR_VETO in params and isinstance(params[CLEAR_VETO], bool) and params[CLEAR_VETO]:
+            self.change_cache.clear_vetos()
+        if SMP_VETO in params and isinstance(params[SMP_VETO], bool):
+            self.change_cache.smp_veto = int(params[SMP_VETO])
+        if TS2_VETO in params and isinstance(params[TS2_VETO], bool):
+            self.change_cache.ts2_veto = int(params[TS2_VETO])
+        if HZ50_VETO in params and isinstance(params[HZ50_VETO], bool):
+            self.change_cache.hz50_veto = int(params[HZ50_VETO])
+        if EXT0_VETO in params and isinstance(params[EXT0_VETO], bool):
+            self.change_cache.ext0_veto = int(params[EXT0_VETO])
+        if EXT1_VETO in params and isinstance(params[EXT1_VETO], bool):
+            self.change_cache.ext1_veto = int(params[EXT1_VETO])
+        if EXT2_VETO in params and isinstance(params[EXT2_VETO], bool):
+            self.change_cache.ext2_veto = int(params[EXT2_VETO])
+        if EXT3_VETO in params and isinstance(params[EXT3_VETO], bool):
+            self.change_cache.ext3_veto = int(params[EXT3_VETO])
 
         if did_change:
             self.change_finish()
@@ -1511,7 +1491,7 @@ class Dae(object):
                     )
                 del params[FIFO_VETO]
             else:
-                raise Exception("FIFO veto must be set to True or False")
+                raise TypeError("FIFO veto must be set to True or False")
         return params
 
     def set_fermi_veto(
@@ -1529,20 +1509,18 @@ class Dae(object):
             Exception: if invalid typed value supplied.
         """
         if not isinstance(enable, bool):
-            raise Exception("Fermi veto: enable must be a boolean value")
+            raise TypeError("Fermi veto: enable must be a boolean value")
         if not isinstance(delay, float) and not isinstance(delay, int):
-            raise Exception("Fermi veto: delay must be a numeric value")
+            raise TypeError("Fermi veto: delay must be a numeric value")
         if not isinstance(width, float) and not isinstance(width, int):
-            raise Exception("Fermi veto: width must be a numeric value")
+            raise TypeError("Fermi veto: width must be a numeric value")
         did_change = False
         if not self.in_change:
             self.change_start()
             did_change = True
         if enable:
             self.change_cache.set_fermi(1, delay, width)
-            print(
-                ("SET_FERMI_VETO: requested status is ON, delay: {} width: {}".format(delay, width))
-            )
+            print(f"SET_FERMI_VETO: requested status is ON, delay: {delay} width: {width}")
         else:
             self.change_cache.set_fermi(0)
             print("SET_FERMI_VETO: requested status is OFF")
@@ -1560,7 +1538,7 @@ class Dae(object):
             Exception: if wrongly typed value supplied
         """
         if not isinstance(number, float) and not isinstance(number, int):
-            raise Exception("Number of soft periods must be a numeric value")
+            raise TypeError("Number of soft periods must be a numeric value")
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1644,7 +1622,7 @@ class Dae(object):
             if period_file is not None:
                 period_file = get_correct_path(period_file)
                 if not os.path.exists(period_file):
-                    raise Exception("Period file could not be found")
+                    raise OSError("Period file could not be found")
                 self.change_cache.periods_src = 1
                 self.change_cache.periods_file = period_file
             else:
@@ -1654,7 +1632,7 @@ class Dae(object):
         elif mode.strip().lower() == "ext":
             self.change_cache.periods_type = 2
         else:
-            raise Exception('Period mode invalid, it should be "int" or "ext"')
+            raise ValueError('Period mode invalid, it should be "int" or "ext"')
         if did_change:
             self.change_finish()
 
@@ -1697,12 +1675,12 @@ class Dae(object):
             if isinstance(sequences, int):
                 self.change_cache.periods_seq = sequences
             else:
-                raise Exception("Number of period sequences must be an integer")
+                raise TypeError("Number of period sequences must be an integer")
         if output_delay is not None:
             if isinstance(output_delay, int):
                 self.change_cache.periods_delay = output_delay
             else:
-                raise Exception("Output delay of periods must be an integer (microseconds)")
+                raise TypeError("Output delay of periods must be an integer (microseconds)")
         self.define_hard_period(period, daq, dwell, unused, frames, output, label)
         if did_change:
             self.change_finish()
@@ -1764,7 +1742,7 @@ class Dae(object):
                     (period, p_type, p_frames, p_output, p_label)
                 )
             else:
-                raise Exception("Period number must be an integer from 1 to 8")
+                raise ValueError("Period number must be an integer from 1 to 8")
         if did_change:
             self.change_finish()
 
@@ -1796,8 +1774,8 @@ class Dae(object):
                 errors = " "
                 for item in tables_to_check:
                     if item.correctly_written is False:
-                        errors = "{}{} : {}, ".format(errors, item.table_type, item.cache_value)
-                raise ValueError("{} table(s) failed to write.".format(errors))
+                        errors = f"{errors}{item.table_type} : {item.cache_value}, "
+                raise ValueError(f"{errors} table(s) failed to write.")
 
     def _check_table_file_paths_correct(self, tables_to_check: list[str]) -> None:
         """Checks the wiring, detector and spectra tables in
@@ -1881,7 +1859,7 @@ class Dae(object):
             )
 
             if self.api.get_pv_alarm(self._get_dae_pv_name("periodsettings_sp")) == "INVALID":
-                raise IOError(
+                raise OSError(
                     "The DAE could not set the number of periods! "
                     "This may be because you are trying to "
                     "set a number that is too large for the DAE memory. Try a smaller number!"
@@ -1939,10 +1917,7 @@ class Dae(object):
             bool: is the DAE in transition
         """
         transition = self._get_pv_value(self._get_dae_pv_name("statetrans"))
-        if transition == "Yes":
-            return True
-        else:
-            return False
+        return transition == "Yes"
 
     def get_wiring_tables(self) -> list[str]:
         """
@@ -2004,7 +1979,7 @@ class Dae(object):
             dict: the low, high and step for the supplied range and regime
         """
         root = self._get_tcb_xml()
-        search_text = r"TR{} (\w+) {}".format(regime, trange)
+        search_text = rf"TR{regime} (\w+) {trange}"
         regex = re.compile(search_text)
         out = {}
 
@@ -2021,7 +1996,7 @@ class Dae(object):
         dae_xml = self._get_dae_settings_xml()
         for top in dae_xml.iter("String"):
             n = top.find("Name")
-            if n.text == "{} Table".format(table_type):
+            if n.text == f"{table_type} Table":
                 val = top.find("Val")
                 return val.text
 
@@ -2066,7 +2041,7 @@ class Dae(object):
         :return: True if state was reached; False otherwise
         """
         self.api.logger.log_info_msg(
-            "Trying to reach state '{}' using trigger pv '{}'".format(state, trigger_pv)
+            f"Trying to reach state '{state}' using trigger pv '{trigger_pv}'"
         )
         state_attained = False
         current_state = "Not set"
@@ -2079,9 +2054,8 @@ class Dae(object):
                 break
         else:
             self.api.logger.log_error_msg(
-                "Failed to get to state '{}' using trigger pv '{}' was in state '{}'".format(
-                    state, trigger_pv, current_state
-                )
+                f"Failed to get to state '{state}' using trigger pv "
+                f"'{trigger_pv}' was in state '{current_state}'"
             )
         return state_attained
 
@@ -2092,7 +2066,7 @@ class Dae(object):
         """
         try:
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:STOP", "Shutdown"):
-                raise IOError("Could not stop ISISDAE!")
+                raise OSError("Could not stop ISISDAE!")
             for p in psutil.process_iter():
                 try:
                     if p.name().lower() == "isisicp.exe":
@@ -2102,7 +2076,7 @@ class Dae(object):
             yield
         finally:
             if not self._isis_dae_triggered_state_was_reached("CS:PS:ISISDAE_01:START", "Running"):
-                raise IOError("Could not restart ISISDAE!")
+                raise OSError("Could not restart ISISDAE!")
 
             if self._get_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:AUTORESTART")) != "On":
                 self._set_pv_value(self._prefix_pv_name("CS:PS:ISISDAE_01:TOGGLE"), 1)
@@ -2119,7 +2093,7 @@ class Dae(object):
         existent_config_files = [p for p in DAE_CONFIG_FILE_PATHS if os.path.exists(p)]
 
         if not len(existent_config_files) > 0:
-            raise IOError("Could not find ICP configuration file")
+            raise OSError("Could not find ICP configuration file")
 
         with self.temporarily_kill_icp():
             for path in existent_config_files:
@@ -2183,9 +2157,7 @@ class Dae(object):
         else:
             if t_min < time[0]:
                 raise ValueError(
-                    "Argument from_time, {}, is less than lowest bin time, {}.".format(
-                        t_min, time[0]
-                    )
+                    f"Argument from_time, {t_min}, is less than lowest bin time, {time[0]}."
                 )
             first_bin_included = time.searchsorted(t_min, side="left")
 
@@ -2196,9 +2168,7 @@ class Dae(object):
         else:
             if t_max > time[-1]:
                 raise ValueError(
-                    "Argument to_time, {}, is greater than highest bin time, {}.".format(
-                        t_max, time[-1]
-                    )
+                    f"Argument to_time, {t_max}, is greater than highest bin time, {time[-1]}."
                 )
             last_complete_bin = time.searchsorted(t_max, side="left")
 

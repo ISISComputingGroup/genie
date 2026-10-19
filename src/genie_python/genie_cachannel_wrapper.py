@@ -2,14 +2,11 @@
 Wrapping of channel access in genie_python
 """
 
-from __future__ import absolute_import, print_function
-
 import os
 import threading
-from builtins import object
 from collections.abc import Callable
 from threading import Event
-from typing import Optional, Tuple, TypeVar
+from typing import TypeVar
 
 from CaChannel import CaChannel, CaChannelException, ca
 
@@ -48,12 +45,12 @@ CACHE_LOCK = threading.local()
 T = TypeVar("T")
 
 
-class CaChannelWrapper(object):
+class CaChannelWrapper:
     """
     Wrap CA Channel access to give utilities methods for access in one place
     """
 
-    error_log_func: Optional[Callable[[str], None]] = None
+    error_log_func: Callable[[str], None] | None = None
 
     # noinspection PyPep8Naming
     @staticmethod
@@ -69,11 +66,11 @@ class CaChannelWrapper(object):
             except Exception:
                 pass
         else:
-            print("CAERROR: {}".format(message))
+            print(f"CAERROR: {message}")
 
     # noinspection PyPep8Naming
     @staticmethod
-    def printfHandler(message: str, user_args: Tuple[T, ...]) -> None:  # noqa N802
+    def printfHandler(message: str, user_args: tuple[T, ...]) -> None:  # noqa N802
         """
         Callback used for CA printing messages.
 
@@ -84,11 +81,11 @@ class CaChannelWrapper(object):
         Returns:
             None.
         """
-        CaChannelWrapper.logError("CAMessage: {}".format(message))
+        CaChannelWrapper.logError(f"CAMessage: {message}")
 
     # noinspection PyPep8Naming
     @staticmethod
-    def CAExceptionHandler(epics_args: dict[str, str], user_args: Tuple[None]) -> None:  # noqa N802
+    def CAExceptionHandler(epics_args: dict[str, str], user_args: tuple[None]) -> None:  # noqa N802
         """
         Callback used for CA exception messages.
 
@@ -140,7 +137,7 @@ class CaChannelWrapper(object):
 
     # noinspection PyPep8Naming
     @staticmethod
-    def putCB(epics_args: Tuple[str, int, int, int], user_args: Tuple[Event, ...]) -> None:  # noqa N802
+    def putCB(epics_args: tuple[str, int, int, int], user_args: tuple[Event, ...]) -> None:  # noqa N802
         """
         Callback used for setting PV values.
 
@@ -215,12 +212,12 @@ class CaChannelWrapper(object):
         ):  # Do not check for DISP if it's already in the name of the PV to check
             if "." in name:  # If given a field on a PV, check the PV itself if DISP is set
                 name = name.split(".")[0]
-            _disp_name = "{}.DISP".format(name)
+            _disp_name = f"{name}.DISP"
             if (
                 CaChannelWrapper.pv_exists(_disp_name, 0)
                 and CaChannelWrapper.get_pv_value(_disp_name) != "0"
             ):
-                raise WriteAccessException("{} (DISP is set)".format(name))
+                raise WriteAccessException(f"{name} (DISP is set)")
 
     @staticmethod
     def get_chan(name: str, timeout: float = EXIST_TIMEOUT) -> CaChannel:
@@ -317,7 +314,7 @@ class CaChannelWrapper(object):
             return output
 
     @staticmethod
-    def get_pv_timestamp(name: str, timeout: float = TIMEOUT) -> Tuple[int, int]:
+    def get_pv_timestamp(name: str, timeout: float = TIMEOUT) -> tuple[int, int]:
         """
         Get the timestamp of when the PV was last processed.
 
@@ -434,7 +431,7 @@ class CaChannelWrapper(object):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
+        call_back_function: "Callable[[PVValue, str | None, str | None], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: bool | None = None,
@@ -484,7 +481,7 @@ class CaChannelWrapper(object):
                 epics_args.get("pv_status", AlarmCondition.No),
             )
 
-        def _connection_callback(epics_args: Tuple[T, ...], _: dict[str, str]) -> None:
+        def _connection_callback(epics_args: tuple[T, ...], _: dict[str, str]) -> None:
             if epics_args[1] == ca.CA_OP_CONN_DOWN:
                 call_back_function(chan.last_value, AlarmSeverity.Invalid, AlarmCondition.Link)
 
@@ -508,7 +505,7 @@ class CaChannelWrapper(object):
         """
         # pick first channel and perform flush on it.
         try:
-            for key, value in CACHE.map.items():
+            for value in CACHE.map.values():
                 value.poll()
                 break
         except AttributeError:
@@ -517,7 +514,7 @@ class CaChannelWrapper(object):
 
     @staticmethod
     def _wait_for_pend_event(
-        chan: CaChannel, event: Event, timeout: Optional[float] = None, interval: float = 0.1
+        chan: CaChannel, event: Event, timeout: float | None = None, interval: float = 0.1
     ) -> None:
         """
         Wait for a pending event to occur in short intervals to allow for keyboard interrupt;

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 import contextlib
 import os
 import re
@@ -7,10 +5,9 @@ import sys
 import typing
 import urllib.parse
 import urllib.request
-from builtins import str
 from collections import OrderedDict
-from io import open
-from typing import TYPE_CHECKING, Any, Callable
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from genie_python.block_names import BlockNames, BlockNamesManager
 from genie_python.channel_access_exceptions import UnableToConnectToPVException
@@ -49,7 +46,7 @@ BLOCK_NAMES = BlockNames()
 BLOCK_NAMES_MANAGER = BlockNamesManager(BLOCK_NAMES)
 
 
-class API(object):
+class API:
     def __init__(
         self,
         pv_prefix: str,
@@ -98,7 +95,7 @@ class API(object):
             hcom = ctypes.cdll.LoadLibrary(comdll)
             hcom.eltc(ctypes.c_int(0))
         except Exception as e:
-            print("Unable to disable CA console errors from {}: {}".format(comdll, e))
+            print(f"Unable to disable CA console errors from {comdll}: {e}")
 
     def get_instrument(self) -> str:
         """
@@ -178,7 +175,7 @@ class API(object):
         if instrument_details is not None:
             machine = instrument_details["hostName"]
         elif machine_identifier.startswith(instrument_pv_prefix):
-            machine = "NDX{0}".format(instrument)
+            machine = f"NDX{instrument}"
         elif machine_identifier.startswith(test_machine_pv_prefix):
             machine = instrument
         else:
@@ -224,9 +221,7 @@ class API(object):
         try:
             self.exp_data = GetExperimentData(machine)
         except Exception as e:
-            error_message = (
-                "Could not connect to database, RB numbers will not be accessible: {}".format(e)
-            )
+            error_message = f"Could not connect to database, RB numbers will not be accessible: {e}"
             self.logger.log_error_msg(error_message)
             print(error_message)
             self.exp_data = None
@@ -255,8 +250,7 @@ class API(object):
             string: the PV prefix
         """
         clean_instrument = instrument
-        if clean_instrument.endswith(":"):
-            clean_instrument = clean_instrument[:-1]
+        clean_instrument = clean_instrument.removesuffix(":")
         if len(clean_instrument) > 8:
             clean_instrument = clean_instrument[0:6] + crc8(clean_instrument)
 
@@ -264,13 +258,11 @@ class API(object):
 
         if is_instrument:
             pv_prefix_prefix = "IN"
-            print("THIS IS %s!" % self.instrument_name.upper())
+            print(f"THIS IS {self.instrument_name.upper()}!")
         else:
             pv_prefix_prefix = "TE"
-            print("THIS IS %s! (test machine)" % self.instrument_name.upper())
-        return "{prefix}:{instrument}:".format(
-            prefix=pv_prefix_prefix, instrument=self.instrument_name
-        )
+            print(f"THIS IS {self.instrument_name.upper()}! (test machine)")
+        return f"{pv_prefix_prefix}:{self.instrument_name}:"
 
     def prefix_pv_name(self, name: str) -> str:
         """
@@ -312,7 +304,7 @@ class API(object):
             import importlib
 
             # Load the instrument init file
-            self.localmod = importlib.import_module("init_{}".format(instrument))
+            self.localmod = importlib.import_module(f"init_{instrument}")
 
             _file = self.localmod.__file__
             assert _file is not None
@@ -324,9 +316,10 @@ class API(object):
             assert isinstance(file_loc, str)
             # execfile - this puts any imports in the init file into the globals namespace
             # Note: Anything loose in the module like print statements will be run twice
-            exec(compile(open(file_loc).read(), file_loc, "exec"), globs)
+            with open(file_loc) as f:
+                exec(compile(f.read(), file_loc, "exec"), globs)  # ruff: ignore[S102]
             # Call the init command
-            init_func = getattr(self.localmod, "init")
+            init_func = self.localmod.init
             init_func(machine_name)
 
     def set_pv_value(
@@ -356,10 +349,9 @@ class API(object):
                 f" is_local={is_local} attempts={attempts} ignoring because value is None"
             )
             return
-        if is_local:
-            if not name.startswith(self.inst_prefix):
-                name = self.prefix_pv_name(name)
-        self.logger.log_info_msg("set_pv_value %s %s" % (name, str(value)))
+        if is_local and not name.startswith(self.inst_prefix):
+            name = self.prefix_pv_name(name)
+        self.logger.log_info_msg(f"set_pv_value {name} {value!s}")
 
         while True:
             try:
@@ -368,8 +360,8 @@ class API(object):
             except Exception as e:
                 attempts -= 1
                 if attempts < 1:
-                    self.logger.log_error_msg("set_pv_value exception {!r}".format(e))
-                    raise e
+                    self.logger.log_error_msg(f"set_pv_value exception {e!r}")
+                    raise
 
     @typing.overload
     def get_pv_value(
@@ -415,9 +407,8 @@ class API(object):
             use_numpy (None|boolean): True use numpy to return arrays, False return a list;
                                       None for use the default
         """
-        if is_local:
-            if not name.startswith(self.inst_prefix):
-                name = self.prefix_pv_name(name)
+        if is_local and not name.startswith(self.inst_prefix):
+            name = self.prefix_pv_name(name)
 
         if not self.pv_exists(name):
             raise UnableToConnectToPVException(name, "does not exist")
@@ -425,10 +416,10 @@ class API(object):
         while True:
             try:
                 return Wrapper.get_pv_value(name, to_string, use_numpy=use_numpy)
-            except Exception as e:
+            except Exception:
                 attempts -= 1
                 if attempts < 1:
-                    raise e
+                    raise
 
     def pv_exists(self, name: str, fail_fast: bool = False, is_local: bool = False) -> bool:
         """
@@ -444,9 +435,8 @@ class API(object):
         Returns:
             bool: True if the block exists
         """
-        if is_local:
-            if not name.startswith(self.inst_prefix):
-                name = self.prefix_pv_name(name)
+        if is_local and not name.startswith(self.inst_prefix):
+            name = self.prefix_pv_name(name)
         if fail_fast:
             return Wrapper.pv_exists(name, 0)
         else:
@@ -511,7 +501,7 @@ class API(object):
 
         Note: does not include the prefix
         """
-        return [name for name in BLOCK_NAMES.__dict__.keys()]
+        return [name for name in BLOCK_NAMES.__dict__]
 
     def block_exists(self, name: str, fail_fast: bool = False) -> bool:
         """
@@ -530,8 +520,8 @@ class API(object):
         name: str,
         value: "PVValue" = None,
         runcontrol: bool | None = None,
-        lowlimit: int | float | None = None,
-        highlimit: int | float | None = None,
+        lowlimit: float | None = None,
+        highlimit: float | None = None,
         wait: bool | None = False,
     ) -> None:
         """
@@ -540,7 +530,7 @@ class API(object):
         # Run pre-command
         if wait is not None and runcontrol is not None:
             # Cannot set both at the same time
-            raise Exception(
+            raise ValueError(
                 "Cannot enable or disable runcontrol at the same time as setting a wait"
             )
 
@@ -553,15 +543,15 @@ class API(object):
         if lowlimit is not None and highlimit is not None:
             if lowlimit > highlimit:
                 print(
-                    "Low limit ({}) higher than high limit ({}), "
-                    "swapping them around for you".format(lowlimit, highlimit)
+                    f"Low limit ({lowlimit}) higher than high limit ({highlimit}), "
+                    "swapping them around for you"
                 )
                 lowlimit, highlimit = highlimit, lowlimit
             if isinstance(value, (int, float)) and wait and not lowlimit < value < highlimit:
                 # Can only warn as may move through this range whilst changing
                 print(
-                    "Warning the range {} to {} does not cover setpoint of {}, "
-                    "may wait forever".format(lowlimit, highlimit, value)
+                    f"Warning the range {lowlimit} to {highlimit} does not "
+                    f"cover setpoint of {value}, may wait forever"
                 )
 
         if value is not None:
@@ -626,10 +616,9 @@ class API(object):
             existing_block.upper() for existing_block in self.get_block_names()
         ):
             # If block doesn't exist, not found even in some form on the block server
-            raise Exception(
-                "No block with the name '{}' exists\nCurrent blocks are {}".format(
-                    block_name, self.get_block_names()
-                )
+            raise ValueError(
+                f"No block with the name '{block_name}' exists\n"
+                f"Current blocks are {self.get_block_names()}"
             )
 
         field_type = Wrapper.dbf_type_to_string(Wrapper.get_chan(pv_name).field_type())
@@ -660,7 +649,7 @@ class API(object):
                     ans[m.groups()[0]] = val
                 else:
                     self.logger.log_error_msg(
-                        "Unexpected PV found whilst retrieving parameters: {0}".format(n)
+                        f"Unexpected PV found whilst retrieving parameters: {n}"
                     )
         return ans
 
@@ -692,12 +681,12 @@ class API(object):
         if names is not None and isinstance(names, list):
             for n in names:
                 if isinstance(n, str):
-                    m = re.match(".+:SAMPLE:%s" % name.upper(), n)
+                    m = re.match(f".+:SAMPLE:{name.upper()}", n)
                     if m is not None:
                         # Found it!
                         self.set_pv_value(self.prefix_pv_name(n), value)
                         return
-        raise Exception("Sample parameter %s does not exist" % name)
+        raise ValueError(f"Sample parameter {name} does not exist")
 
     def get_beamline_pars(self) -> "_GetbeamlineparsReturn":
         """
@@ -726,11 +715,11 @@ class API(object):
 
         if names is not None:
             for n in names:
-                m = re.match(".+:BL:%s" % name.upper(), n)
+                m = re.match(f".+:BL:{name.upper()}", n)
                 if m is not None:
                     self.set_pv_value(self.prefix_pv_name(n), value)
                     return
-        raise Exception("Beamline parameter %s does not exist" % name)
+        raise ValueError(f"Beamline parameter {name} does not exist")
 
     def get_runcontrol_settings(self, block_name: str) -> tuple["PVValue", "PVValue", "PVValue"]:
         """
@@ -751,9 +740,7 @@ class API(object):
         except UnableToConnectToPVException:
             return "UNKNOWN", "UNKNOWN", "UNKNOWN"
 
-    def check_alarms(
-        self, blocks: typing.Tuple[str, ...]
-    ) -> tuple[list[str], list[str], list[str]]:
+    def check_alarms(self, blocks: tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
         """
         Checks whether the specified blocks are in alarm.
 
@@ -787,7 +774,7 @@ class API(object):
     def _get_fields_from_blocks(
         self, blocks: list[str], field_name: str, field_description: str
     ) -> list[tuple[str, "PVValue"]]:
-        field_values = list()
+        field_values = []
         for block in blocks:
             if self.block_exists(block):
                 block_name = self.correct_blockname(block, False)
@@ -795,11 +782,11 @@ class API(object):
                 try:
                     field_value = self.get_pv_value(full_block_pv + "." + field_name, attempts=1)
                     field_values.append((block_name, field_value))
-                except IOError:
+                except OSError:
                     # Could not get value
-                    print("Could not get {} for block: {}".format(field_description, block))
+                    print(f"Could not get {field_description} for block: {block}")
             else:
-                print("Block {} does not exist, so ignoring it".format(block))
+                print(f"Block {block} does not exist, so ignoring it")
 
         return field_values
 
@@ -873,7 +860,7 @@ class API(object):
         try:
             self._alert_http_request(mobiles=phone_num, message=message)
         except Exception as e:
-            raise Exception("Could not send SMS: {}".format(e))
+            raise OSError(f"Could not send SMS: {e}")
 
     def send_email(self, address: str, message: str) -> None:
         """
@@ -886,7 +873,7 @@ class API(object):
         try:
             self._alert_http_request(emails=address, message=message)
         except Exception as e:
-            raise Exception("Could not send email: {}".format(e))
+            raise OSError(f"Could not send email: {e}")
 
     def send_alert(self, message: str, inst: str | None) -> None:
         """
@@ -901,7 +888,7 @@ class API(object):
         try:
             self._alert_http_request(inst=inst, message=message)
         except Exception as e:
-            raise Exception("Could not send alert: {}".format(e))
+            raise OSError(f"Could not send alert: {e}")
 
     def get_alarm_from_block(self, block: str) -> str:
         """
@@ -931,9 +918,7 @@ class API(object):
             alarm status could not be determined
         """
         try:
-            alarm_val = self.get_pv_value(
-                "{}.SEVR".format(remove_field_from_pv(pv_name)), to_string=True
-            )
+            alarm_val = self.get_pv_value(f"{remove_field_from_pv(pv_name)}.SEVR", to_string=True)
             return alarm_val
 
         except Exception:
@@ -971,10 +956,9 @@ class API(object):
                 ans["connected"] = False
             else:
                 # Can't find block at all
-                raise Exception(
-                    "No block with the name '{}' exists\nCurrent blocks are {}".format(
-                        block, self.get_block_names()
-                    )
+                raise ValueError(
+                    f"No block with the name '{block}' exists\n"
+                    f"Current blocks are {self.get_block_names()}"
                 )
 
         ans["name"] = block

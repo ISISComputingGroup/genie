@@ -1,5 +1,3 @@
-from __future__ import absolute_import, print_function
-
 import datetime
 import importlib
 import importlib.util
@@ -7,9 +5,9 @@ import os
 import re
 import sys
 import types
-from builtins import FileNotFoundError, str
-from io import open
-from typing import Any, Callable, TypedDict
+from builtins import FileNotFoundError
+from collections.abc import Callable
+from typing import Any, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -20,7 +18,7 @@ from genie_python.genie_api_setup import __api as _genie_api
 os.environ["FROM_IBEX"] = str(False)
 
 # for user import this functionality so they can do g.adv and g.sim
-import genie_python.genie_advanced as adv  # noqa F401
+import genie_python.genie_advanced as adv
 import genie_python.genie_alerts as alerts  # noqa F401
 import genie_python.genie_simulate as sim  # noqa F401
 import genie_python.genie_toggle_settings as toggle  # noqa F401
@@ -30,19 +28,19 @@ from genie_python.genie_api_setup import (  # noqa E402
     get_user_script_dir,
     helparglist,
     log_command_and_handle_exception,
-    my_pv_prefix,  # noqa F401
+    my_pv_prefix,
     set_user_script_dir,
     usercommand,
 )
-from genie_python.genie_script_checker import ScriptChecker  # noqa E402
-from genie_python.genie_toggle_settings import ToggleSettings  # noqa E402
-from genie_python.utilities import (  # noqa E402
+from genie_python.genie_script_checker import ScriptChecker
+from genie_python.genie_toggle_settings import ToggleSettings
+from genie_python.utilities import (
     EnvironmentDetails,
     check_lowlimit_against_highlimit,
     get_correct_filepath_existing,
     get_correct_path,
 )
-from genie_python.version import VERSION  # noqa E402
+from genie_python.version import VERSION
 
 
 class _CgetReturn(TypedDict):
@@ -120,9 +118,10 @@ MAX_SUPPORTED_PYTHON_VERSION = (3, 13, 999)
 if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_PYTHON_VERSION):
     message = (
         "WARNING: genie_python only supports "
-        "python versions {0[0]}.{0[1]}.{0[2]} to {1[0]}.{1[1]}.{1[2]}, you are running {2}".format(
-            MIN_SUPPORTED_PYTHON_VERSION, MAX_SUPPORTED_PYTHON_VERSION, sys.version
-        )
+        f"python versions "
+        f"{MIN_SUPPORTED_PYTHON_VERSION[0]}.{MIN_SUPPORTED_PYTHON_VERSION[1]}.{MIN_SUPPORTED_PYTHON_VERSION[2]} to "  # ruff: ignore[E501]
+        f"{MAX_SUPPORTED_PYTHON_VERSION[0]}.{MAX_SUPPORTED_PYTHON_VERSION[1]}.{MAX_SUPPORTED_PYTHON_VERSION[2]}, "  # ruff: ignore[E501]
+        f"you are running {sys.version}"
     )
     print(message, file=sys.stderr)
 
@@ -241,7 +240,7 @@ def cset(
     # See if single block name was entered, i.e. cset("block1", runcontrol=True)
     if len(args) > 0:
         if len(args) > 2:
-            raise Exception(
+            raise ValueError(
                 "Too many arguments, please type: help(g.cset) for more information on the syntax"
             )
         blocks = [str(args[0])]
@@ -250,26 +249,27 @@ def cset(
         # Check for specifying blocks via the cset(block=value) syntax
         blocks, values = zip(*kwargs.items())
     else:
-        raise Exception(
+        raise ValueError(
             "Incorrect syntax, please type: help(g.cset) for more information on the syntax"
         )
 
     for block in blocks:
         if not _genie_api.block_exists(block):
-            raise Exception('No block with the name "{}" exists'.format(block))
+            raise ValueError(f'No block with the name "{block}" exists')
 
     if wait and runcontrol is not None:
-        raise Exception("Cannot enable or disable runcontrol at the same time as setting a wait")
+        raise ValueError("Cannot enable or disable runcontrol at the same time as setting a wait")
     if wait and values[0] is None:
-        raise Exception("Cannot wait as no setpoint specified. Please type: help(g.cset) for help")
+        raise ValueError("Cannot wait as no setpoint specified. Please type: help(g.cset) for help")
 
     # Warn if highlimit and lowlimit are round the incorrect way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
 
-    if len(blocks) > 1:
+    if len(blocks) > 1 and not all(
+        argument is None for argument in [runcontrol, lowlimit, highlimit, wait]
+    ):
         # Setting multiple blocks, so other settings not allowed
-        if not all(argument is None for argument in [runcontrol, lowlimit, highlimit, wait]):
-            raise Exception("Runcontrol and wait can only be changed for one block at a time")
+        raise ValueError("Runcontrol and wait can only be changed for one block at a time")
 
     for block, value in list(zip(blocks, values)):
         # If there are multiple blocks then runcontrol etc.
@@ -320,8 +320,8 @@ def cget(block: str) -> _CgetReturn:
 
 
 def _log_alarmed_block(block_name: str, alarm_state: PVValue) -> None:
-    _genie_api.logger.log_info_msg("BLOCK {} IN {} ALARM".format(block_name, alarm_state))
-    print("Block {} is in alarm: {}".format(block_name, alarm_state), file=sys.stdout)
+    _genie_api.logger.log_info_msg(f"BLOCK {block_name} IN {alarm_state} ALARM")
+    print(f"Block {block_name} is in alarm: {alarm_state}", file=sys.stdout)
 
 
 def _warn_if_block_alarm(block: str) -> None:
@@ -375,7 +375,7 @@ def cshow(block: str | None = None) -> None:
         >>> cshow("block1")
     """
     blocks_to_get = [block] if block is not None else _genie_api.get_block_names()
-    for block in blocks_to_get:
+    for block in blocks_to_get:  # ruff: ignore[PLR1704]
         _print_from_cget(_genie_api.get_block_data(block, True))
 
 
@@ -465,18 +465,18 @@ def waitfor(
     if block is None:
         # Search through the params to see if there is a block there
         blks = _genie_api.get_block_names()
-        for k in pars:
+        for k, v in pars.items():
             if k in blks:
                 if block is not None:
-                    raise Exception("Can set waitfor for only one block at a time")
+                    raise ValueError("Can set waitfor for only one block at a time")
                 block = k
-                value = pars[k]
+                value = v
             else:
-                raise ValueError("Block named '{}' did not exist.".format(k))
+                raise ValueError(f"Block named '{k}' did not exist.")
     # Check that wait_for object exists
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
     # Start_waiting checks the block exists
@@ -549,7 +549,7 @@ def waitfor_block(
     """
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_block - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_block - try calling set_instrument first")
     # Warn if highlimit and lowlimit are round correct way
     check_lowlimit_against_highlimit(lowlimit, highlimit)
     _genie_api.waitfor.start_waiting(
@@ -638,7 +638,7 @@ def waitfor_frames(frames: int | None = None, quiet: bool = False) -> None:
         raise ValueError("Cannot execute waitfor_frames - frames parameter cannot be negative")
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_frames - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(frames=frames, quiet=quiet)
 
 
@@ -668,7 +668,7 @@ def waitfor_raw_frames(raw_frames: int | None = None, quiet: bool = False) -> No
         )
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_raw_frames - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_raw_frames - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(raw_frames=raw_frames, quiet=quiet)
 
 
@@ -689,7 +689,7 @@ def waitfor_uamps(uamps: float, quiet: bool = False) -> None:
     """
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_uamps - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_uamps - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(uamps=uamps, quiet=quiet)
 
 
@@ -717,7 +717,7 @@ def waitfor_mevents(mevents: float | None = None, quiet: bool = False) -> None:
         raise ValueError("Cannot execute waitfor_mevents - mevents parameter cannot be negative")
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_mevents - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_mevents - try calling set_instrument first")
     _genie_api.waitfor.start_waiting(mevents=mevents, quiet=quiet)
 
 
@@ -748,7 +748,7 @@ def waitfor_runstate(
     # Check that wait_for object exists
     if _genie_api.waitfor is None:  # pyright: ignore
         # pyright doesn't recognise that waitfor can be None
-        raise Exception("Cannot execute waitfor_runstate - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_runstate - try calling set_instrument first")
     _genie_api.waitfor.wait_for_runstate(state, maxwaitsecs, onexit, quiet)
 
 
@@ -784,28 +784,22 @@ def waitfor_move(*blocks: str, **kwargs: int | None) -> None:
     """
     # Sort out the parameters
     # Standard parameters
-    if "start_timeout" in kwargs:
-        start_timeout = kwargs["start_timeout"]
-    else:
-        start_timeout = 2
-    if "move_timeout" in kwargs:
-        move_timeout = kwargs["move_timeout"]
-    else:
-        move_timeout = None
+    start_timeout = kwargs.get("start_timeout", 2)
+    move_timeout = kwargs.get("move_timeout", None)
 
     # Check that wait_for_move object exists
     if _genie_api.wait_for_move is None:
-        raise Exception("Cannot execute waitfor_move - try calling set_instrument first")
+        raise ValueError("Cannot execute waitfor_move - try calling set_instrument first")
 
     if len(blocks) > 0:
         # Specified blocks waitfor_move
-        move_blocks = list()
+        move_blocks = []
         # Check blocks exist
         for b in blocks:
             if _genie_api.block_exists(b):
                 move_blocks.append(b)
             else:
-                print("Block %s does not exist, so ignoring it" % b)
+                print(f"Block {b} does not exist, so ignoring it")
         _genie_api.wait_for_move.wait_specific(move_blocks, start_timeout, move_timeout)
     else:
         # Standard waitfor_move
@@ -817,7 +811,7 @@ def waitfor_move(*blocks: str, **kwargs: int | None) -> None:
 @log_command_and_handle_exception
 def get_pv(
     name: str, to_string: bool = False, is_local: bool = False, use_numpy: bool = False
-) -> Any:  # noqa: ANN401
+) -> Any:
     """
     Get the value for the specified PV.
 
@@ -1464,7 +1458,7 @@ def _get_correct_globals() -> dict[str, int]:
     """
     import inspect
 
-    globs = dict()
+    globs = {}
 
     for i in inspect.stack():
         if "cshow" in i[0].f_globals:
@@ -1487,7 +1481,7 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
 
     globs = _get_correct_globals()
 
-    _genie_api.logger.log_info_msg("Trying to resolve full filename for %s" % name)
+    _genie_api.logger.log_info_msg(f"Trying to resolve full filename for {name}")
 
     try:
         try:
@@ -1496,9 +1490,9 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
             # Try with default script directory prepended
             full_name = get_correct_filepath_existing(os.path.join(get_user_script_dir(), name))
     except Exception:
-        raise Exception("Script file was not found (%s)" % get_correct_path(name))
+        raise OSError(f"Script file was not found ({get_correct_path(name)})")
 
-    _genie_api.logger.log_info_msg("Trying to load script from: %s" % full_name)
+    _genie_api.logger.log_info_msg(f"Trying to load script from: {full_name}")
 
     directory, filename = os.path.split(os.path.abspath(full_name))
 
@@ -1518,7 +1512,7 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
                 combined = "script not loaded as errors found in script: "
                 for e in errs:
                     combined += "\n\t" + e
-                raise Exception(combined)
+                raise ValueError(combined)
 
         mod = __load_module(filename[0:-3], directory)
         # Safe to load
@@ -1526,17 +1520,15 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
         funcs = []
         file_path = os.path.join(directory, filename)
         with open(file_path) as f:
-            for line in f.readlines():
+            for line in f:
                 m = re.match(r"^def\s+(.+)\(", line)
                 if m is not None:
                     funcs.append(m.group(1))
 
         scripts = []
         for att in dir(mod):
-            if isinstance(mod.__dict__.get(att), types.FunctionType):
-                # Check function comes from script file not an import
-                if att in funcs:
-                    scripts.append(att)
+            if isinstance(mod.__dict__.get(att), types.FunctionType) and att in funcs:
+                scripts.append(att)
 
         if len(scripts) > 0:
             # This is where the script file is actually loaded
@@ -1546,24 +1538,25 @@ def load_script(name: str, check_script: bool = True, warnings_as_error: bool = 
             # dont_inherit=True so that __future__
             # statements in this file are not propagated to user scripts
             code = compile(file_contents, file_path, "exec", dont_inherit=True)
-            exec(code, globs)
+            exec(code, globs)  # ruff: ignore[S102]
 
             msg = "Loaded the following script(s): "
             for script in scripts:
                 msg += script + ", "
             print(msg[0:-2])
-            print("From: %s" % file_path)
+            print(f"From: {file_path}")
 
             print(
-                "File last modified: %s"
-                % datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime(
-                    "%Y-%m-%d %H:%M:%S"
+                "File last modified: {}".format(
+                    datetime.datetime.fromtimestamp(os.path.getmtime(file_path)).strftime(
+                        "%Y-%m-%d %H:%M:%S"
+                    )
                 )
             )
         else:
-            raise Exception(
-                "No scripts found in {} - please ensure all your code is"
-                " contained within functions.".format(file_path)
+            raise ValueError(
+                f"No scripts found in {file_path} - please ensure all your code is"
+                " contained within functions."
             )
     except Exception as e:
         if directory in sys.path:
@@ -1722,21 +1715,21 @@ def change_tables(
             wiring = get_table_file(wiring)
         except Exception:
             errors.append(
-                "Could not find wiring table. Did you type the file name correctly? %s" % wiring
+                f"Could not find wiring table. Did you type the file name correctly? {wiring}"
             )
     if spectra is not None:
         try:
             spectra = get_table_file(spectra)
         except Exception:
             errors.append(
-                "Could not find spectra table. Did you type the file name correctly? %s" % spectra
+                f"Could not find spectra table. Did you type the file name correctly? {spectra}"
             )
     if detector is not None:
         try:
             detector = get_table_file(detector)
         except Exception:
             errors.append(
-                "Could not find detector table. Did you type the file name correctly? %s" % detector
+                f"Could not find detector table. Did you type the file name correctly? {detector}"
             )
 
     assert _genie_api.dae is not None
@@ -2548,11 +2541,11 @@ def load(name: str) -> None:
         name (string): The script the user is trying to load.
     """
     print(
-        'This function does not load a script; you probably wanted g.load_script("{0}").'
+        f"This function does not load a script; you probably wanted "
+        f'g.load_script("{get_correct_path(name)}"). '
         "If you wanted numpy load please call it directly with import numpy as numpy; "
-        'numpy.load("{0}")'.format(get_correct_path(name))
+        f'numpy.load("{get_correct_path(name)}")'
     )
-    return
 
 
 @usercommand

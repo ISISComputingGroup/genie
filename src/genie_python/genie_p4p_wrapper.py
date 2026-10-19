@@ -2,20 +2,15 @@
 Wrapping of p4p in genie_python
 """
 
-from __future__ import absolute_import, print_function
-
 import threading
-from builtins import object
 from collections.abc import Callable
-from typing import Optional, Tuple
 
+from ibex_non_ca_helpers.typing import PVValue
 from p4p import Value
 from p4p.client.thread import Context, Subscription
 
 from .channel_access_exceptions import WriteAccessException
 from .utilities import waveform_to_string
-
-from ibex_non_ca_helpers.typing import PVValue
 
 TIMEOUT = 15  # Default timeout for PV set/get
 EXIST_TIMEOUT = 3  # Separate smaller timeout for pv_exists() and searchw() operations
@@ -23,9 +18,9 @@ CACHE = threading.local()
 CACHE_LOCK = threading.local()
 
 
-class P4PWrapper(object):
-    context: Optional[Context] = None
-    error_log_function: Optional[Callable[[str], None]] = None
+class P4PWrapper:
+    context: Context | None = None
+    error_log_function: Callable[[str], None] | None = None
 
     # noinspection PyPep8Naming
     @staticmethod
@@ -41,7 +36,7 @@ class P4PWrapper(object):
             except Exception:
                 pass
         else:
-            print("PVERROR: {}".format(message))
+            print(f"PVERROR: {message}")
 
     @staticmethod
     def set_pv_value(
@@ -75,7 +70,7 @@ class P4PWrapper(object):
         name: str,
         to_string: bool = False,
         timeout: float = TIMEOUT,
-        use_numpy: Optional[bool] = None,
+        use_numpy: bool | None = None,
     ) -> "PVValue":
         context = P4PWrapper.get_context()
         output = context.get(name, timeout=timeout)
@@ -98,7 +93,7 @@ class P4PWrapper(object):
         return val
 
     @staticmethod
-    def get_pv_timestamp(name: str, timeout: float = TIMEOUT) -> Tuple[int, int]:
+    def get_pv_timestamp(name: str, timeout: float = TIMEOUT) -> tuple[int, int]:
         context = P4PWrapper.get_context()
         output = context.get(name, timeout=timeout)
         if isinstance(output, Exception):
@@ -123,10 +118,10 @@ class P4PWrapper(object):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
+        call_back_function: "Callable[[PVValue, str | None, str | None], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
-        use_numpy: Optional[bool] = None,
+        use_numpy: bool | None = None,
     ) -> Subscription:
         def _process_call_back(response: Value | Exception) -> None:
             if isinstance(response, Exception):
@@ -193,9 +188,9 @@ class P4PWrapper(object):
         ):  # Do not check for DISP if it's already in the name of the PV to check
             if "." in name:  # If given a field on a PV, check the PV itself if DISP is set
                 name = name.split(".")[0]
-            _disp_name = "{}.DISP".format(name)
+            _disp_name = f"{name}.DISP"
             if P4PWrapper.pv_exists(_disp_name, 0) and P4PWrapper.get_pv_value(_disp_name) != "0":
-                raise WriteAccessException("{} (DISP is set)".format(name))
+                raise WriteAccessException(f"{name} (DISP is set)")
 
     @staticmethod
     def close_context() -> None:

@@ -14,7 +14,6 @@
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
 
-from __future__ import absolute_import
 
 import unittest
 from unittest.mock import MagicMock, patch
@@ -34,7 +33,7 @@ WIRING_PATH = "path/to/wiring.dat"
 SPECTRA_PATH = "path/to/spectra.dat"
 DETECTOR_PATH = "path/to/detector.dat"
 
-DAE_SETTINGS_XML = """<Cluster>
+DAE_SETTINGS_XML = f"""<Cluster>
     <Name>Data Acquisition</Name>
     <NumElts>4</NumElts>
     <I32>
@@ -47,15 +46,15 @@ DAE_SETTINGS_XML = """<Cluster>
     </DBL>
     <String>
         <Name>Wiring Table</Name>
-        <Val>{wiring_path}</Val>
+        <Val>{WIRING_PATH}</Val>
     </String>
     <String>
         <Name>Detector Table</Name>
-        <Val>{detector_path}</Val>
+        <Val>{DETECTOR_PATH}</Val>
     </String>
         <String>
         <Name>Spectra Table</Name>
-        <Val>{spectra_path}</Val>
+        <Val>{SPECTRA_PATH}</Val>
     </String>
     <EW>
         <Name>DAETimingSource</Name>
@@ -68,9 +67,7 @@ DAE_SETTINGS_XML = """<Cluster>
         <Choice>TS1 Only</Choice>
         <Val>2</Val>
     </EW>
-</Cluster>""".format(
-    wiring_path=WIRING_PATH, detector_path=DETECTOR_PATH, spectra_path=SPECTRA_PATH
-)
+</Cluster>"""
 
 TCB_SETTINGS_XML = """<Cluster>
         <Name>Time Channels</Name>
@@ -191,7 +188,7 @@ class TestGenieDAE(unittest.TestCase):
         new_high = 10
         ans = self.dae._create_tcb_return_string(new_low, new_high, None, True)
 
-        self.assertEqual(ans, "Setting TCB range {} to {} (LOG binning)".format(new_low, new_high))
+        self.assertEqual(ans, f"Setting TCB range {new_low} to {new_high} (LOG binning)")
 
     def test_WHEN_create_tcb_string_with_only_low_changed_THEN_low_limit_changed_string_returned(
         self,
@@ -200,7 +197,7 @@ class TestGenieDAE(unittest.TestCase):
         new_low = 0
         ans = self.dae._create_tcb_return_string(new_low, None, None, True)
 
-        self.assertEqual(ans, "Setting TCB low limit to {} (LOG binning)".format(new_low))
+        self.assertEqual(ans, f"Setting TCB low limit to {new_low} (LOG binning)")
 
     def test_WHEN_create_tcb_string_with_only_high_changed_THEN_high_limit_changed_string_returned(
         self,
@@ -209,14 +206,14 @@ class TestGenieDAE(unittest.TestCase):
         new_high = 10
         ans = self.dae._create_tcb_return_string(None, new_high, None, True)
 
-        self.assertEqual(ans, "Setting TCB high limit to {} (LOG binning)".format(new_high))
+        self.assertEqual(ans, f"Setting TCB high limit to {new_high} (LOG binning)")
 
     def test_WHEN_create_tcb_string_with_only_step_changed_THEN_step_changed_string_returned(self):
         self.dae.in_change = True
         new_step = 10
         ans = self.dae._create_tcb_return_string(None, None, new_step, False)
 
-        self.assertEqual(ans, "Setting TCB step {} (LINEAR binning)".format(new_step))
+        self.assertEqual(ans, f"Setting TCB step {new_step} (LINEAR binning)")
 
     def test_WHEN_create_tcb_string_with_all_changed_THEN_all_changed_string_returned(self):
         self.dae.in_change = True
@@ -227,7 +224,7 @@ class TestGenieDAE(unittest.TestCase):
 
         self.assertEqual(
             ans,
-            "Setting TCB range {} to {} step {} (LOG binning)".format(new_low, new_high, new_step),
+            f"Setting TCB range {new_low} to {new_high} step {new_step} (LOG binning)",
         )
 
     def test_WHEN_create_tcb_string_with_low_and_step_changed_THEN_low_limit_and_step_string_returned(
@@ -238,9 +235,7 @@ class TestGenieDAE(unittest.TestCase):
         new_step = 2
         ans = self.dae._create_tcb_return_string(new_low, None, new_step, True)
 
-        self.assertEqual(
-            ans, "Setting TCB low limit to {} step {} (LOG binning)".format(new_low, new_step)
-        )
+        self.assertEqual(ans, f"Setting TCB low limit to {new_low} step {new_step} (LOG binning)")
 
     def test_WHEN_create_tcb_string_with_high_and_step_changed_THEN_high_limit_and_step_string_returned(
         self,
@@ -250,9 +245,7 @@ class TestGenieDAE(unittest.TestCase):
         new_step = 2
         ans = self.dae._create_tcb_return_string(None, new_high, new_step, True)
 
-        self.assertEqual(
-            ans, "Setting TCB high limit to {} step {} (LOG binning)".format(new_high, new_step)
-        )
+        self.assertEqual(ans, f"Setting TCB high limit to {new_high} step {new_step} (LOG binning)")
 
     def test_GIVEN_change_not_started_WHEN_change_finished_called_THEN_exception_thrown(self):
         self.assertRaises(Exception, self.dae.change_finish)
@@ -350,13 +343,13 @@ class TestGenieDAE(unittest.TestCase):
         """
         for k, d in self.change_cache.__dict__.items():
             if k.endswith("veto") and "fermi" not in k:
-                self.assertEqual(set, d, "{} incorrect".format(k))
+                self.assertEqual(set, d, f"{k} incorrect")
 
     def set_all_vetos(self, set):
         """
         Helper function to set all vetos to a value by the 'backdoor'.
         """
-        for k in self.change_cache.__dict__.keys():
+        for k in self.change_cache.__dict__:
             if k.endswith("veto") and "fermi" not in k:
                 self.change_cache.__dict__[k] = set
 
@@ -729,11 +722,11 @@ class TestGenieDAE(unittest.TestCase):
             ),
             patch.object(self.dae, "_isis_dae_triggered_state_was_reached", return_value=True),
             patch.object(self.dae, "_get_pv_value", return_value="On"),
+            self.dae.temporarily_kill_icp(),
         ):
-            with self.dae.temporarily_kill_icp():
-                isisicp.kill.assert_called_once()
-                dead_process.kill.assert_not_called()
-                live_process.kill.assert_not_called()
+            isisicp.kill.assert_called_once()
+            dead_process.kill.assert_not_called()
+            live_process.kill.assert_not_called()
 
     def test_WHEN_get_autosave_frequency_THEN_reads_from_PV(self):
         self.api.get_pv_value = MagicMock(return_value=10)

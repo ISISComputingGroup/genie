@@ -1,14 +1,13 @@
-from __future__ import absolute_import, print_function
-
 import codecs
 import json
 import os
 import re
 import unicodedata
 import zlib
+from collections.abc import Callable, Iterable
 from datetime import timedelta
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Callable, Concatenate, Iterable, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
 
 P = ParamSpec("P")
 T = TypeVar("T")
@@ -67,7 +66,7 @@ class PVReadException(Exception):  # noqa N818 Historic name
     """
 
     def __init__(self, message: str) -> None:
-        super(PVReadException, self).__init__(message)
+        super().__init__(message)
 
 
 def compress_and_hex(value: str) -> bytes:
@@ -188,7 +187,7 @@ def _correct_path_casing_existing(path: str) -> str:
 
             return win32api.GetLongPathName(win32api.GetShortPathName(path))
         except Exception as err:
-            raise OSError("Invalid file path entered: %s" % err)
+            raise OSError(f"Invalid file path entered: {err}")
     else:
         # Nothing to do for unix
         return path
@@ -265,7 +264,7 @@ def crc8(value: str) -> str:
             else:
                 crc <<= 1
 
-    return "{0:02X}".format(crc)
+    return f"{crc:02X}"
 
 
 def get_json_pv_value(pv_name: str, api: "API", attempts: int = 3) -> Any:  # No known type
@@ -287,20 +286,20 @@ def get_json_pv_value(pv_name: str, api: "API", attempts: int = 3) -> Any:  # No
     try:
         raw = api.get_pv_value(pv_name, to_string=True, attempts=attempts)
     except Exception:
-        raise PVReadException("Can not read '{0}'".format(pv_name))
+        raise PVReadException(f"Can not read '{pv_name}'")
 
     if not isinstance(raw, (str, bytes)):
-        raise PVReadException("Expected reading PV {} to give a string".format(pv_name))
+        raise PVReadException(f"Expected reading PV {pv_name} to give a string")
 
     try:
         raw = dehex_and_decompress(raw)
     except Exception:
-        raise PVReadException("Can not decompress '{0}'".format(pv_name))
+        raise PVReadException(f"Can not decompress '{pv_name}'")
 
     try:
         result = json.loads(raw)
     except Exception:
-        raise PVReadException("Can not unmarshal '{0}'".format(pv_name))
+        raise PVReadException(f"Can not unmarshal '{pv_name}'")
 
     return result
 
@@ -327,11 +326,7 @@ def check_lowlimit_against_highlimit(lowlimit: float | None, highlimit: float | 
     Check the lowlimit is below the highlimit, and warns if this is the case
     """
     if lowlimit is not None and highlimit is not None and lowlimit > highlimit:
-        print(
-            "WARNING: You have set the lowlimit({}) above the highlimit({})".format(
-                lowlimit, highlimit
-            )
-        )
+        print(f"WARNING: You have set the lowlimit({lowlimit}) above the highlimit({highlimit})")
 
 
 def require_runstate(
@@ -352,8 +347,9 @@ def require_runstate(
             if not kwargs.pop("skip_required_runstates", False):
                 run_state = self.get_run_state()
                 if run_state not in set(runstates):
-                    e_string = "{} can only be run in the following runstates: {}".format(
-                        func.__name__, runstates_string
+                    e_string = (
+                        f"{func.__name__} can only be run "
+                        f"in the following runstates: {runstates_string}"
                     )
                     raise ValueError(e_string)
             return func(self, *args, **kwargs)
@@ -363,7 +359,7 @@ def require_runstate(
     return _check_runstate
 
 
-class EnvironmentDetails(object):
+class EnvironmentDetails:
     """
     Details of the computer environment the code is running in.
     """
@@ -372,7 +368,7 @@ class EnvironmentDetails(object):
     INSTRUMENT_LIST_PV = "CS:INSTLIST"
 
     # List of instruments dictionary similar to CS:INSTLIST
-    DEFAULT_INST_LIST = [
+    DEFAULT_INST_LIST = (
         {"name": "LARMOR"},
         {"name": "ALF"},
         {"name": "DEMO"},
@@ -380,7 +376,7 @@ class EnvironmentDetails(object):
         {"name": "MUONFE"},
         {"name": "ZOOM"},
         {"name": "IRIS"},
-    ]
+    )
 
     def __init__(self, host_name: str | None = None) -> None:
         """
@@ -420,11 +416,9 @@ class EnvironmentDetails(object):
         try:
             return get_json_pv_value(self.INSTRUMENT_LIST_PV, api, attempts=1)
         except PVReadException as ex:
-            print("Error: {!r}. Using internal instrument list.".format(ex))
+            print(f"Error: {ex!r}. Using internal instrument list.")
             return self.DEFAULT_INST_LIST
 
     def get_settings_directory(self) -> str:
-        default_directory = "C:/Instrument/Settings/config/{}/configurations".format(
-            self._host_name
-        )
+        default_directory = f"C:/Instrument/Settings/config/{self._host_name}/configurations"
         return os.environ.get("ICPCONFIGROOT", default_directory)

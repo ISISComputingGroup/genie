@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import, print_function
 
 import os
 import unittest
@@ -321,14 +320,12 @@ class TestGenie(unittest.TestCase):
             self.assertEqual(len(output), 5)
             self.assertEqual("Waiting for 5000 frames [timeout=0.1]", output[1])
             self.assertIn(
-                "Exception in waitfor loop: {}".format(UnableToConnectToPVException.__name__),
+                f"Exception in waitfor loop: {UnableToConnectToPVException.__name__}",
                 output[2],
             )
             self.assertIn("Waitfor timed out", output[3])
         except Exception as e:
-            self.fail(
-                "start_waiting should catch the exception and continue. Exception: {}".format(e)
-            )
+            self.fail(f"start_waiting should catch the exception and continue. Exception: {e}")
 
     @patch("sys.stdout", new_callable=StringIO)
     def test_WHEN_context_starts_THEN_state_is_connected_and_no_output(self, std_fake_out):
@@ -356,14 +353,14 @@ class TestGenie(unittest.TestCase):
         self.assertEqual(len(output_lines), 2)
         # First line should be occurrence of exception
         self.assertIn(
-            "Exception in waitfor loop: {}".format(UnableToConnectToPVException.__name__),
+            f"Exception in waitfor loop: {UnableToConnectToPVException.__name__}",
             output_lines[0],
         )
         self.assertNotIn("Exception cleared", output_lines[0])
         # Second line should be exception clearing
         self.assertIn("Exception cleared", output_lines[1])
         self.assertNotIn(
-            "Exception in waitfor loop: {}".format(UnableToConnectToPVException.__name__),
+            f"Exception in waitfor loop: {UnableToConnectToPVException.__name__}",
             output_lines[1],
         )
 
@@ -390,7 +387,7 @@ class TestGenie(unittest.TestCase):
         self.assertEqual(len(output_lines), number_of_5_minutes + 1)
         for i in range(len(output_lines)):
             self.assertIn(
-                "Exception in waitfor loop: {}".format(UnableToConnectToPVException.__name__),
+                f"Exception in waitfor loop: {UnableToConnectToPVException.__name__}",
                 output_lines[i],
             )
 
@@ -410,12 +407,10 @@ class TestGenie(unittest.TestCase):
         # One line for each exception
         self.assertEqual(len(output_lines), 2)
         self.assertIn(
-            "Exception in waitfor loop: {}".format(UnableToConnectToPVException.__name__),
+            f"Exception in waitfor loop: {UnableToConnectToPVException.__name__}",
             output_lines[0],
         )
-        self.assertIn(
-            "Exception in waitfor loop: {}".format(ReadAccessException.__name__), output_lines[1]
-        )
+        self.assertIn(f"Exception in waitfor loop: {ReadAccessException.__name__}", output_lines[1])
 
 
 class TestGenieMockedAPI(unittest.TestCase):
@@ -585,7 +580,7 @@ class TestChangeScriptDir(unittest.TestCase):
         root = r"c:/scripts"
         dir = r"test"
         subdir = r"test_sub"
-        expected_dir = "{}/{}/{}/".format(root, dir, subdir)
+        expected_dir = f"{root}/{dir}/{subdir}/"
 
         self.setup_mocks(expected_dir, correct_casing, make_dirs_mock)
 
@@ -621,7 +616,7 @@ class TestChangeScriptDir(unittest.TestCase):
         subdir = "test"
         subdir1 = "subdir1"
         subdir2 = "subdir2"
-        expected_dir = "{}/{}/{}/{}/".format(existing_dir, subdir, subdir1, subdir2)
+        expected_dir = f"{existing_dir}/{subdir}/{subdir1}/{subdir2}/"
 
         genie.change_script_dir(os.path.join(existing_dir, subdir, subdir1, subdir2) + "/")
         result = genie.get_script_dir()
