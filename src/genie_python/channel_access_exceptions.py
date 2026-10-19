@@ -10,7 +10,7 @@ class UnableToConnectToPVException(IOError):  # noqa N818 Historic name
     """
 
     def __init__(self, pv_name: str, err: str) -> None:
-        super().__init__(f"Unable to connect to PV {pv_name}: {err}")
+        super().__init__(f"Unable to connect to PV '{pv_name}': {err}")
 
 
 class InvalidEnumStringException(KeyError):  # noqa N818 Historic name
