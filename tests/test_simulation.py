@@ -108,7 +108,7 @@ class TestSimulationSequence(unittest.TestCase):
         genie.set_instrument(None, import_instrument_init=False)
 
     def tearDown(self):
-        self.sim.__exit__()
+        self.sim.__exit__(None, None, None)
 
     def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         create_dummy_blocks(["a"])

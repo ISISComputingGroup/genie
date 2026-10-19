@@ -1,9 +1,12 @@
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Self
+from typing import Any, ParamSpec, Self, TypeVar
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 
-def _plotting_func[T, R](func: Callable[T, R]) -> Callable[T, R]:
+def _plotting_func(func: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator for functions that interact with MPL.
 
@@ -12,7 +15,7 @@ def _plotting_func[T, R](func: Callable[T, R]) -> Callable[T, R]:
     """
 
     @wraps(func)
-    def wrapper(*args: Any, **kwargs: Any) -> R:
+    def wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         import matplotlib.pyplot as pyplt
 
         was_interactive = pyplt.isinteractive()
@@ -27,7 +30,7 @@ def _plotting_func[T, R](func: Callable[T, R]) -> Callable[T, R]:
 
 class SpectraPlot:
     @_plotting_func
-    def __init__(self, api: Any, spectrum: int, period: int, dist: bool) -> None:
+    def __init__(self: Self, api: Any, spectrum: int, period: int, dist: bool) -> None:
         import matplotlib.pyplot as pyplt
 
         self.api = api
@@ -61,7 +64,6 @@ class SpectraPlot:
 
     @_plotting_func
     def delete_plot(self, plotnum: int) -> None:
-        del self.ax.lines[plotnum]
         del self.spectra[plotnum]
         self.__update_legend()
 

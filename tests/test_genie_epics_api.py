@@ -146,7 +146,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         # Assert
         self.assertEqual(len(val), 1)
         self.assertEqual(next(iter(val.keys())), pv_suffix)
-        self.assertEqual(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)  # pyright: ignore
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(
         self,

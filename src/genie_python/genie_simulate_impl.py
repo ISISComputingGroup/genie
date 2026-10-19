@@ -92,8 +92,8 @@ class ChangeCache:
         self.mon_spect = None
         self.mon_from = None
         self.mon_to = None
-        self.dae_sync = None
-        self.tcb_file = None
+        self.dae_sync: int | None = None
+        self.tcb_file: str | None = None
         self.tcb_tables = []
         self.smp_veto = None
         self.ts2_veto = None
@@ -107,7 +107,7 @@ class ChangeCache:
         self.fermi_width = None
         self.periods_soft_num = None
         self.periods_type = None
-        self.periods_src = None
+        self.periods_src: int | None = None
         self.periods_file = None
         self.periods_seq = None
         self.periods_delay = None
@@ -1161,7 +1161,7 @@ class API:
     def correct_blockname(self, name: str, add_prefix: bool = True) -> str:
         return name
 
-    def get_block_names(self) -> []:
+    def get_block_names(self) -> list[str]:
         return list(self.block_dict.keys())
 
     def block_exists(self, name: str) -> bool:
@@ -1254,7 +1254,7 @@ class API:
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
 
-    def get_runcontrol_settings(self, name: str) -> ():
+    def get_runcontrol_settings(self, name: str) -> tuple[bool, float, float]:
         return (
             self.block_dict[name]["runcontrol"],
             self.block_dict[name]["lowlimit"],

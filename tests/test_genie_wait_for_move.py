@@ -68,7 +68,7 @@ class TestGenieWaitForMove(unittest.TestCase):
         [("start_valid_move_none", 10.0, None), ("start_valid_move_invalid", 12.0, -30.0)]
     )
     def test_GIVEN_method_check_timeouts_valid_WHEN_check_timeouts_THEN_returns_none(
-        self, _, start_input, move_input
+        self, _, start_input: float, move_input: float | None
     ):
         start_timeout = start_input
         move_timeout = move_input

@@ -10,8 +10,8 @@ class ChangeCache:
         self.mon_spect = None
         self.mon_from = None
         self.mon_to = None
-        self.dae_sync = None
-        self.tcb_file = None
+        self.dae_sync: int | None = None
+        self.tcb_file: str | None = None
         self.tcb_tables = []
         self.tcb_calculation_method = None
         self.smp_veto = None
@@ -26,7 +26,7 @@ class ChangeCache:
         self.fermi_width = None
         self.periods_soft_num = None
         self.periods_type = None
-        self.periods_src = None
+        self.periods_src: int | None = None
         self.periods_file = None
         self.periods_seq = None
         self.periods_delay = None

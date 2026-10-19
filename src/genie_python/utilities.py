@@ -368,7 +368,7 @@ class EnvironmentDetails:
     INSTRUMENT_LIST_PV = "CS:INSTLIST"
 
     # List of instruments dictionary similar to CS:INSTLIST
-    DEFAULT_INST_LIST = (
+    DEFAULT_INST_LIST = [  # ruff: ignore[RUF012]
         {"name": "LARMOR"},
         {"name": "ALF"},
         {"name": "DEMO"},
@@ -376,7 +376,7 @@ class EnvironmentDetails:
         {"name": "MUONFE"},
         {"name": "ZOOM"},
         {"name": "IRIS"},
-    )
+    ]
 
     def __init__(self, host_name: str | None = None) -> None:
         """

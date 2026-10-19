@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta
 from stat import S_IREAD, S_IWUSR
 from time import sleep, strftime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 import numpy.typing as npt
@@ -1465,7 +1465,7 @@ class Dae:
         if did_change:
             self.change_finish()
 
-    def _change_runtime_vetos(self, params: dict) -> None:
+    def _change_runtime_vetos(self, params: dict[str, Any]) -> dict[str, Any]:
         """
         Change the DAE veto settings whilst the DAE is running.
 

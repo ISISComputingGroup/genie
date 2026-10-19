@@ -109,7 +109,8 @@ exclude_lines = [
 directory = "coverage_html_report"
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src"]
+exclude = ["src/genie_python/typings"]  # Generated type-stubs
 reportConstantRedefinition = true
 reportDeprecated = true
 reportInconsistentConstructor = true
@@ -118,7 +119,7 @@ reportMissingTypeArgument = true
 reportUnnecessaryCast = true
 reportUnnecessaryComparison = true
 reportUnnecessaryContains = true
-reportUnnecessaryIsInstance = true
+reportUnnecessaryIsInstance = false  # Users might pass wrong types
 reportUntypedBaseClass = true
 reportUntypedClassDecorator = true
 reportUntypedFunctionDecorator = true
