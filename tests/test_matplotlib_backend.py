@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from genie_python.matplotlib_backend import ibex_websocket_backend
 
 
-class ErroringWebAggApplication(object):
+class ErroringWebAggApplication:
     started = False
 
     @classmethod
@@ -14,7 +14,7 @@ class ErroringWebAggApplication(object):
 
     @classmethod
     def start(cls, *a, **k):
-        raise IOError("Mock matplotlib worker thread error")
+        raise OSError("Mock matplotlib worker thread error")
 
 
 class TestMatplotlibBackend(unittest.TestCase):

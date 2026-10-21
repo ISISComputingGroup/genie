@@ -35,7 +35,7 @@ class GetExperimentData:
         """
         return self._sql
 
-    def _parameter_is_valid(self, value: bool | int | float | str, column: str, table: str) -> bool:
+    def _parameter_is_valid(self, value: bool | float | str, column: str, table: str) -> bool:
         """
         Checks whether the given value exists in the table.
 
@@ -52,7 +52,7 @@ class GetExperimentData:
             command=f"SELECT * FROM `{table}` WHERE {column} = %s", bound_variables=(value,)
         )
 
-        return True if result else False
+        return bool(result)
 
     class _GetExpDataReturn(TypedDict):
         rb_number: int | str
@@ -117,7 +117,7 @@ class GetExperimentData:
             raise NotFoundError(f'Role "{role}" was not found. Existing roles: {roles}')
 
     def _query_database_for_data(
-        self, args: bool | int | float | str, sql: str
+        self, args: bool | float | str, sql: str
     ) -> list[_GetExpDataReturn]:
         exp_data = []
         for exp_id, user, role, start_date, duration in self.get_sql().query_returning_cursor(
@@ -183,4 +183,4 @@ class NotFoundError(IOError):
     """
 
     def __init__(self, message: str) -> None:
-        super(NotFoundError, self).__init__(message)
+        super().__init__(message)

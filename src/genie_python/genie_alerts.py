@@ -48,7 +48,7 @@ def set_range(
 
     """
     if not __api.block_exists(block):
-        raise Exception('No block with the name "{}" exists'.format(block))
+        raise ValueError(f'No block with the name "{block}" exists')
 
     __api.set_pv_value(_ALERT_LOW.format(block), lowlimit, wait=False, is_local=True)
     __api.set_pv_value(_ALERT_HIGH.format(block), highlimit, wait=False, is_local=True)
@@ -73,7 +73,7 @@ def enable(block: str, set_enabled: bool = True) -> None:
 
     """
     if not __api.block_exists(block):
-        raise Exception('No block with the name "{}" exists'.format(block))
+        raise ValueError(f'No block with the name "{block}" exists')
     __api.set_pv_value(_ALERT_ENABLE.format(block), set_enabled, wait=False, is_local=True)
 
 
@@ -108,7 +108,7 @@ def set_sms(numbers: list[str] | str) -> None:
         else:
             __api.set_pv_value(_ALERT_MOBILES, numbers, wait=False, is_local=True)
     except Exception as e:
-        print("Unable to set alert SMS numbers: {}".format(e))
+        print(f"Unable to set alert SMS numbers: {e}")
 
 
 ## no log decorator so email addresses not sent to log file
@@ -128,7 +128,7 @@ def set_email(emails: list[str] | str) -> None:
         else:
             __api.set_pv_value(_ALERT_EMAILS, emails, wait=False, is_local=True)
     except Exception as e:
-        print("Unable to set alert email addresses: {}".format(e))
+        print(f"Unable to set alert email addresses: {e}")
 
 
 def _print_block(block: str, only_if_enabled: bool = False) -> None:
@@ -137,27 +137,23 @@ def _print_block(block: str, only_if_enabled: bool = False) -> None:
     )
     if only_if_enabled and not enabled:
         return
-    print("Block: {}".format(block))
-    print("  Enabled:   {}".format(enabled))
+    print(f"Block: {block}")
+    print(f"  Enabled:   {enabled}")
     print(
-        "  Low:       {}".format(
-            __api.get_pv_value(_ALERT_LOW.format(block), to_string=False, is_local=True)
-        )
+        f"  Low:       "
+        f"{__api.get_pv_value(_ALERT_LOW.format(block), to_string=False, is_local=True)}"
     )
     print(
-        "  High:      {}".format(
-            __api.get_pv_value(_ALERT_HIGH.format(block), to_string=False, is_local=True)
-        )
+        f"  High:      "
+        f"{__api.get_pv_value(_ALERT_HIGH.format(block), to_string=False, is_local=True)}"
     )
     print(
-        "  Delay In:  {}".format(
-            __api.get_pv_value(_ALERT_DELAY_IN.format(block), to_string=False, is_local=True)
-        )
+        f"  Delay In:  "
+        f"{__api.get_pv_value(_ALERT_DELAY_IN.format(block), to_string=False, is_local=True)}"
     )
     print(
-        "  Delay Out: {}".format(
-            __api.get_pv_value(_ALERT_DELAY_OUT.format(block), to_string=False, is_local=True)
-        )
+        f"  Delay Out: "
+        f"{__api.get_pv_value(_ALERT_DELAY_OUT.format(block), to_string=False, is_local=True)}"
     )
 
 
@@ -172,22 +168,22 @@ def status(block: str | None = None, all: bool = False) -> None:
         block (string): The block to print information about
         all (bool): If True information about all the blocks is printed
     """
-    print("Emails: {}".format(__api.get_pv_value(_ALERT_EMAILS, to_string=False, is_local=True)))
-    print("Mobiles: {}".format(__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True)))
+    print(f"Emails: {__api.get_pv_value(_ALERT_EMAILS, to_string=False, is_local=True)}")
+    print(f"Mobiles: {__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True)}")
     if block is not None:
         if not __api.block_exists(block):
-            raise Exception('No block with the name "{}" exists'.format(block))
+            raise ValueError(f'No block with the name "{block}" exists')
         _print_block(block)
     else:
         blocks = __api.get_block_names()
-        for block in blocks:
+        for block in blocks:  # ruff: ignore[PLR1704]
             _print_block(block, not all)
 
 
 # used as part of tests, returns a dictionary of details
 def _dump(block: str) -> dict[str, str]:
     if not __api.block_exists(block):
-        raise Exception('No block with the name "{}" exists'.format(block))
+        raise ValueError(f'No block with the name "{block}" exists')
     res = {}
     res["emails"] = str(__api.get_pv_value(_ALERT_EMAILS, to_string=True, is_local=True)).split(";")
     res["mobiles"] = str(__api.get_pv_value(_ALERT_MOBILES, to_string=True, is_local=True)).split(

@@ -10,7 +10,8 @@ Allows motors to complete their motion fully before proceeding."""
 # “alldone” indicates when any motion has completed and “moving” gives a count of moving motors.
 
 import time
-from typing import TYPE_CHECKING, Callable, Iterable
+from collections.abc import Callable, Iterable
+from typing import TYPE_CHECKING
 
 from genie_python.utilities import check_break
 
@@ -18,13 +19,13 @@ if TYPE_CHECKING:
     from genie_python.genie_epics_api import API
 
 
-class WaitForMoveController(object):
+class WaitForMoveController:
     def __init__(self, api: "API", motion_pv: str) -> None:
         self._api = api
         self._motion_pv = motion_pv
         self._polling_delay = 0.02
         self._wait_succeeded = False
-        self._missing_blocks = list()
+        self._missing_blocks = []
 
     def wait(self, start_timeout: float | None = None, move_timeout: float | None = None) -> None:
         """Wait for motor motion to complete.
@@ -127,10 +128,10 @@ class WaitForMoveController(object):
             # DMOV = 0 when moving
             try:
                 moving = self._api.get_pv_value(block_pv + ":DMOV", attempts=1) == 0
-            except IOError:
+            except OSError:
                 # Could not find block so don't try it again
-                self._api.logger.log_info_msg("WAITFOR_MOVE DISCONNECTED BLOCK: {}".format(block))
-                print("Could not connect to block {} so ignoring it".format(block))
+                self._api.logger.log_info_msg(f"WAITFOR_MOVE DISCONNECTED BLOCK: {block}")
+                print(f"Could not connect to block {block} so ignoring it")
                 self._missing_blocks.append(block)
                 moving = False
             if moving:
@@ -143,24 +144,24 @@ class WaitForMoveController(object):
         filtered_blocks = self._filter_out_missing_blocks(blocks)
 
         # Check alarms
-        minor, major, invalid = self._api.check_alarms(filtered_blocks)
+        minor, major, _invalid = self._api.check_alarms(filtered_blocks)
         for i in major:
-            self._api.logger.log_info_msg("WAITFOR_MOVE BLOCK %s IN MAJOR ALARM" % i)
-            print("Block %s is in alarm: MAJOR" % i)
+            self._api.logger.log_info_msg(f"WAITFOR_MOVE BLOCK {i} IN MAJOR ALARM")
+            print(f"Block {i} is in alarm: MAJOR")
         for i in minor:
-            self._api.logger.log_info_msg("WAITFOR_MOVE BLOCK %s IN MINOR ALARM" % i)
-            print("Block %s is in alarm state: MINOR" % i)
+            self._api.logger.log_info_msg(f"WAITFOR_MOVE BLOCK {i} IN MINOR ALARM")
+            print(f"Block {i} is in alarm state: MINOR")
 
         # Check soft limit violations
         violations = self._api.check_limit_violations(filtered_blocks)
         for i in violations:
-            self._api.logger.log_info_msg("WAITFOR_MOVE BLOCK %s HAS SOFT LIMIT VIOLATIONS" % i)
-            print("Block %s has soft limit violations" % i)
+            self._api.logger.log_info_msg(f"WAITFOR_MOVE BLOCK {i} HAS SOFT LIMIT VIOLATIONS")
+            print(f"Block {i} has soft limit violations")
 
         # Print missing blocks
         for i in self._missing_blocks:
-            self._api.logger.log_info_msg("WAITFOR_MOVE BLOCK %s COULD NOT BE FOUND" % i)
-            print("Block %s could not be found" % i)
+            self._api.logger.log_info_msg(f"WAITFOR_MOVE BLOCK {i} COULD NOT BE FOUND")
+            print(f"Block {i} could not be found")
 
     def _filter_out_missing_blocks(self, blocks: Iterable[str]) -> list[str]:
         filtered_blocks = []

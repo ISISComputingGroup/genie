@@ -16,8 +16,6 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 """
 
-from __future__ import absolute_import
-
 import os
 import unittest
 from unittest.mock import patch
@@ -115,7 +113,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         expected_completer = (search_path, [expected_result])
 
         # Act
-        result = self.load_script.pydev_complete(line_buffer=r'load_script("{}'.format(search_path))
+        result = self.load_script.pydev_complete(line_buffer=rf'load_script("{search_path}')
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -131,9 +129,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         expected_completer = (search_path, [str(filename) for filename in filenames])
 
         # Act
-        result = self.load_script.pydev_complete(
-            line_buffer=r'g.load_script("{}'.format(search_path)
-        )
+        result = self.load_script.pydev_complete(line_buffer=rf'g.load_script("{search_path}')
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -148,9 +144,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         expected_completer = (search_path, [])
 
         # Act
-        result = self.load_script.pydev_complete(
-            line_buffer=r'g.load_script("{}'.format(search_path)
-        )
+        result = self.load_script.pydev_complete(line_buffer=rf'g.load_script("{search_path}')
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -161,13 +155,11 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
     ):
         # Arrange
         search_path = DRIVE_ROOT_PREFIX + "/scripts/"
-        mock_glob.return_value = ["{}filename.py".format(SCRIPT_DIR)]
+        mock_glob.return_value = [f"{SCRIPT_DIR}filename.py"]
         expected_completer = (search_path, ["filename.py"])
 
         # Act
-        result = self.load_script.pydev_complete(
-            line_buffer=r"g.load_script({}".format(search_path)
-        )
+        result = self.load_script.pydev_complete(line_buffer=rf"g.load_script({search_path}")
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -219,9 +211,7 @@ class TestGenieAutoCompletePyDev(unittest.TestCase):
         expected_completer = (search_path, [])
 
         # Act
-        result = self.load_script.pydev_complete(
-            line_buffer=r'g.load_script("{}'.format(search_path)
-        )
+        result = self.load_script.pydev_complete(line_buffer=rf'g.load_script("{search_path}')
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -262,7 +252,7 @@ class TestGenieAutoCompletePyDev(unittest.TestCase):
         expected_completer = (search_path, [expected_result])
 
         # Act
-        result = self.load_script.pydev_complete(line_buffer=r'load_script("{}'.format(search_path))
+        result = self.load_script.pydev_complete(line_buffer=rf'load_script("{search_path}')
 
         # Assert
         assert_that(result, is_(expected_completer))
@@ -283,10 +273,10 @@ class TestGenieAutoCompletePyDev(unittest.TestCase):
         expected_completer = (DRIVE_ROOT_PREFIX + "/scripts/" + search_path, [expected_result])
 
         # Act
-        result = self.load_script.pydev_complete(line_buffer=r'load_script("{}'.format(search_path))
+        result = self.load_script.pydev_complete(line_buffer=rf'load_script("{search_path}')
 
         # Assert
-        mock_glob.assert_called_with("{}{}*".format(SCRIPT_DIR, search_path))
+        mock_glob.assert_called_with(f"{SCRIPT_DIR}{search_path}*")
         assert_that(result, is_(expected_completer))
 
     @patch("glob.glob")
@@ -295,14 +285,14 @@ class TestGenieAutoCompletePyDev(unittest.TestCase):
     ):
         # Arrange
         expected_result = '"play.py'
-        mock_glob.return_value = ["{}play.py".format(SCRIPT_DIR)]
+        mock_glob.return_value = [f"{SCRIPT_DIR}play.py"]
         expected_completer = (DRIVE_ROOT_PREFIX + "/scripts/", [expected_result])
 
         # Act
         result = self.load_script.pydev_complete(line_buffer=r"load_script(")
 
         # Assert
-        mock_glob.assert_called_with("{}*".format(SCRIPT_DIR))
+        mock_glob.assert_called_with(f"{SCRIPT_DIR}*")
         assert_that(result, is_(expected_completer))
 
 
@@ -315,7 +305,7 @@ class TestLogAndExceptionDecorator(unittest.TestCase):
 
         @log_command_and_handle_exception
         def test_func():
-            raise Exception()
+            raise ValueError("unittest error")
 
         test_func()
         self.assertTrue(True)
@@ -328,7 +318,7 @@ class TestLogAndExceptionDecorator(unittest.TestCase):
 
         @log_command_and_handle_exception
         def test_func():
-            raise Exception()
+            raise ValueError("unittest error")
 
         # self.assertRaises(Exception, test_func, ()) doesn't seem to work here?
         try:

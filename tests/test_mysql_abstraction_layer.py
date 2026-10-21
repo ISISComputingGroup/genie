@@ -15,7 +15,6 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 
 import unittest
-from typing import List
 from unittest.mock import Mock, patch
 
 from hamcrest import assert_that, equal_to
@@ -60,7 +59,7 @@ class SQLCursorStub(MySQLCursor):
     def execute(self, operation, params=None, multi: bool = False):
         pass
 
-    def fetchall(self) -> List[RowType]:
+    def fetchall(self) -> list[RowType]:
         return []
 
 

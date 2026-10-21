@@ -1,5 +1,3 @@
-from __future__ import print_function
-
 import ctypes
 import functools
 import glob
@@ -9,7 +7,8 @@ import re
 import sys
 import time
 import traceback
-from typing import Any, Callable, ParamSpec, TypeVar
+from collections.abc import Callable
+from typing import Any, ParamSpec, TypeVar
 
 import IPython
 from decorator import getfullargspec
@@ -38,7 +37,7 @@ if os.name == "nt":
 try:
     # If __api does not exist or is None then we need to create it.
     if __api is None:  # noqa: F821 __api currently gets added to globals which is bad.
-        raise Exception("API does not exist")
+        raise ValueError("API does not exist")
 except Exception:
     # This should only get called the first time genie is imported
     my_pv_prefix = None
@@ -72,12 +71,12 @@ def set_user_script_dir(*directory: str | list[str]) -> None:
             directory_name = get_correct_filepath_existing(directory_name)
             break
         except OSError:
-            directory_name, base_name = os.path.split(directory_name.strip(r"\\/"))
+            directory_name, base_name = os.path.split(directory_name.strip(r"\\/"))  # ruff: ignore[B005]
             dirs_to_create.append(base_name)
 
     # Got to a single directory which does not exist
     if base_name == "":
-        raise OSError("Script dir does not exist and can not be created: {}".format(requested_dir))
+        raise OSError(f"Script dir does not exist and can not be created: {requested_dir}")
 
     for dir_to_create in reversed(dirs_to_create):
         directory_name = os.path.join(directory_name, dir_to_create)
@@ -93,7 +92,7 @@ def get_user_script_dir() -> str:
     """
     Returns: the user script directory
     """
-    global USER_SCRIPT_DIR
+    global USER_SCRIPT_DIR  # ruff: ignore[PLW0602]
     return USER_SCRIPT_DIR
 
 
@@ -145,16 +144,16 @@ class LoadScriptCompleter:
         # get file path
         search_path = line_buffer.split(LOAD_SCRIPT_COMMAND)[-1]
 
-        had_quotes = search_path.startswith("'") or search_path.startswith('"')
+        had_quotes = search_path.startswith(("'", '"'))
         if had_quotes:
             search_path = search_path[1:]
 
         is_absolute = os.path.isabs(search_path)
         if not is_absolute:
-            search_path = "{}{}".format(get_user_script_dir(), search_path)
+            search_path = f"{get_user_script_dir()}{search_path}"
 
         # search and return results
-        paths = glob.glob("{}*".format(search_path))
+        paths = glob.glob(f"{search_path}*")
 
         return paths, search_path, had_quotes, is_absolute
 
@@ -180,7 +179,7 @@ class LoadScriptCompleter:
         if LOAD_SCRIPT_COMMAND not in line_buffer:
             return []
         else:
-            paths, search_path, had_quotes, was_absolute = self._get_completion_paths(line_buffer)
+            paths, _search_path, had_quotes, was_absolute = self._get_completion_paths(line_buffer)
 
             # add quote if it is missing
             if had_quotes:
@@ -257,7 +256,7 @@ class LoadScriptCompleter:
 
                 # assemble the auto replace
                 completion.append(
-                    "{}{}".format(line_buffer_back_to_last_splitting_character, completion_path)
+                    f"{line_buffer_back_to_last_splitting_character}{completion_path}"
                 )
 
         return match, completion
@@ -446,6 +445,6 @@ def _handle_exception(exception: Exception | None = None, message: str | None = 
     elif message is not None:
         _print_error_message(message)
         if _exceptions_raised:
-            raise Exception(message)
+            raise exception
     else:
         _print_error_message("UNSPECIFIED")

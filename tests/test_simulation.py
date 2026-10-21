@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import
 
 import unittest
 from collections import OrderedDict
@@ -109,7 +108,7 @@ class TestSimulationSequence(unittest.TestCase):
         genie.set_instrument(None, import_instrument_init=False)
 
     def tearDown(self):
-        self.sim.__exit__()
+        self.sim.__exit__(None, None, None)
 
     def test_GIVEN_one_block_WHEN_cset_value_for_block_THEN_set_correct_value(self):
         create_dummy_blocks(["a"])

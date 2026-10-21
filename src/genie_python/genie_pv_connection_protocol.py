@@ -1,8 +1,7 @@
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Optional, Protocol, Tuple, runtime_checkable
+from typing import Protocol, runtime_checkable
 
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
+from ibex_non_ca_helpers import PVValue
 
 
 @runtime_checkable
@@ -21,7 +20,7 @@ class GeniePvConnectionProtocol(Protocol):
     ) -> "PVValue": ...
 
     @staticmethod
-    def get_pv_timestamp(name: str, timeout: float) -> Tuple[int, int]: ...
+    def get_pv_timestamp(name: str, timeout: float) -> tuple[int, int]: ...
 
     @staticmethod
     def pv_exists(name: str, timeout: float) -> bool: ...
@@ -29,7 +28,7 @@ class GeniePvConnectionProtocol(Protocol):
     @staticmethod
     def add_monitor(
         name: str,
-        call_back_function: "Callable[[PVValue, Optional[str], Optional[str]], None]",
+        call_back_function: "Callable[[PVValue, str | None, str | None], None]",
         link_alarm_on_disconnect: bool = True,
         to_string: bool = False,
         use_numpy: bool | None = None,

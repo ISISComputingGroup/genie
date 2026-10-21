@@ -14,7 +14,6 @@
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
 
-from __future__ import absolute_import
 
 import unittest
 from unittest.mock import MagicMock, patch
@@ -60,7 +59,7 @@ class TestEpicsApiSequence(unittest.TestCase):
         Returns:
             - A string saying "INVALID" if the pv name argument is ALARM_PV.SEVR.
             - A mock list of instruments if the pv name argument is CS:INSTLIST.
-            - Otherwise it returns an exception.
+            - Otherwise it raises an exception.
         """
         if pv_name == "ALARM_PV.SEVR":
             return "INVALID"
@@ -89,7 +88,7 @@ class TestEpicsApiSequence(unittest.TestCase):
                 },
             ]
         else:
-            raise Exception
+            raise ValueError("Invalid PV name provided")
 
     def test_WHEN_reloading_current_config_THEN_command_is_delegated_to_blockserver(self):
         # Arrange
@@ -114,7 +113,7 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         # Assert
         self.assertEqual(len(val), 1)
-        self.assertEqual(list(val.keys())[0], pv_suffix)
+        self.assertEqual(next(iter(val.keys())), pv_suffix)
         self.assertEqual(val[pv_suffix], self.mock_pv_value)
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_sample_WHEN_get_sample_pars_is_called_THEN_returns_an_empty_dictionary(
@@ -146,8 +145,8 @@ class TestEpicsApiSequence(unittest.TestCase):
 
         # Assert
         self.assertEqual(len(val), 1)
-        self.assertEqual(list(val.keys())[0], pv_suffix)
-        self.assertEqual(val[pv_suffix], self.mock_pv_value)
+        self.assertEqual(next(iter(val.keys())), pv_suffix)
+        self.assertEqual(val[pv_suffix], self.mock_pv_value)  # pyright: ignore
 
     def test_GIVEN_list_of_one_element_with_PV_prefix_not_bl_WHEN_get_beamline_pars_is_called_THEN_returns_an_empty_dictionary(
         self,
@@ -185,7 +184,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndx_THEN_instrument_is_name_without_ndx(self):
         # Act
         expected = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(
             "NDX" + expected
         )
 
@@ -195,7 +194,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndx_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDXNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, machine)
@@ -203,7 +202,9 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndx_THEN_pv_prefix_begins_with_in_colon(self):
         # Act
         name = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDX" + name)
+        _instrument, _machine, pv_prefix = self.api._get_machine_details_from_identifier(
+            "NDX" + name
+        )
         expected = "IN:" + name + ":"
 
         # Assert
@@ -212,7 +213,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndw_THEN_instrument_is_same_as_name(self):
         # Act
         expected = "NDWNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, instrument)
@@ -220,7 +221,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndw_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDWNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, machine)
@@ -228,7 +229,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndw_THEN_pv_prefix_begins_with_the_colon(self):
         # Act
         machine = "NDWname"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
+        _instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
         expected = "TE:" + machine + ":"
 
         # Assert
@@ -237,7 +238,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_nde_THEN_instrument_is_name_without_nde(self):
         # Act
         expected = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(
             "NDE" + expected
         )
 
@@ -247,7 +248,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_nde_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDENAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, machine)
@@ -255,7 +256,9 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_nde_THEN_pv_prefix_begins_with_in_colon(self):
         # Act
         name = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDE" + name)
+        _instrument, _machine, pv_prefix = self.api._get_machine_details_from_identifier(
+            "NDE" + name
+        )
         expected = "IN:" + name + ":"
 
         # Assert
@@ -264,7 +267,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndlt_THEN_instrument_is_same_as_machine_name(self):
         # Act
         expected = "NDLTNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, instrument)
@@ -272,7 +275,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndlt_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDLTNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, machine)
@@ -280,7 +283,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_in_colon_THEN_instrument_is_name_without_prefix(self):
         # Act
         expected = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(
             "IN:" + expected + ":"
         )
 
@@ -290,7 +293,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_in_colon_THEN_machine_name_is_machine_identifier(self):
         # Act
         name = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(
             "IN:" + name + ":"
         )
 
@@ -302,7 +305,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     ):
         # Act
         expected = "IN:NAME:"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, _machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, pv_prefix)
@@ -310,7 +313,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndlt_THEN_pv_prefix_begins_with_the_colon(self):
         # Act
         machine = "NDLTNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
+        _instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(machine)
         expected = "TE:" + machine + ":"
 
         # Assert
@@ -319,7 +322,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndh_THEN_instrument_is_name_without_ndh(self):
         # Act
         expected = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(
             "NDH" + expected
         )
 
@@ -329,7 +332,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndh_THEN_machine_name_is_machine_identifier(self):
         # Act
         expected = "NDHNAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, machine)
@@ -337,7 +340,9 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_begins_ndh_THEN_pv_prefix_begins_with_te_colon(self):
         # Act
         name = "NAME"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier("NDH" + name)
+        _instrument, _machine, pv_prefix = self.api._get_machine_details_from_identifier(
+            "NDH" + name
+        )
         expected = "TE:" + name + ":"
 
         # Assert
@@ -346,7 +351,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_is_in_instrument_list_THEN_instrument_name_is_corrent(self):
         # Act
         name = "IN:TEST2:"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(name)
+        instrument, _machine, _pv_prefix = self.api._get_machine_details_from_identifier(name)
         expected = "TEST2"
 
         # Assert
@@ -355,7 +360,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_is_in_instrument_list_THEN_machine_name_is_corrent(self):
         # Act
         name = "IN:TEST2:"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(name)
+        _instrument, machine, _pv_prefix = self.api._get_machine_details_from_identifier(name)
         expected = "NDXTEST2"
 
         # Assert
@@ -364,7 +369,7 @@ class TestEpicsApiSetInstrumentName(unittest.TestCase):
     def test_WHEN_machine_identifier_is_in_instrument_list_THEN_pv_prefix_is_corrent(self):
         # Act
         expected = "IN:TEST2:"
-        instrument, machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
+        _instrument, _machine, pv_prefix = self.api._get_machine_details_from_identifier(expected)
 
         # Assert
         self.assertEqual(expected, pv_prefix)
@@ -427,7 +432,7 @@ class TestPvMethods(unittest.TestCase):
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         result = self.api.get_pv_value(pv_name, is_local=True)
 
@@ -442,7 +447,7 @@ class TestPvMethods(unittest.TestCase):
         pv_wrapper_mock.pv_exists.return_value = True
         pv_wrapper_mock.get_pv_value.return_value = expected_value
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         result = self.api.get_pv_value(expected_pv_name, is_local=True)
 
@@ -533,7 +538,7 @@ class TestPvMethods(unittest.TestCase):
     def test_GIVEN_mock_pv_WHEN_set_local_pv_value_THEN_pv_is_set(self, pv_wrapper_mock: MagicMock):
         expected_value = 10
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         self.api.set_pv_value(pv_name, expected_value, is_local=True)
 
@@ -547,7 +552,7 @@ class TestPvMethods(unittest.TestCase):
     ):
         expected_value = 10
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         self.api.set_pv_value(expected_pv_name, expected_value, is_local=True)
 
@@ -575,7 +580,7 @@ class TestPvMethods(unittest.TestCase):
         pv_wrapper_mock.set_pv_value.side_effect = ValueError()
         expected_value = 10
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         assert_that(
             calling(self.api.set_pv_value).with_args(
@@ -595,7 +600,7 @@ class TestPvMethods(unittest.TestCase):
     ):
         expected_value = 10
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         pv_wrapper_mock.set_pv_value.side_effect = [ValueError(), expected_value]
 
@@ -616,7 +621,7 @@ class TestPvMethods(unittest.TestCase):
     ):
         expected_value = 10
         pv_name = "PV"
-        expected_pv_name = "{}{}".format(self.instrument_prefix, pv_name)
+        expected_pv_name = f"{self.instrument_prefix}{pv_name}"
 
         pv_wrapper_mock.set_pv_value.side_effect = [
             ValueError(),
@@ -833,9 +838,7 @@ class TestSetBlockMethod(unittest.TestCase):
         self.api.set_block_value(block_name, val, wait=True, lowlimit=low, highlimit=high)
         if should_warn:
             mock_print.assert_called_with(
-                "Warning the range {} to {} does not cover setpoint of {}, may wait forever".format(
-                    low, high, val
-                )
+                f"Warning the range {low} to {high} does not cover setpoint of {val}, may wait forever"
             )
         else:
             mock_print.assert_not_called()
