@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # genie_python documentation build configuration file, created by
 # sphinx-quickstart on Tue Aug 19 08:23:25 2014.

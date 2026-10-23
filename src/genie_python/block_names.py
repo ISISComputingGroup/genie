@@ -1,7 +1,8 @@
 import zlib
 from keyword import iskeyword
 from threading import RLock, Timer
-from typing import TYPE_CHECKING, Optional
+
+from ibex_non_ca_helpers.typing import PVValue
 
 from .channel_access_exceptions import UnableToConnectToPVException
 from .genie_blockserver import BLOCK_SERVER_PREFIX, PV_BLOCK_NAMES
@@ -9,9 +10,6 @@ from .genie_cachannel_wrapper import CaChannelWrapper
 from .utilities import dehex_decompress_and_dejson
 
 DELAY_BEFORE_RETRYING_BLOCK_NAMES_PV_ON_FAIL = 30.0
-
-if TYPE_CHECKING:
-    from genie_python.genie import PVValue
 
 
 class BlockNamesManager:
@@ -45,7 +43,7 @@ class BlockNamesManager:
         """
 
         with self.pv_name_lock:
-            new_name = "{}{}{}".format(pv_prefix, BLOCK_SERVER_PREFIX, PV_BLOCK_NAMES)
+            new_name = f"{pv_prefix}{BLOCK_SERVER_PREFIX}{PV_BLOCK_NAMES}"
             if new_name != self._pv_name:
                 self._pv_name = new_name
                 if self._timer is None:
@@ -84,7 +82,7 @@ class BlockNamesManager:
                 self._timer.daemon = True
                 self._timer.start()
 
-    def _update_block_names(self, value: "PVValue", _: Optional[str], _1: Optional[str]) -> None:
+    def _update_block_names(self, value: "PVValue", _: str | None, _1: str | None) -> None:
         """
         Update the block names from a pv
         Args:
@@ -105,7 +103,7 @@ class BlockNamesManager:
             for name in block_names:
                 attribute_name = name
                 if iskeyword(attribute_name):
-                    attribute_name = "{}__".format(attribute_name)
+                    attribute_name = f"{attribute_name}__"
                 setattr(self._block_names, attribute_name, name)
         except (zlib.error, ValueError, TypeError):
             # if we can not decode the blocks then just pass
@@ -129,7 +127,7 @@ class BlockNames:
         # letter, e.g. ipython console calls __wrapper__ to check it is not a wrapper
         if attr.startswith("_"):
             raise AttributeError()
-        print("WARNING: Block name {} not found, it may not exist".format(attr))
+        print(f"WARNING: Block name {attr} not found, it may not exist")
         if attr.endswith("__") and iskeyword(attr[:-2]):
             return str(attr[:-2])
         return attr

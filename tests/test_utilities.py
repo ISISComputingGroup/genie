@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import
 
 import json
 import unittest
@@ -54,7 +53,7 @@ class TestUtilitiesSequence(unittest.TestCase):
         strings_to_test = self.get_test_strings()
 
         # Act
-        hexed_strings = list()
+        hexed_strings = []
         for string in strings_to_test:
             hexed_strings.append(compress_and_hex(string))
 
@@ -72,7 +71,7 @@ class TestUtilitiesSequence(unittest.TestCase):
         strings_to_test = self.get_test_strings()
 
         # Act
-        manipulated_strings = list()
+        manipulated_strings = []
         for string in strings_to_test:
             manipulated_strings.append(dehex_and_decompress(compress_and_hex(string)))
 
@@ -193,7 +192,7 @@ class TestUtilitiesSequence(unittest.TestCase):
 
     def test_GIVEN_mixed_style_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
         # Arrange
-        filepath = "C:/TestDir\TestSubDir/file.py"
+        filepath = r"C:/TestDir\TestSubDir/file.py"
 
         # Act
         ans = get_correct_path(filepath)
@@ -221,9 +220,7 @@ class TestUtilitiesSequence(unittest.TestCase):
 class TestCRC8Util(unittest.TestCase):
     def calc_and_test(self, expected, inst):
         result = crc8(inst)
-        self.assertEqual(
-            result, expected, 'CRC value was "{0}" expected "{1}"'.format(result, expected)
-        )
+        self.assertEqual(result, expected, f'CRC value was "{result}" expected "{expected}"')
 
     def setUp(self):
         pass

@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import
 
 import unittest
 
@@ -68,8 +67,8 @@ class TestGenieWaitForMove(unittest.TestCase):
     @parameterized.expand(
         [("start_valid_move_none", 10.0, None), ("start_valid_move_invalid", 12.0, -30.0)]
     )
-    def test_GIVEN_method_check_timeouts_valid_WHEN_check_timeouts_THEN_returns_valid_values(
-        self, _, start_input, move_input
+    def test_GIVEN_method_check_timeouts_valid_WHEN_check_timeouts_THEN_returns_none(
+        self, _, start_input: float, move_input: float | None
     ):
         start_timeout = start_input
         move_timeout = move_input

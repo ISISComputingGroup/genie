@@ -1,14 +1,12 @@
-from __future__ import absolute_import, print_function
-
 import inspect
 import os
 import socket
 import typing
 import xml.etree.ElementTree as ET
-from builtins import object, str
 from collections import OrderedDict
+from collections.abc import Callable
 from datetime import timedelta
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING
 
 import numpy as np
 import numpy.typing as npt
@@ -27,7 +25,7 @@ if TYPE_CHECKING:
     )
 
 
-class Waitfor(object):
+class Waitfor:
     def __init__(self) -> None:
         pass
 
@@ -54,9 +52,7 @@ class Waitfor(object):
         frame = inspect.currentframe()
         args, _, _, values = inspect.getargvalues(frame)
         wait_str = [
-            "{}={}".format(arg, values[arg])
-            for arg in args
-            if values[arg] is not None and arg != "self"
+            f"{arg}={values[arg]}" for arg in args if values[arg] is not None and arg != "self"
         ]
         print("Waiting for {}".format(", ".join(wait_str)))
 
@@ -64,12 +60,12 @@ class Waitfor(object):
         self, state: str, maxwaitsecs: int = 3600, onexit: bool = False, quiet: bool = False
     ) -> None:
         if onexit:
-            print("Waiting to exit state {}".format(state))
+            print(f"Waiting to exit state {state}")
         else:
-            print("Waiting for state {}".format(state))
+            print(f"Waiting for state {state}")
 
 
-class WaitForMoveController(object):
+class WaitForMoveController:
     def __init__(self) -> None:
         pass
 
@@ -88,7 +84,7 @@ class WaitForMoveController(object):
         pass
 
 
-class ChangeCache(object):
+class ChangeCache:
     def __init__(self) -> None:
         self.wiring = None
         self.detector = None
@@ -96,8 +92,8 @@ class ChangeCache(object):
         self.mon_spect = None
         self.mon_from = None
         self.mon_to = None
-        self.dae_sync = None
-        self.tcb_file = None
+        self.dae_sync: int | None = None
+        self.tcb_file: str | None = None
         self.tcb_tables = []
         self.smp_veto = None
         self.ts2_veto = None
@@ -111,7 +107,7 @@ class ChangeCache(object):
         self.fermi_width = None
         self.periods_soft_num = None
         self.periods_type = None
-        self.periods_src = None
+        self.periods_src: int | None = None
         self.periods_file = None
         self.periods_seq = None
         self.periods_delay = None
@@ -204,10 +200,10 @@ class ChangeCache(object):
         for row in self.tcb_tables:
             regime = str(row[0])
             trange = str(row[1])
-            self._change_xml(root, "DBL", "TR%s From %s" % (regime, trange), row[2])
-            self._change_xml(root, "DBL", "TR%s To %s" % (regime, trange), row[3])
-            self._change_xml(root, "DBL", "TR%s Steps %s" % (regime, trange), row[4])
-            self._change_xml(root, "U16", "TR%s In Mode %s" % (regime, trange), row[5])
+            self._change_xml(root, "DBL", f"TR{regime} From {trange}", row[2])
+            self._change_xml(root, "DBL", f"TR{regime} To {trange}", row[3])
+            self._change_xml(root, "DBL", f"TR{regime} Steps {trange}", row[4])
+            self._change_xml(root, "U16", f"TR{regime} In Mode {trange}", row[5])
             changed = True
         return changed
 
@@ -244,33 +240,30 @@ class ChangeCache(object):
             output = row[3]
             label = row[4]
             if ptype is not None:
-                self._change_xml(root, "EW", "Type %s" % period, ptype)
+                self._change_xml(root, "EW", f"Type {period}", ptype)
                 changed = True
             if frames is not None:
-                self._change_xml(root, "I32", "Frames %s" % period, frames)
+                self._change_xml(root, "I32", f"Frames {period}", frames)
                 changed = True
             if output is not None:
-                self._change_xml(root, "U16", "Output %s" % period, output)
+                self._change_xml(root, "U16", f"Output {period}", output)
                 changed = True
             if label is not None:
-                self._change_xml(root, "String", "Label %s" % period, label)
+                self._change_xml(root, "String", f"Label {period}", label)
                 changed = True
         return changed
 
-    def _change_xml(
-        self, xml: ET.Element, node: str, name: str, value: str | int | float | None
-    ) -> None:
+    def _change_xml(self, xml: ET.Element, node: str, name: str, value: str | float | None) -> None:
         for top in xml.iter(node):
             n = top.find("Name")
-            if n is not None:
-                if n.text == name:
-                    v = top.find("Val")
-                    if v is not None:
-                        v.text = str(value)
-                    break
+            if n is not None and n.text == name:
+                v = top.find("Val")
+                if v is not None:
+                    v.text = str(value)
+                break
 
 
-class Dae(object):
+class Dae:
     def __init__(self) -> None:
         self.run_state = "SETUP"
         self.run_number = "123456"
@@ -298,7 +291,7 @@ class Dae(object):
         self.detector_tables = [""]
         self.tcb_tables = []
         self.period_files = []
-        self.spectrum: "_GetspectrumReturn" = {
+        self.spectrum: _GetspectrumReturn = {
             "time": [1.0],
             "signal": [1.0],
             "sum": None,
@@ -420,7 +413,7 @@ class Dae(object):
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             pass
         else:
-            raise Exception("Can only be called when RUNNING or PAUSED")
+            raise ValueError("Can only be called when RUNNING or PAUSED")
 
     def update_run(self) -> None:
         """
@@ -429,7 +422,7 @@ class Dae(object):
         if self.run_state == "RUNNING" or self.run_state == "PAUSED":
             pass
         else:
-            raise Exception("Can only be called when RUNNING or PAUSED")
+            raise ValueError("Can only be called when RUNNING or PAUSED")
 
     @require_runstate(["RUNNING", "VETOING", "WAITING", "PAUSED"])
     def store_run(self) -> None:
@@ -439,7 +432,7 @@ class Dae(object):
         if self.run_state == "SETUP":
             pass
         else:
-            raise Exception("Can only be called when SETUP")
+            raise ValueError("Can only be called when SETUP")
 
     def post_recover_check(self, verbose: bool = False) -> None:
         pass
@@ -481,7 +474,7 @@ class Dae(object):
         if period <= self.num_periods:
             self.period_current = period
         else:
-            raise Exception("Cannot set period as it is higher than the number of periods")
+            raise ValueError("Cannot set period as it is higher than the number of periods")
 
     def get_uamps(self, period: bool = False) -> float:
         """Returns the current number of micro-amp hours.
@@ -512,7 +505,7 @@ class Dae(object):
         Args:
             title: String: the new title
         """
-        print("Setting title to {}".format(title))
+        print(f"Setting title to {title}")
         self.title_current = title
 
     def get_display_title(self) -> bool:
@@ -529,7 +522,7 @@ class Dae(object):
         Args:
             display_title: boolean: the new display title status
         """
-        print("Setting title display status to {}".format(display_title))
+        print(f"Setting title display status to {display_title}")
         self.display_title = display_title
 
     def get_rb_number(self) -> str:
@@ -600,9 +593,9 @@ class Dae(object):
         """
         # Check in setup
         if self.get_run_state() != "SETUP":
-            raise Exception("Must be in SETUP before starting change!")
+            raise ValueError("Must be in SETUP before starting change!")
         if self.in_change:
-            raise Exception("Already in change - previous cached values will be used")
+            raise ValueError("Already in change - previous cached values will be used")
         else:
             self.in_change = True
             self.change_cache = ChangeCache()
@@ -669,7 +662,6 @@ class Dae(object):
         if not self.in_change:
             self.change_start()
             did_change = True
-        pass
         if did_change:
             self.change_finish()
 
@@ -736,7 +728,7 @@ class Dae(object):
             self.change_cache.periods_type = 1
             if period_file is not None:
                 if not os.path.exists(period_file):
-                    raise Exception("Period file could not be found")
+                    raise OSError("Period file could not be found")
                 self.change_cache.periods_src = 1
                 self.change_cache.periods_file = period_file
             else:
@@ -746,7 +738,7 @@ class Dae(object):
         elif mode.strip().lower() == "ext":
             self.change_cache.periods_type = 2
         else:
-            raise Exception('Period mode invalid, it should be "int" or "ext"')
+            raise ValueError('Period mode invalid, it should be "int" or "ext"')
         if did_change:
             self.change_finish()
 
@@ -788,12 +780,12 @@ class Dae(object):
             if isinstance(sequences, int):
                 self.change_cache.periods_seq = sequences
             else:
-                raise Exception("Number of period sequences must be an integer")
+                raise TypeError("Number of period sequences must be an integer")
         if output_delay is not None:
             if isinstance(output_delay, int):
                 self.change_cache.periods_delay = output_delay
             else:
-                raise Exception("Output delay of periods must be an integer (microseconds)")
+                raise TypeError("Output delay of periods must be an integer (microseconds)")
         self.define_hard_period(period, daq, dwell, unused, frames, output, label)
         if did_change:
             self.change_finish()
@@ -852,7 +844,7 @@ class Dae(object):
                     (period, p_type, p_frames, p_output, p_label)
                 )
             else:
-                raise Exception("Period number must be an integer from 1 to 8")
+                raise ValueError("Period number must be an integer from 1 to 8")
         if did_change:
             self.change_finish()
 
@@ -904,7 +896,7 @@ class Dae(object):
         elif source == "isis (first ts1)":
             value = 5
         else:
-            raise Exception("Invalid timing source entered, try help(change_sync)!")
+            raise ValueError("Invalid timing source entered, try help(change_sync)!")
         self.change_cache.dae_sync = value
         if did_change:
             self.change_finish()
@@ -925,9 +917,9 @@ class Dae(object):
         elif default:
             tcb_file = "c:\\labview modules\\dae\\tcb.dat"
         else:
-            raise Exception("No tcb file specified")
+            raise ValueError("No tcb file specified")
         if not os.path.exists(tcb_file):
-            raise Exception("Tcb file could not be found")
+            raise OSError("Tcb file could not be found")
         self.change_cache.tcb_file = tcb_file
         if did_change:
             self.change_finish()
@@ -987,30 +979,22 @@ class Dae(object):
         if not self.in_change:
             self.change_start()
             did_change = True
-        if "clearall" in params:
-            if isinstance(params["clearall"], bool):
-                self.change_cache.clear_vetos()
-        if "smp" in params:
-            if isinstance(params["smp"], bool):
-                self.change_cache.smp_veto = int(params["smp"])
-        if "ts2" in params:
-            if isinstance(params["ts2"], bool):
-                self.change_cache.ts2_veto = int(params["ts2"])
-        if "hz50" in params:
-            if isinstance(params["hz50"], bool):
-                self.change_cache.hz50_veto = int(params["hz50"])
-        if "ext0" in params:
-            if isinstance(params["ext0"], bool):
-                self.change_cache.ext0_veto = int(params["ext0"])
-        if "ext1" in params:
-            if isinstance(params["ext1"], bool):
-                self.change_cache.ext1_veto = int(params["ext1"])
-        if "ext2" in params:
-            if isinstance(params["ext2"], bool):
-                self.change_cache.ext2_veto = int(params["ext2"])
-        if "ext3" in params:
-            if isinstance(params["ext3"], bool):
-                self.change_cache.ext3_veto = int(params["ext3"])
+        if "clearall" in params and isinstance(params["clearall"], bool):
+            self.change_cache.clear_vetos()
+        if "smp" in params and isinstance(params["smp"], bool):
+            self.change_cache.smp_veto = int(params["smp"])
+        if "ts2" in params and isinstance(params["ts2"], bool):
+            self.change_cache.ts2_veto = int(params["ts2"])
+        if "hz50" in params and isinstance(params["hz50"], bool):
+            self.change_cache.hz50_veto = int(params["hz50"])
+        if "ext0" in params and isinstance(params["ext0"], bool):
+            self.change_cache.ext0_veto = int(params["ext0"])
+        if "ext1" in params and isinstance(params["ext1"], bool):
+            self.change_cache.ext1_veto = int(params["ext1"])
+        if "ext2" in params and isinstance(params["ext2"], bool):
+            self.change_cache.ext2_veto = int(params["ext2"])
+        if "ext3" in params and isinstance(params["ext3"], bool):
+            self.change_cache.ext3_veto = int(params["ext3"])
         if did_change:
             self.change_finish()
 
@@ -1023,11 +1007,11 @@ class Dae(object):
             width - the veto width
         """
         if not isinstance(enable, bool):
-            raise Exception("Fermi veto: enable must be a boolean value")
+            raise TypeError("Fermi veto: enable must be a boolean value")
         if not isinstance(delay, float) and not isinstance(delay, int):
-            raise Exception("Fermi veto: delay must be a numeric value")
+            raise TypeError("Fermi veto: delay must be a numeric value")
         if not isinstance(width, float) and not isinstance(width, int):
-            raise Exception("Fermi veto: width must be a numeric value")
+            raise TypeError("Fermi veto: width must be a numeric value")
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1048,7 +1032,7 @@ class Dae(object):
             number - the number of periods to create
         """
         if not isinstance(number, float) and not isinstance(number, int):
-            raise Exception("Number of soft periods must be a numeric value")
+            raise TypeError("Number of soft periods must be a numeric value")
         did_change = False
         if not self.in_change:
             self.change_start()
@@ -1100,7 +1084,7 @@ class Dae(object):
         self.autosave_freq = freq
 
 
-class API(object):
+class API:
     def __init__(
         self, pv_prefix: str | None = None, globs: dict | None = None, strict_block: bool = True
     ) -> None:
@@ -1115,7 +1099,7 @@ class API(object):
         """
         self.inst_prefix = None
         self.pre_post_cmd_manager = PrePostCmdManager()
-        self.block_dict = dict()
+        self.block_dict = {}
         self.num_periods = 1
         self.run_number = "123456"
         self.waitfor = Waitfor()
@@ -1148,10 +1132,7 @@ class API(object):
     ) -> None:
         if is_local:
             name = self.prefix_pv_name(name)
-        print(
-            "set_pv_value called (name=%s value=%s wait=%s is_local=%s)"
-            % (name, value, wait, is_local)
-        )
+        print(f"set_pv_value called (name={name} value={value} wait={wait} is_local={is_local})")
 
     def get_pv_value(
         self,
@@ -1164,8 +1145,8 @@ class API(object):
         if is_local:
             name = self.prefix_pv_name(name)
         print(
-            "get_pv_value called (name=%s value=%s attempts=%s is_local=%s use_numpy=%s)"
-            % (name, to_string, attempts, is_local, use_numpy)
+            f"get_pv_value called (name={name} value={to_string} "
+            f"attempts={attempts} is_local={is_local} use_numpy={use_numpy})"
         )
 
     def pv_exists(self, name: str, is_local: bool = False) -> bool:
@@ -1180,11 +1161,11 @@ class API(object):
     def correct_blockname(self, name: str, add_prefix: bool = True) -> str:
         return name
 
-    def get_block_names(self) -> list():
+    def get_block_names(self) -> list[str]:
         return list(self.block_dict.keys())
 
     def block_exists(self, name: str) -> bool:
-        return name in self.block_dict.keys() if self.strict_block else True
+        return name in self.block_dict if self.strict_block else True
 
     def set_block_value(
         self,
@@ -1208,7 +1189,7 @@ class API(object):
             wait (boolean): pause execution until setpoint is reached (one block only)
 
         """
-        print("Setting {} to value {}".format(name, value))
+        print(f"Setting {name} to value {value}")
         if name not in self.block_dict:
             self.block_dict[name] = {
                 "value": value,
@@ -1273,7 +1254,7 @@ class API(object):
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
 
-    def get_runcontrol_settings(self, name: str) -> tuple():
+    def get_runcontrol_settings(self, name: str) -> tuple[bool, float, float]:
         return (
             self.block_dict[name]["runcontrol"],
             self.block_dict[name]["lowlimit"],
@@ -1281,13 +1262,13 @@ class API(object):
         )
 
     def check_alarms(self, blocks: tuple[str, ...]) -> tuple[list[str], list[str], list[str]]:
-        minor = list()
-        major = list()
-        invalid = list()
+        minor = []
+        major = []
+        invalid = []
         return (minor, major, invalid)
 
     def check_limit_violations(self, blocks: tuple[str, ...]) -> list:
-        return list()
+        return []
 
     def get_current_block_values(self) -> dict:
         """
@@ -1306,13 +1287,13 @@ class API(object):
         return block_values
 
     def send_sms(self, phone_num: str, message: str) -> None:
-        print(('SMS "{}" sent to {}'.format(message, phone_num)))
+        print(f'SMS "{message}" sent to {phone_num}')
 
     def send_email(self, address: str, message: str) -> None:
-        print(('Email "{}" sent to {}'.format(message, address)))
+        print(f'Email "{message}" sent to {address}')
 
     def send_alert(self, message: str, inst: str | None) -> None:
-        print(('Slack message "{}" sent to {}'.format(message, inst)))
+        print(f'Slack message "{message}" sent to {inst}')
 
     def get_alarm_from_block(self, block: str) -> str:
         return "NO_ALARM"

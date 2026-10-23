@@ -4,8 +4,6 @@ Genie Toggle Settings module.
 This module is used for storing and updating user preferences and settings.
 """
 
-from __future__ import absolute_import, print_function
-
 import genie_python.genie_api_setup  # for _exceptions_raised
 from genie_python.genie_api_setup import helparglist, log_command_and_handle_exception, usercommand
 
@@ -33,7 +31,7 @@ def exceptions_raised(toggle_on: bool) -> None:
     """
     genie_python.genie_api_setup._exceptions_raised = toggle_on
     # noinspection PyProtectedMember
-    print("Raise exceptions set to {}.".format(genie_python.genie_api_setup._exceptions_raised))
+    print(f"Raise exceptions set to {genie_python.genie_api_setup._exceptions_raised}.")
 
 
 @usercommand
@@ -52,4 +50,4 @@ def cset_verbose(verbose: bool) -> None:
         >>> cset_verbose(True)
     """
     ToggleSettings.cset_verbose = verbose
-    print("Default cset verbosity set to {}.".format(ToggleSettings.cset_verbose))
+    print(f"Default cset verbosity set to {ToggleSettings.cset_verbose}.")

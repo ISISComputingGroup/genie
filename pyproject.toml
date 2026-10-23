@@ -8,7 +8,7 @@ name = "genie_python"
 dynamic = ["version"]
 description = "Instrument control & scripting for the ISIS Neutron & Muon source"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 
@@ -22,9 +22,9 @@ maintainers = [
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 dependencies = [
@@ -50,6 +50,8 @@ dependencies = [
   "pyright",
   # For setting windows job-object flags
   "pywin32;platform_system=='Windows'",
+  # PVValue definition
+  "ibex-non-ca-helpers@git+https://github.com/ISISComputingGroup/ibex-non-ca-helpers@pvvalue",
 ]
 
 [project.optional-dependencies]
@@ -107,7 +109,8 @@ exclude_lines = [
 directory = "coverage_html_report"
 
 [tool.pyright]
-include = ["src", "tests"]
+include = ["src"]
+exclude = ["src/genie_python/typings"]  # Generated type-stubs
 reportConstantRedefinition = true
 reportDeprecated = true
 reportInconsistentConstructor = true
@@ -116,7 +119,7 @@ reportMissingTypeArgument = true
 reportUnnecessaryCast = true
 reportUnnecessaryComparison = true
 reportUnnecessaryContains = true
-reportUnnecessaryIsInstance = true
+reportUnnecessaryIsInstance = false  # Users might pass wrong types
 reportUntypedBaseClass = true
 reportUntypedClassDecorator = true
 reportUntypedFunctionDecorator = true

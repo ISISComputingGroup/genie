@@ -10,9 +10,10 @@ import json
 import logging
 import sys
 import threading
+from collections.abc import Callable, Mapping
 from functools import wraps
 from time import sleep
-from typing import Any, Callable, Mapping, ParamSpec, TypeVar, cast
+from typing import Any, ParamSpec, TypeVar, cast
 
 import tornado
 import tornado.websocket
@@ -403,13 +404,13 @@ class _BackendIbexWebAgg(_Backend):
     @classmethod
     def draw_if_interactive(cls) -> None:
         with IBEX_BACKEND_LOCK:
-            super(_BackendIbexWebAgg, cls).draw_if_interactive()  # pyright: ignore
+            super().draw_if_interactive()  # pyright: ignore
 
     @classmethod
     def new_figure_manager(cls, num: int, *args: Any, **kwargs: Any) -> _FigureManager:
         with IBEX_BACKEND_LOCK:
             for x in list(figure_numbers):
-                if x not in Gcf.figs.keys():
+                if x not in Gcf.figs:
                     figure_numbers.remove(x)
             figure_numbers.append(num)
             if len(figure_numbers) > max_number_of_figures:
@@ -419,4 +420,4 @@ class _BackendIbexWebAgg(_Backend):
                     f"the oldest figure, which was {figure_numbers[0]}."
                 )
                 figure_numbers.pop(0)
-            return super(_BackendIbexWebAgg, cls).new_figure_manager(num, *args, **kwargs)  # pyright: ignore
+            return super().new_figure_manager(num, *args, **kwargs)  # pyright: ignore

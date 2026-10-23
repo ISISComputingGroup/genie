@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import unicode_literals
 
 import unittest
 
@@ -27,7 +26,7 @@ class TestUtilsUnicode(unittest.TestCase):
 
     def test_GIVEN_windows_style_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
         # Arrange
-        filepath = "C:\\TestDir\TestSubDir\file.py"
+        filepath = "C:\\TestDir\\TestSubDir\file.py"
 
         # Act
         ans = get_correct_path(filepath)
@@ -50,7 +49,7 @@ class TestUtilsUnicode(unittest.TestCase):
 
     def test_GIVEN_mixed_style_filepath_WHEN_corrected_THEN_result_is_unix_style(self):
         # Arrange
-        filepath = "C:/TestDir\TestSubDir/file.py"
+        filepath = r"C:/TestDir\TestSubDir/file.py"
 
         # Act
         ans = get_correct_path(filepath)

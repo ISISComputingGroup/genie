@@ -18,7 +18,7 @@ def write_to_temp_file(message: list[str], suffix: str = "", dir: str = "") -> I
     Returns:
         temporary file
     """
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir=dir)
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=suffix, dir=dir)  # noqa: SIM115
     for line in message:
         temp_file.write(line.encode("utf-8"))
     temp_file.close()
@@ -58,6 +58,6 @@ class CreateTempScriptAndReturnErrors:
         self,
         exc_type: type[BaseException] | None,
         exc_value: BaseException | None,
-        exc_traceback: TracebackType,
+        exc_traceback: TracebackType | None,
     ) -> None:
         os.unlink(self.temp_script_file.name)

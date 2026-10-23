@@ -13,7 +13,6 @@
 # along with this program; if not, you can obtain a copy from
 # https://www.eclipse.org/org/documents/epl-v10.php or
 # http://opensource.org/licenses/eclipse-1.0.php
-from __future__ import absolute_import
 
 import builtins
 import contextlib
@@ -230,8 +229,10 @@ class TestScriptChecker(unittest.TestCase):
             self.assertEqual(
                 errors,
                 [
-                    "E:  3: Module 'genie_python.genie' has no "
-                    "'aitfor_time' member; maybe 'waitfor_time'? (no-member)"
+                    (
+                        "E:  3: Module 'genie_python.genie' has no "
+                        "'aitfor_time' member; maybe 'waitfor_time'? (no-member)"
+                    )
                 ],
             )
 
@@ -562,8 +563,10 @@ class TestScriptChecker(unittest.TestCase):
     ):
         script_lines = [
             "from typing import Optional, Callable\n",
-            "def execute_callback(callback: Optional[Callable[[], None]]) -> None:\n"
-            "   callback()\n",
+            (
+                "def execute_callback(callback: Optional[Callable[[], None]]) -> None:\n"
+                "   callback()\n"
+            ),
         ]
 
         with CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors:
@@ -626,10 +629,10 @@ class TestScriptChecker(unittest.TestCase):
         ]
 
         captured_stderr = io.StringIO()
-        with contextlib.redirect_stderr(captured_stderr):
-            with CreateTempScriptAndReturnErrors(
-                self.checker, self.machine, script_lines
-            ) as errors:
-                self.assertEqual(errors, [])
+        with (
+            contextlib.redirect_stderr(captured_stderr),
+            CreateTempScriptAndReturnErrors(self.checker, self.machine, script_lines) as errors,
+        ):
+            self.assertEqual(errors, [])
 
         self.assertEqual(captured_stderr.getvalue(), "")

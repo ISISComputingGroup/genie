@@ -1,8 +1,7 @@
-from builtins import object
 from typing import Any
 
 
-class PrePostCmdManager(object):
+class PrePostCmdManager:
     """
     A class to manager the precmd and postcmd commands such as used in begin, end, abort, resume,
      pause.

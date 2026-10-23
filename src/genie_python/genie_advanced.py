@@ -5,9 +5,10 @@ This module is used for advanced commands that are for expert users.
 """
 
 import contextlib
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from time import sleep
-from typing import Any, Iterator, Protocol, TypedDict
+from typing import Any, Protocol, TypedDict
 
 import numpy as np
 import numpy.typing as npt
@@ -75,8 +76,8 @@ def motor_in_set_mode(pv_name: str) -> Iterator[None]:
         __api.set_pv_value(pv_name + ".SET", 1, True)
         offset_freeze_switch = __api.get_pv_value(pv_name + ".FOFF")
         __api.set_pv_value(pv_name + ".FOFF", "Frozen", True)
-    except IOError as ex:
-        raise ValueError("Can not set motor set and frozen offset mode: {}".format(ex))
+    except OSError as ex:
+        raise ValueError(f"Can not set motor set and frozen offset mode: {ex}")
 
     try:
         yield
@@ -84,13 +85,13 @@ def motor_in_set_mode(pv_name: str) -> Iterator[None]:
         try:
             __api.set_pv_value(pv_name + ".SET", 0, True)
             __api.set_pv_value(pv_name + ".FOFF", offset_freeze_switch, True)
-        except IOError as ex:
-            raise ValueError("Can not reset motor set and frozen offset mode: {}".format(ex))
+        except OSError as ex:
+            raise ValueError(f"Can not reset motor set and frozen offset mode: {ex}")
 
 
 @usercommand
 @helparglist("name str, value flt")
-def redefine_motor_position(name: str, value: float | int) -> None:
+def redefine_motor_position(name: str, value: float) -> None:
     """
 
     Change the motor Move Abs value.
@@ -111,8 +112,8 @@ def redefine_motor_position(name: str, value: float | int) -> None:
 
         try:
             __api.set_pv_value(pv_name + ".VAL", value, True)
-        except IOError as ex:
-            raise ValueError("Can not set new motor position: {}".format(ex))
+        except OSError as ex:
+            raise ValueError(f"Can not set new motor position: {ex}")
 
 
 @usercommand
@@ -150,9 +151,7 @@ def pv_exists(pv: str, is_local: bool = False) -> bool:
 @usercommand
 @helparglist("pv str, value[, maxwait]")
 @log_command_and_handle_exception
-def wait_for_pv(
-    pv: str, value: bool | int | float | str | None, maxwait: int | None = None
-) -> None:
+def wait_for_pv(pv: str, value: bool | float | str | None, maxwait: int | None = None) -> None:
     """
     Wait until a PV has reached a given value.
 
@@ -166,9 +165,8 @@ def wait_for_pv(
         curr_value = __api.get_pv_value(pv)
         if curr_value == value:
             break
-        if maxwait is not None:
-            if timedelta(seconds=maxwait) < datetime.now(UTC) - start_time:
-                break
+        if maxwait is not None and timedelta(seconds=maxwait) < datetime.now(UTC) - start_time:
+            break
         sleep(DELAY_IN_WAIT_FOR_SLEEP_LOOP)
         check_break(2)
 
@@ -392,12 +390,10 @@ def get_exp_data(
     """
     try:
         if __api.exp_data is None:
-            raise EnvironmentError("Could not connect to instrument database")
+            raise OSError("Could not connect to instrument database")
         return __api.exp_data.get_exp_data(rb, user, role, verbose)
     except AttributeError as e:
-        raise NotImplementedError(
-            "get_exp_data is not implemented for this genie type. {}".format(e)
-        )
+        raise NotImplementedError(f"get_exp_data is not implemented for this genie type. {e}")
 
 
 @usercommand

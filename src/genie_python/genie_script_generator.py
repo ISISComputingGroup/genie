@@ -1,8 +1,8 @@
 from abc import ABCMeta, abstractmethod
-from builtins import object
 from collections import OrderedDict
+from collections.abc import Callable
 from functools import wraps
-from typing import Any, Callable, Type
+from typing import Any
 
 
 class GlobalParamValidationError(Exception):
@@ -10,10 +10,8 @@ class GlobalParamValidationError(Exception):
     An error to throw when a global parameter is invalid
     """
 
-    pass
 
-
-class CopyPreviousRow(object):
+class CopyPreviousRow:
     """
     Class to use when an action should copy its previous row's value when a new action is added.
     Examples:
@@ -23,11 +21,11 @@ class CopyPreviousRow(object):
         >>> def run(self, temperature=CopyPreviousRow(1.0), field=1.0, mevents=10)
     """
 
-    def __init__(self, default_value: bool | int | float | str) -> None:
+    def __init__(self, default_value: bool | float | str) -> None:
         self.value = default_value
 
 
-class ScriptDefinition(object, metaclass=ABCMeta):
+class ScriptDefinition(metaclass=ABCMeta):
     global_params: dict[str, Any] | None
 
     @abstractmethod
@@ -51,7 +49,6 @@ class ScriptDefinition(object, metaclass=ABCMeta):
             >>> @cast_parameters_to(temperature=float, field=float, uamps=mytype)
             >>> def run(self, temperature=0.0, field=0.0, uamps=0.0):
         """
-        pass
 
     @abstractmethod
     def parameters_valid(self, **kwargs) -> str | None:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
@@ -74,7 +71,6 @@ class ScriptDefinition(object, metaclass=ABCMeta):
             >>> @cast_parameters_to(temperature=float, field=float, uamps=mytype)
             >>> def parameters_valid(self, temperature=0.0, field=0.0, uamps=0.0):
         """
-        pass
 
     def estimate_time(self, **kwargs) -> float | None:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
         """
@@ -131,7 +127,7 @@ class ScriptDefinition(object, metaclass=ABCMeta):
 
 
 def cast_parameters_to(
-    *args_casts: Type | Callable, **keyword_casts: Type | Callable
+    *args_casts: type | Callable, **keyword_casts: type | Callable
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     A decorator to cast args and kwargs using the passed casters.
@@ -188,8 +184,8 @@ def cast_parameters_to(
                     if str(e) != "":
                         casting_failures += str(e) + "\n"
                     else:
-                        casting_failures += "Cannot convert {} from string to {}\n".format(
-                            str(v), str(keyword_casts[k].__name__)
+                        casting_failures += (
+                            f"Cannot convert {v!s} from string to {keyword_casts[k].__name__!s}\n"
                         )
             # Cast args
             cast_args = []
@@ -200,8 +196,8 @@ def cast_parameters_to(
                     if str(e) != "":
                         casting_failures += str(e) + "\n"
                     else:
-                        casting_failures += "Cannot convert {} from string to {}\n".format(
-                            args[i], str(args_casts[i].__name__)
+                        casting_failures += (
+                            f"Cannot convert {args[i]} from string to {args_casts[i].__name__!s}\n"
                         )
             if casting_failures != "":
                 return casting_failures

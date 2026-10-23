@@ -1,6 +1,5 @@
-from __future__ import absolute_import, print_function
-
 import ast
+import builtins
 import json
 import os
 import re
@@ -9,16 +8,16 @@ import subprocess
 import sys
 import sysconfig
 import unicodedata
-from builtins import object
-from io import StringIO, open
-from typing import Iterable
+from collections.abc import Iterable
+from io import StringIO
+from types import TracebackType
 
 from astroid import MANAGER, nodes
 from pylint.lint import Run
 from pylint.reporters.text import TextReporter
 
 
-class ScriptChecker(object):
+class ScriptChecker:
     """
     Check Scripts for common errors
     """
@@ -47,11 +46,11 @@ class ScriptChecker(object):
         """
         g_error = re.search(self._find_regex("g"), line)
         if g_error:
-            return "W:  {line_no}: 'g' assignment in line {line_no}".format(line_no=line_no)
+            return f"W:  {line_no}: 'g' assignment in line {line_no}"
 
         inst_error = re.search(self._find_regex("inst"), line)
         if inst_error:
-            return "W:  {line_no}: 'inst' assignment in line {line_no}".format(line_no=line_no)
+            return f"W:  {line_no}: 'inst' assignment in line {line_no}"
 
         return ""
 
@@ -63,9 +62,7 @@ class ScriptChecker(object):
         Returns: error in the script; empty list if none
         """
         reassignment_warnings = []
-        line_no = 0
-        for line in lines:
-            line_no += 1
+        for line_no, line in enumerate(lines, 1):
             warning = self._check_g_inst_name(line, line_no)
             if len(warning) != 0:
                 reassignment_warnings.append(warning)
@@ -90,7 +87,7 @@ class ScriptChecker(object):
 
         # Allow modules defined in the site packages directories to be cached as
         # they are unlikely to change at runtime
-        if module.file is not None and any(
+        if module.file is not None and any(  # ruff: ignore[SIM103]
             module.file.startswith(site_package_dir) for site_package_dir in site.getsitepackages()
         ):
             return True
@@ -163,10 +160,15 @@ class ScriptChecker(object):
         def __enter__(self) -> None:
             self._filename = os.path.join(self.config_path, self.config_name)
 
-            with open(self._filename, "w") as f:
+            with builtins.open(self._filename, "w") as f:
                 f.write(json.dumps(self.json_write))
 
-        def __exit__(self, exc_type: None, exc_value: None, exc_traceback: None) -> None:
+        def __exit__(
+            self,
+            exc_type: type[BaseException] | None,
+            exc_value: BaseException | None,
+            exc_traceback: TracebackType | None,
+        ) -> None:
             os.unlink(self._filename)
 
     def pyright_script_checker(
@@ -204,7 +206,9 @@ class ScriptChecker(object):
                 script_path,
             ]
 
-            pr_result = subprocess.run(args=cmd, capture_output=True, text=True, encoding="utf-8")
+            pr_result = subprocess.run(
+                args=cmd, capture_output=True, text=True, encoding="utf-8", check=False
+            )
             json_out = unicodedata.normalize("NFKD", pr_result.stdout)
 
             try:
@@ -221,16 +225,20 @@ class ScriptChecker(object):
             # add message to error array else add to warning array
             for diagnostic in json_data["generalDiagnostics"]:
                 start = diagnostic["range"]["start"]
-                if not diagnostic["rule"] == "reportUndefinedVariable":  ### CHANGE
+                if diagnostic["rule"] != "reportUndefinedVariable":  ### CHANGE
                     if diagnostic["severity"] == "error":
                         errors += [
-                            f"E: {start['line'] + 1}: "
-                            f"{diagnostic['message']} [{diagnostic['rule']}]"
+                            (
+                                f"E: {start['line'] + 1}: "
+                                f"{diagnostic['message']} [{diagnostic['rule']}]"
+                            )
                         ]
                     else:
                         warnings += [
-                            f"W: {start['line'] + 1}: "
-                            f"{diagnostic['message']} [{diagnostic['rule']}]"
+                            (
+                                f"W: {start['line'] + 1}: "
+                                f"{diagnostic['message']} [{diagnostic['rule']}]"
+                            )
                         ]
 
         return warnings, errors
@@ -298,7 +306,7 @@ class ScriptChecker(object):
         elif not no_pylint:
             pylint_path = os.path.join(dir_path, ".pylintrc")
 
-            with open(script_name) as f:
+            with builtins.open(script_name) as f:
                 reassignment_warnings = self.check_script_lines(f)
                 warnings.extend(reassignment_warnings)
 
@@ -307,9 +315,9 @@ class ScriptChecker(object):
             )
             init_hook = (
                 "import sys;"
-                'sys.path.append("{}");'
+                f'sys.path.append("{inst_file_path}");'
                 'sys.path.append("U:\\scripts");'
-                'sys.path.append("C:\\Instrument\\scripts");'.format(inst_file_path)
+                'sys.path.append("C:\\Instrument\\scripts");'
             )
             init_hook = init_hook.replace("\\", "\\\\")
             inst_scripts_file_path = os.path.join(inst_file_path, "inst")
@@ -323,7 +331,7 @@ class ScriptChecker(object):
                 return [
                     "Error while getting attributes of instrument scripts. Please check "
                     + os.path.join(inst_scripts_file_path, e_filename)
-                    + ": {}".format(e)
+                    + f": {e}"
                 ]
 
             # C = Convention related checks,
@@ -334,10 +342,10 @@ class ScriptChecker(object):
             # --msg-template={msg_id}:{line:3d},{column}: {obj}: {msg} for more specific message
             Run(
                 [
-                    "--rcfile={}".format(pylint_path),
-                    "--init-hook={}".format(init_hook),
+                    f"--rcfile={pylint_path}",
+                    f"--init-hook={init_hook}",
                     "--msg-template={C}:{line:3d}: {msg} ({symbol})",
-                    "--generated-members={}".format(functions),
+                    f"--generated-members={functions}",
                     "--score=n",
                     script_name,
                 ],
@@ -370,7 +378,7 @@ class ScriptChecker(object):
                     error_line_numbers.append(int(selected_number))
 
         lines_containing_errors = []
-        with open(script_name) as f:
+        with builtins.open(script_name) as f:
             content = f.read()
 
         lines_list = content.splitlines()
@@ -432,7 +440,7 @@ class ScriptChecker(object):
             attributes = ""
             for filename in os.listdir(instrument_scripts_paths):
                 if filename.endswith(".py") and not filename.startswith("__"):
-                    with open(os.path.join(instrument_scripts_paths, filename)) as f:
+                    with builtins.open(os.path.join(instrument_scripts_paths, filename)) as f:
                         src = f.read()
                         tree = ast.parse(src, filename)
                     attributes += self.get_all_attributes(tree)
@@ -460,11 +468,11 @@ class ScriptChecker(object):
         for item in body:
             # getting functions in global scope
             if isinstance(item, ast.FunctionDef) and not item.name.startswith("_"):
-                attributes += "inst.{function_name},".format(function_name=item.name)
+                attributes += f"inst.{item.name},"
             # getting class and its attributes
             elif isinstance(item, ast.ClassDef):
-                class_name = "inst.{class_name}".format(class_name=item.name)
-                attributes += "{class_name},".format(class_name=class_name)
+                class_name = f"inst.{item.name}"
+                attributes += f"{class_name},"
                 attributes += self.get_class_member_names(item.body, class_name)
             elif isinstance(item, ast.Assign):
                 for target in item.targets:
@@ -474,13 +482,13 @@ class ScriptChecker(object):
 
     def parse_assignment_target(self, target: ast.AST, descendants: str = "") -> str:
         if isinstance(target, ast.Name):
-            return "inst.{}{},".format(target.id, descendants)
+            return f"inst.{target.id}{descendants},"
 
         if sys.version_info[0] >= 3 and isinstance(target, ast.Starred):
             return self.parse_assignment_target(target.value, descendants=descendants)
 
         if isinstance(target, ast.Attribute):
-            descendants = ".{}{}".format(target.attr, descendants)
+            descendants = f".{target.attr}{descendants}"
             return self.parse_assignment_target(target.value, descendants=descendants)
 
         if isinstance(target, (ast.List, ast.Tuple)):
@@ -503,16 +511,12 @@ class ScriptChecker(object):
         for function_body in body:
             if isinstance(function_body, ast.FunctionDef):
                 if "__" not in function_body.name:
-                    attributes += "{class_name}.{function_name},".format(
-                        class_name=class_name, function_name=function_body.name
-                    )
+                    attributes += f"{class_name}.{function_body.name},"
                 else:
                     # variables defined inside __init__
                     for variables in function_body.body:
                         if isinstance(variables, ast.Assign) and isinstance(
                             variables.targets[0], ast.Attribute
                         ):
-                            attributes += "{class_name}.{variable_name},".format(
-                                class_name=class_name, variable_name=variables.targets[0].attr
-                            )
+                            attributes += f"{class_name}.{variables.targets[0].attr},"
         return attributes

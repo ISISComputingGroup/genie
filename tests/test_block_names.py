@@ -16,8 +16,6 @@
 # http://opensource.org/licenses/eclipse-1.0.php
 """
 
-from __future__ import absolute_import
-
 import json
 import unittest
 from time import sleep
@@ -136,7 +134,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         call_back = Mock()
         add_monitor_mock.return_value = call_back
 
-        block_names, blocks_name_manager = create_block_names(get_pv_value_mock, [])
+        _block_names, blocks_name_manager = create_block_names(get_pv_value_mock, [])
 
         blocks_name_manager.update_prefix("new")
         sleep(1)  # wait for timer to be called
@@ -218,7 +216,7 @@ class TestGenieAutoCompletePyConsole(unittest.TestCase):
         block_names, _ = create_block_names(get_pv_value_mock, [])
 
         try:
-            block_names._blocks_cant_start_with_hash
+            _ = block_names._blocks_cant_start_with_hash
             self.fail("No exception thrown")
         except AttributeError:
             pass
