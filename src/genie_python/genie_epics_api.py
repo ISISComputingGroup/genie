@@ -49,7 +49,7 @@ BLOCK_NAMES = BlockNames()
 BLOCK_NAMES_MANAGER = BlockNamesManager(BLOCK_NAMES)
 
 
-class API(object):
+class API(object): # TODO at runtime know which wrapper to use
     def __init__(
         self,
         pv_prefix: str,
