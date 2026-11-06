@@ -119,8 +119,8 @@ if not (MIN_SUPPORTED_PYTHON_VERSION <= sys.version_info[0:3] <= MAX_SUPPORTED_P
     message = (
         "WARNING: genie_python only supports "
         f"python versions "
-        f"{MIN_SUPPORTED_PYTHON_VERSION[0]}.{MIN_SUPPORTED_PYTHON_VERSION[1]}.{MIN_SUPPORTED_PYTHON_VERSION[2]} to "  # ruff: ignore[E501]
-        f"{MAX_SUPPORTED_PYTHON_VERSION[0]}.{MAX_SUPPORTED_PYTHON_VERSION[1]}.{MAX_SUPPORTED_PYTHON_VERSION[2]}, "  # ruff: ignore[E501]
+        f"{MIN_SUPPORTED_PYTHON_VERSION[0]}.{MIN_SUPPORTED_PYTHON_VERSION[1]}.{MIN_SUPPORTED_PYTHON_VERSION[2]} to "  # noqa: E501
+        f"{MAX_SUPPORTED_PYTHON_VERSION[0]}.{MAX_SUPPORTED_PYTHON_VERSION[1]}.{MAX_SUPPORTED_PYTHON_VERSION[2]}, "  # noqa: E501
         f"you are running {sys.version}"
     )
     print(message, file=sys.stderr)

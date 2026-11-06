@@ -6,7 +6,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
-def _plotting_func(func: Callable[P, T]) -> Callable[P, T]:
+def _plotting_func[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator for functions that interact with MPL.
 
@@ -21,7 +21,7 @@ def _plotting_func(func: Callable[P, T]) -> Callable[P, T]:
         was_interactive = pyplt.isinteractive()
         pyplt.ioff()
         result = func(*args, **kwargs)
-        pyplt.interactive(was_interactive)
+        pyplt.interactive(was_interactive)  # pyright: ignore[reportPrivateImportUsage]
         pyplt.show(block=False)
         return result
 

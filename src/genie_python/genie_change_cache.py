@@ -145,8 +145,9 @@ class ChangeCache:
         if value is not None:
             for top in xml.iter(node):
                 n = top.find("Name")
-                if n.text == name:
+                if n is not None and n.text == name:
                     v = top.find("Val")
-                    v.text = str(value)
-                    return True
+                    if v is not None:
+                        v.text = str(value)
+                        return True
         return False

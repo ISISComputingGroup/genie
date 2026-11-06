@@ -1225,7 +1225,7 @@ class API:
     def get_pv_from_block(self, block_name: str) -> str:
         return block_name
 
-    def set_multiple_blocks(self, names: list[str], values: list["PVValue"]) -> None:
+    def set_multiple_blocks(self, names: list[str], values: typing.Sequence["PVValue"]) -> None:
         temp = list(zip(names, values))
         for name, value in temp:
             if name in self.block_dict:

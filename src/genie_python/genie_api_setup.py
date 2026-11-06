@@ -332,7 +332,7 @@ except AttributeError:
 # END TAB COMPLETE
 
 
-def usercommand(func: Callable[P, T]) -> Callable[P, T]:
+def usercommand[**P, T](func: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator that marks a function as a user command (e.g. for NICOS).
     """
@@ -354,7 +354,7 @@ def helparglist(args: Any) -> Callable[[Callable[P, T]], Callable[P, T]]:
     return deco
 
 
-def log_command_and_handle_exception(f: Callable[P, T]) -> Callable[P, T]:
+def log_command_and_handle_exception[**P, T](f: Callable[P, T]) -> Callable[P, T]:
     """
     Decorator that will log the command when run and will
     catch all exceptions to be handled by genie.
