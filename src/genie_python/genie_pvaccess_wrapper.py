@@ -13,7 +13,8 @@ from threading import Event
 from typing import TYPE_CHECKING, NoReturn, Optional, Tuple, TypeVar
 
 import numpy as np
-from p4p._p4p import RemoteError, Value
+from p4p import Value
+from p4p._p4p import RemoteError
 from p4p.client.thread import Context
 
 if TYPE_CHECKING:
@@ -166,7 +167,7 @@ class PVAccessWrapper(object):
                 return {label: value[f"value.{label}"] for label in labels}
 
             case _:
-                if "value" in value:
+                if value.has("value"):
                     return value["value"]
                 return value.tostr()
 
