@@ -337,7 +337,7 @@ S = TypeVar("S", bound=_HasRunState)
 
 def require_runstate(
     runstates: Iterable[str],
-) -> Callable[[Callable[Concatenate[S, ...], T]], Callable[Concatenate[S, ...], T]]:
+) -> Callable[[Callable[Concatenate[S, P], T]], Callable[Concatenate[S, P], T]]:
     """
     Decorator that checks for needed runstates.
     If skip_required_runstates is passed in as a keyword argument to the
@@ -345,9 +345,9 @@ def require_runstate(
     """
     runstates_string = ", ".join(runstates)
 
-    def _check_runstate(func: Callable[Concatenate[S, ...], T]) -> Callable[Concatenate[S, ...], T]:
+    def _check_runstate(func: Callable[Concatenate[S, P], T]) -> Callable[Concatenate[S, P], T]:
         @wraps(func)
-        def _wrapper(self: S, *args: Any, **kwargs: Any) -> T:
+        def _wrapper(self: S, *args: P.args, **kwargs: P.kwargs) -> T:
             if not kwargs.pop("skip_required_runstates", False):
                 run_state = self.get_run_state()
                 if run_state not in set(runstates):

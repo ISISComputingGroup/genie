@@ -25,12 +25,11 @@ if TYPE_CHECKING:
     )
 
 
-class Block(typing.TypedDict):
+class SimulatedBlock(typing.TypedDict):
     value: "PVValue"
     runcontrol: bool | None
     lowlimit: float | None
     highlimit: float | None
-    wait: bool | None
 
 
 class Waitfor:
@@ -120,7 +119,9 @@ class ChangeCache:
         self.periods_file: str | None = None
         self.periods_seq: int | None = None
         self.periods_delay: int | None = None
-        self.periods_settings = []
+        self.periods_settings: (
+            list[tuple[int, int | None, int | None, int | None, str | None]] | None
+        ) = []
 
     def set_monitor(self, spec: int, low: float, high: float) -> None:
         self.mon_spect = spec
@@ -236,12 +237,15 @@ class ChangeCache:
         if self.periods_file is not None:
             self._change_xml(root, "String", "Period File", self.periods_file)
             changed = True
-        if self.periods_settings:
+        if self.periods_settings is not None:
             self._change_period_table(root, changed)
             changed = True
         return changed
 
     def _change_period_table(self, root: ET.Element, changed: bool) -> bool:
+        if self.periods_settings is None:
+            return False
+
         for row in self.periods_settings:
             period = row[0]
             ptype = row[1]
@@ -853,9 +857,10 @@ class Dae:
                 p_label = None  # unchanged
                 if label is not None:
                     p_label = label
-                self.change_cache.periods_settings.append(
-                    (period, p_type, p_frames, p_output, p_label)
-                )
+                if self.change_cache.periods_settings is not None:
+                    self.change_cache.periods_settings.append(
+                        (period, p_type, p_frames, p_output, p_label)
+                    )
             else:
                 raise ValueError("Period number must be an integer from 1 to 8")
         if did_change:
@@ -1114,7 +1119,7 @@ class API:
         """
         self.inst_prefix = None
         self.pre_post_cmd_manager = PrePostCmdManager()
-        self.block_dict: dict[str, Block] = {}
+        self.block_dict: dict[str, SimulatedBlock] = {}
         self.num_periods = 1
         self.run_number = "123456"
         self.waitfor = Waitfor()
@@ -1211,19 +1216,20 @@ class API:
                 "runcontrol": runcontrol,
                 "lowlimit": lowlimit,
                 "highlimit": highlimit,
-                "wait": wait,
             }
         else:
             if wait:
                 self.block_dict[name]["value"] = value
             else:
-                # from https://stackoverflow.com/questions/582056/
-                # getting-list-of-parameter-names-inside-python-function
-                sig = inspect.signature(type(self).set_block_value)
-
-                for arg, argval in locals().items():
-                    if arg in sig.parameters and arg != "self" and argval is not None:
-                        self.block_dict[name][arg] = argval
+                block = self.block_dict[name]
+                if value is not None:
+                    block["value"] = value
+                if runcontrol is not None:
+                    block["runcontrol"] = runcontrol
+                if lowlimit is not None:
+                    block["lowlimit"] = lowlimit
+                if highlimit is not None:
+                    block["highlimit"] = highlimit
         if wait:
             self.waitfor.start_waiting(block=name, value=value)
 
@@ -1252,7 +1258,6 @@ class API:
                     "runcontrol": None,
                     "lowlimit": None,
                     "highlimit": None,
-                    "wait": False,
                 }
 
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
@@ -1286,7 +1291,7 @@ class API:
     def check_limit_violations(self, blocks: tuple[str, ...]) -> list[str]:
         return []
 
-    def get_current_block_values(self) -> dict[str, Block]:
+    def get_current_block_values(self) -> dict[str, SimulatedBlock]:
         """
         Values are returned for each IBEX block.
         Returns:
