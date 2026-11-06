@@ -25,6 +25,14 @@ if TYPE_CHECKING:
     )
 
 
+class Block(typing.TypedDict):
+    value: "PVValue"
+    runcontrol: bool | None
+    lowlimit: float | None
+    highlimit: float | None
+    wait: bool | None
+
+
 class Waitfor:
     def __init__(self) -> None:
         pass
@@ -49,10 +57,11 @@ class Waitfor:
         quiet: bool = False,
     ) -> None:
         # from https://stackoverflow.com/questions/582056/getting-list-of-parameter-names-inside-python-function
-        frame = inspect.currentframe()
-        args, _, _, values = inspect.getargvalues(frame)
+        sig = inspect.signature(type(self).start_waiting)
         wait_str = [
-            f"{arg}={values[arg]}" for arg in args if values[arg] is not None and arg != "self"
+            f"{name}={value}"
+            for name, value in locals().items()
+            if name in sig.parameters and name != "self"
         ]
         print("Waiting for {}".format(", ".join(wait_str)))
 
@@ -86,9 +95,9 @@ class WaitForMoveController:
 
 class ChangeCache:
     def __init__(self) -> None:
-        self.wiring = None
-        self.detector = None
-        self.spectra = None
+        self.wiring: str | None = None
+        self.detector: str | None = None
+        self.spectra: str | None = None
         self.mon_spect = None
         self.mon_from = None
         self.mon_to = None
@@ -106,11 +115,11 @@ class ChangeCache:
         self.fermi_delay = None
         self.fermi_width = None
         self.periods_soft_num = None
-        self.periods_type = None
+        self.periods_type: None | int = None
         self.periods_src: int | None = None
-        self.periods_file = None
-        self.periods_seq = None
-        self.periods_delay = None
+        self.periods_file: str | None = None
+        self.periods_seq: int | None = None
+        self.periods_delay: int | None = None
         self.periods_settings = []
 
     def set_monitor(self, spec: int, low: float, high: float) -> None:
@@ -227,7 +236,7 @@ class ChangeCache:
         if self.periods_file is not None:
             self._change_xml(root, "String", "Period File", self.periods_file)
             changed = True
-        if self.periods_settings is not None:
+        if self.periods_settings:
             self._change_period_table(root, changed)
             changed = True
         return changed
@@ -610,10 +619,10 @@ class Dae:
     ) -> "_GetspectrumReturn":
         return self.spectrum
 
-    def get_spec_data(self) -> npt.NDArray:
+    def get_spec_data(self) -> npt.NDArray[np.float64]:
         return np.array([1.0, 2.0, 3.0, 4.0])  # spectrum 0 and 1, time bins 0 and 1
 
-    def get_spec_integrals(self) -> npt.NDArray:
+    def get_spec_integrals(self) -> npt.NDArray[np.float64]:
         return np.array([1.0, 2.0])  # spectrum 0 and 1
 
     def integrate_spectrum(
@@ -636,6 +645,10 @@ class Dae:
             float: integral of the spectrum (neutron counts) which
                    is 1 proporiontal to the width requested
         """
+
+        if not (t_min and t_max):
+            raise ValueError("t_min and t_max must be set in simulated DAE")
+
         return 1.0 / (t_max - t_min)
 
     def change_monitor(self, spec: int, low: float, high: float) -> None:
@@ -1017,10 +1030,10 @@ class Dae:
             self.change_start()
             did_change = True
         if enable:
-            self.change_cache.set_fermi(1, delay, width)
+            self.change_cache.set_fermi(True, delay, width)
             print("SET_FERMI_VETO: requested status is ON, delay:", delay, "width:", width)
         else:
-            self.change_cache.set_fermi(0)
+            self.change_cache.set_fermi(False)
             print("SET_FERMI_VETO: requested status is OFF")
         if did_change:
             self.change_finish()
@@ -1068,13 +1081,15 @@ class Dae:
     def set_verbose(self, verbose: bool) -> None:
         pass
 
-    def get_table_path(self, table_type: str) -> str:
+    def get_table_path(self, table_type: str) -> str | None:
         if table_type == "Wiring":
             return self.change_cache.wiring
         if table_type == "Detector":
             return self.change_cache.detector
         if table_type == "Spectra":
             return self.change_cache.spectra
+
+        return None
 
     def get_autosave_freq(self) -> int | None:
         return self.autosave_freq
@@ -1086,7 +1101,7 @@ class Dae:
 
 class API:
     def __init__(
-        self, pv_prefix: str | None = None, globs: dict | None = None, strict_block: bool = True
+        self, pv_prefix: str, globs: dict[str, typing.Any], strict_block: bool = True
     ) -> None:
         """
         Constructor for the simulated API.
@@ -1099,7 +1114,7 @@ class API:
         """
         self.inst_prefix = None
         self.pre_post_cmd_manager = PrePostCmdManager()
-        self.block_dict = {}
+        self.block_dict: dict[str, Block] = {}
         self.num_periods = 1
         self.run_number = "123456"
         self.waitfor = Waitfor()
@@ -1112,7 +1127,7 @@ class API:
         self.exp_data = None
 
     def set_instrument(
-        self, pv_prefix: str, globs: dict | None, import_instrument_init: bool
+        self, pv_prefix: str, globs: dict[str, typing.Any], import_instrument_init: bool
     ) -> None:
         self.inst_prefix = pv_prefix
 
@@ -1191,23 +1206,24 @@ class API:
         """
         print(f"Setting {name} to value {value}")
         if name not in self.block_dict:
-            self.block_dict[name] = {
-                "value": value,
-                "runcontrol": runcontrol,
-                "lowlimit": lowlimit,
-                "highlimit": highlimit,
-            }
+            self.block_dict[name] = Block(
+                value=value,
+                runcontrol=runcontrol,
+                lowlimit=lowlimit,
+                highlimit=highlimit,
+                wait=None,
+            )
         else:
             if wait:
                 self.block_dict[name]["value"] = value
             else:
                 # from https://stackoverflow.com/questions/582056/
                 # getting-list-of-parameter-names-inside-python-function
-                frame = inspect.currentframe()
-                args, _, _, values = inspect.getargvalues(frame)
-                for arg in args:
-                    if values[arg] is not None and arg != "self":
-                        self.block_dict[name][arg] = values[arg]
+                sig = inspect.signature(type(self).set_block_value)
+
+                for arg, argval in locals().items():
+                    if arg in sig.parameters and arg != "self" and argval is not None:
+                        self.block_dict[name][arg] = argval
         if wait:
             self.waitfor.start_waiting(block=name, value=value)
 
@@ -1231,13 +1247,13 @@ class API:
             if name in self.block_dict:
                 self.block_dict[name]["value"] = value
             else:
-                self.block_dict[name] = {
-                    "value": value,
-                    "runcontrol": None,
-                    "lowlimit": None,
-                    "highlimit": None,
-                    "wait": False,
-                }
+                self.block_dict[name] = Block(
+                    value=value,
+                    runcontrol=None,
+                    lowlimit=None,
+                    highlimit=None,
+                    wait=False,
+                )
 
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
         pass
@@ -1254,7 +1270,7 @@ class API:
     def set_beamline_par(self, name: str, value: "PVValue") -> None:
         self.beamline_pars[name] = value
 
-    def get_runcontrol_settings(self, name: str) -> tuple[bool, float, float]:
+    def get_runcontrol_settings(self, name: str) -> tuple["PVValue", "PVValue", "PVValue"]:
         return (
             self.block_dict[name]["runcontrol"],
             self.block_dict[name]["lowlimit"],
@@ -1267,10 +1283,10 @@ class API:
         invalid = []
         return (minor, major, invalid)
 
-    def check_limit_violations(self, blocks: tuple[str, ...]) -> list:
+    def check_limit_violations(self, blocks: tuple[str, ...]) -> list[str]:
         return []
 
-    def get_current_block_values(self) -> dict:
+    def get_current_block_values(self) -> dict[str, Block]:
         """
         Values are returned for each IBEX block.
         Returns:

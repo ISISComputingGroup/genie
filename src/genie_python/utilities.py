@@ -7,13 +7,12 @@ import zlib
 from collections.abc import Callable, Iterable
 from datetime import timedelta
 from functools import wraps
-from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, TypeVar
+from typing import TYPE_CHECKING, Any, Concatenate, ParamSpec, Protocol, TypeVar
 
 P = ParamSpec("P")
 T = TypeVar("T")
 
 if TYPE_CHECKING:
-    from genie_python.genie_dae import Dae
     from genie_python.genie_epics_api import API
 
     def check_break(level: Any) -> Any:
@@ -329,9 +328,16 @@ def check_lowlimit_against_highlimit(lowlimit: float | None, highlimit: float | 
         print(f"WARNING: You have set the lowlimit({lowlimit}) above the highlimit({highlimit})")
 
 
+class _HasRunState(Protocol):
+    def get_run_state(self) -> str: ...
+
+
+S = TypeVar("S", bound=_HasRunState)
+
+
 def require_runstate(
     runstates: Iterable[str],
-) -> Callable[[Callable[Concatenate["Dae", ...], T]], Callable[Concatenate["Dae", ...], T]]:
+) -> Callable[[Callable[Concatenate[S, ...], T]], Callable[Concatenate[S, ...], T]]:
     """
     Decorator that checks for needed runstates.
     If skip_required_runstates is passed in as a keyword argument to the
@@ -339,11 +345,9 @@ def require_runstate(
     """
     runstates_string = ", ".join(runstates)
 
-    def _check_runstate(
-        func: Callable[Concatenate["Dae", ...], T],
-    ) -> Callable[Concatenate["Dae", ...], T]:
+    def _check_runstate(func: Callable[Concatenate[S, ...], T]) -> Callable[Concatenate[S, ...], T]:
         @wraps(func)
-        def _wrapper(self: "Dae", *args: P.args, **kwargs: P.kwargs) -> T:
+        def _wrapper(self: S, *args: Any, **kwargs: Any) -> T:
             if not kwargs.pop("skip_required_runstates", False):
                 run_state = self.get_run_state()
                 if run_state not in set(runstates):

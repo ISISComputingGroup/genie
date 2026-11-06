@@ -24,7 +24,7 @@ from genie_python.genie_waitfor import WaitForController
 
 class TestGenieWaitFor(unittest.TestCase):
     def setUp(self):
-        self.genie_waitfor = WaitForController(API())
+        self.genie_waitfor = WaitForController(API("", {}))
 
     def test_GIVEN_silent_waitfor_time_WHEN_waitfor_time_THEN_no_output(self):
         captured_output = StringIO()
