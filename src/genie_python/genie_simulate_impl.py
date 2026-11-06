@@ -1206,13 +1206,13 @@ class API:
         """
         print(f"Setting {name} to value {value}")
         if name not in self.block_dict:
-            self.block_dict[name] = Block(
-                value=value,
-                runcontrol=runcontrol,
-                lowlimit=lowlimit,
-                highlimit=highlimit,
-                wait=None,
-            )
+            self.block_dict[name] = {
+                "value": value,
+                "runcontrol": runcontrol,
+                "lowlimit": lowlimit,
+                "highlimit": highlimit,
+                "wait": wait,
+            }
         else:
             if wait:
                 self.block_dict[name]["value"] = value
@@ -1247,13 +1247,13 @@ class API:
             if name in self.block_dict:
                 self.block_dict[name]["value"] = value
             else:
-                self.block_dict[name] = Block(
-                    value=value,
-                    runcontrol=None,
-                    lowlimit=None,
-                    highlimit=None,
-                    wait=False,
-                )
+                self.block_dict[name] = {
+                    "value": value,
+                    "runcontrol": None,
+                    "lowlimit": None,
+                    "highlimit": None,
+                    "wait": False,
+                }
 
     def run_pre_post_cmd(self, command: str, **pars: str) -> None:
         pass
