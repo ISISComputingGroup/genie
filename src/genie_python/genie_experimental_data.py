@@ -2,6 +2,8 @@
 Genie Database Access module.
 """
 
+import datetime
+import typing
 from typing import TypedDict
 
 from genie_python.mysql_abstraction_layer import SQLAbstraction
@@ -55,7 +57,7 @@ class GetExperimentData:
         return bool(result)
 
     class _GetExpDataReturn(TypedDict):
-        rb_number: int | str
+        rb_number: str
         user: str
         role: str
         start_date: str
@@ -112,18 +114,22 @@ class GetExperimentData:
             )
         if role != "%" and not self._parameter_is_valid(role, "name", "role"):
             roles = ", ".join(
-                [x[0] for x in self.get_sql().query_returning_cursor("SELECT name FROM `role`", ())]
+                [
+                    typing.cast(str, x[0])
+                    for x in self.get_sql().query_returning_cursor("SELECT name FROM `role`", ())
+                ]
             )
             raise NotFoundError(f'Role "{role}" was not found. Existing roles: {roles}')
 
     def _query_database_for_data(
-        self, args: bool | float | str, sql: str
+        self, args: list[bool | float | str], sql: str
     ) -> list[_GetExpDataReturn]:
         exp_data = []
         for exp_id, user, role, start_date, duration in self.get_sql().query_returning_cursor(
             sql, args
         ):
-            start_date = start_date.strftime("%Y-%m-%d %H:%M:%S")
+            if isinstance(start_date, datetime.datetime):
+                start_date = start_date.strftime("%Y-%m-%d %H:%M:%S")
             experiment_details = {
                 "rb_number": exp_id,
                 "user": user,
@@ -137,7 +143,7 @@ class GetExperimentData:
     @staticmethod
     def _create_sql_statement_and_args(
         rb: int | str, user: str, role: str
-    ) -> tuple[bool | int | float | str, str]:
+    ) -> tuple[list[bool | int | float | str], str]:
         """
         Prepare the statement and bound variables
 

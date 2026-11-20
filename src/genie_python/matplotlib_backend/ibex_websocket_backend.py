@@ -45,7 +45,7 @@ T = TypeVar("T")
 P = ParamSpec("P")
 
 
-def _ignore_if_websocket_closed(func: Callable[P, T]) -> Callable[P, T | None]:
+def _ignore_if_websocket_closed[**P, T](func: Callable[P, T]) -> Callable[P, T | None]:
     """
     Decorator which ignores exceptions that were caused by websockets being closed.
     """

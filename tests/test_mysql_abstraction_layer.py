@@ -135,7 +135,7 @@ class TestConnectionLayer(unittest.TestCase):
         exception_raised = False
         try:
             severity_names_sql = "SELECT severity_id, name FROM archive.severity"
-            [x for x in sql.query_returning_cursor(severity_names_sql, ())]
+            _ = [x for x in sql.query_returning_cursor(severity_names_sql, ())]
         except InternalError:
             exception_raised = True
         finally:

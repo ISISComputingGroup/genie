@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from genie_python.utilities import check_break, get_time_delta
 
 if TYPE_CHECKING:
-    from ibex_non_ca_helpers import PVValue
+    from ibex_non_ca_helpers.typing import PVValue
 
     from genie_python.genie_epics_api import API
 

@@ -17,7 +17,9 @@ PV_BLOCK_NAMES = "BLOCKNAMES"
 BLOCK_SERVER_PREFIX = "CS:BLOCKSERVER:"
 
 
-def _blockserver_retry(func: Callable[Param, RetType]) -> Callable[Param, RetType]:
+def _blockserver_retry[**Param, RetType](
+    func: Callable[Param, RetType],
+) -> Callable[Param, RetType]:
     def wrapper(*args: Param.args, **kwargs: Param.kwargs) -> RetType:
         while True:
             try:

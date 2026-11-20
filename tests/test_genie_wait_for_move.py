@@ -25,7 +25,7 @@ from genie_python.genie_wait_for_move import WaitForMoveController
 class TestGenieWaitForMove(unittest.TestCase):
     def setUp(self):
         motion_pv = "MOTOR"
-        self.genie_wait_for_move = WaitForMoveController(API(), motion_pv)
+        self.genie_wait_for_move = WaitForMoveController(API("", {}), motion_pv)
 
     def test_GIVEN_method_flag_error_conditions_WHEN_method_called_THEN_method_doesnt_error(self):
         blocks = []

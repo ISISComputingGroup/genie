@@ -81,7 +81,7 @@ dev = [
   "pyhamcrest",
   "pytest",
   "pytest-cov",
-  "ruff>=0.6",
+  "ruff==0.17.4",
 ]
 
 [project.urls]

@@ -29,7 +29,7 @@ class ScriptDefinition(metaclass=ABCMeta):
     global_params: dict[str, Any] | None
 
     @abstractmethod
-    def run(self, **kwargs) -> str | None:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
+    def run(self, **kwargs) -> str | None:  # noqa: ANN003 # pyright: ignore[reportMissingParameterType]
         """
         Defines the steps of an action which can be used in the script generator.
 
@@ -51,7 +51,7 @@ class ScriptDefinition(metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def parameters_valid(self, **kwargs) -> str | None:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
+    def parameters_valid(self, **kwargs) -> str | None:  # noqa: ANN003 # pyright: ignore[reportMissingParameterType]
         """
         Contains tests to check whether a given set of inputs is valid
 
@@ -72,7 +72,7 @@ class ScriptDefinition(metaclass=ABCMeta):
             >>> def parameters_valid(self, temperature=0.0, field=0.0, uamps=0.0):
         """
 
-    def estimate_time(self, **kwargs) -> float | None:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
+    def estimate_time(self, **kwargs) -> float | None:  # noqa: ANN003 # pyright: ignore[reportMissingParameterType]
         """
         Calculates an estimate in seconds of how long the specified parameters
         will take to execute. The Script Generator only calls this function
@@ -97,7 +97,7 @@ class ScriptDefinition(metaclass=ABCMeta):
         """
         return ""
 
-    def estimate_custom(self, **kwargs) -> OrderedDict:  # noqa:ANN003 - abstract, can be overridden to any type in subclass
+    def estimate_custom(self, **kwargs) -> OrderedDict[str, str]:  # noqa: ANN003 # pyright: ignore[reportMissingParameterType]
         """
         Create custom estimates that display how many events are in the script.
         This function must return an OrderedDict with string keys and string values.
@@ -127,7 +127,7 @@ class ScriptDefinition(metaclass=ABCMeta):
 
 
 def cast_parameters_to(
-    *args_casts: type | Callable, **keyword_casts: type | Callable
+    *args_casts: type | Callable[[Any], Any], **keyword_casts: type | Callable[[Any], Any]
 ) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """
     A decorator to cast args and kwargs using the passed casters.

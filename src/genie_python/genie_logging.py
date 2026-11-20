@@ -70,7 +70,7 @@ class InstrumentFilter(logging.Filter):
         self.command_called = ""
         self.function_args = ""
         self.function_kwargs = ""
-        self.time_taken = 0
+        self.time_taken: float = 0
         self.exception_text = ""
         self.from_channel_access = False
 
