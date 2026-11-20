@@ -67,7 +67,7 @@ class API:
         """
         self.waitfor: WaitForController | None = None
         self.wait_for_move: WaitForMoveController | None = None
-        self.dae: Dae | None = None
+        self.dae: typing.Type[Dae, StreamingDae] | None = None
         self.dae_tp = dae
         self.blockserver: BlockServer | None = None
         self.exp_data: GetExperimentData | None = None

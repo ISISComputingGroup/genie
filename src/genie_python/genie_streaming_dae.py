@@ -47,6 +47,24 @@ DAE_PVS_LOOKUP = {
     "veto_names": "KDAECTRL:VETO:NAMES",
     "veto_sp": "KDAECTRL:VETO:SP",
     "veto_hard": "KDAECTRL:VETO:HARD",
+    # --- kafka_dae_diagnostics ----------------------------------------------
+    "starttime": "KDAEDIAG:START_TIME",
+    "runduration": "KDAEDIAG:RUNDURATION",
+    "goodframesperiod": "KDAEDIAG:GOODFRAMES_PD",
+    "goodframes": "KDAEDIAG:GOODFRAMES",
+    "rawframesperiod": "KDAEDIAG:RAWFRAMES",
+    "rawframes": "KDAEDIAG:RAWFRAMES_PD",
+    "uampsperiod": "KDAEDIAG:GOODUAH_PD",
+    "uamps": "KDAEDIAG:GOODUAH",
+    "events": "KDAEDIAG:EVENTS",
+    "mevents": "KDAEDIAG:MEVENTS",
+    "countrate": "KDAEDIAG:COUNTRATE",
+    "numspectra": "KDAEDIAG:NUMSPECTRA",
+    "numtimechannels": "KDAEDIAG:NUMTIMECHANNELS",
+    "getspectrum_x": "KDAEDIAG:SPEC:{:d}:{:d}:X",
+    "getspectrum_y": "KDAEDIAG:SPEC:{:d}:{:d}:Y",
+    "getspectrum_yc": "KDAEDIAG:SPEC:{:d}:{:d}:YC",
+    "specdata": "KDAEDIAG:SPECDATA",
     # --- experiment details -------------------------------------------------
     "rbnum": "ED:RBNUMBER",
     "rbnum_sp": "ED:RBNUMBER:SP",
@@ -519,64 +537,116 @@ class StreamingDae:
         """
         Gets the start time for the current run.
 
-        There is no start-time PV, so this reports the time at which
-        begin_run() was called in this session. It is unavailable if the run
-        was begun elsewhere.
-
-        Returns:
+        Returns
             string: the start time
-
-        Raises:
-            RuntimeError: if the run was not begun from this session
         """
-        if self._begin_time is None:
-            raise RuntimeError(
-                "Run start time is unknown; the run was not begun from this session. "
-                f"A start-time readback requires {_DIAGNOSTICS}."
-            )
-        return self._begin_time.strftime(LEGACY_STARTTIME_FORMAT)
+        return typing.cast(str, self._get_pv_value(self._get_dae_pv_name("starttime")))
 
     @require_runstate([RunState.RUNNING, RunState.PAUSED])
     def get_time_since_begin(self, get_timedelta: bool) -> float | timedelta:
         """
-        Gets the time since the start of the current run.
-
+        Gets the time since start of the current run in seconds or in datetime
         Args:
-            get_timedelta: if True return a timedelta, otherwise return seconds
-
-        Returns:
-            float | timedelta: the time since the run started
+            get_timedelta (bool): If true return the value as a datetime object,
+                                  otherwise return seconds (defaults to false)
+        Returns
+            integer: the time since start in seconds if get_datetime is False
+            datetime: the time since start in (Year-Month-Day  Hour:Minute:Second)
+                      format if get_datetime is True
         """
-        time_since_start = datetime.now() - datetime.strptime(
-            self.get_starttime(), LEGACY_STARTTIME_FORMAT
-        )
-        return time_since_start if get_timedelta else time_since_start.total_seconds()
+
+        current_time = datetime.now()
+        # Casting get_startime string to datetime object
+        datetime_object = datetime.strptime(self.get_starttime(), "%a %d-%b-%Y %H:%M:%S")
+        # Difference between current time and start time gives time since start
+        time_since_start = current_time - datetime_object
+
+        if get_timedelta:
+            return time_since_start
+        else:
+            return time_since_start.total_seconds()
 
     def get_run_duration(self, period: bool = False) -> int:
-        _unavailable(_DIAGNOSTICS, "get_run_duration")
+        """
+        Gets either the total run duration or the period duration
+
+        Args:
+            period: whether to return the duration for the current period [optional]
+
+        Returns:
+            int: the run duration in seconds
+        """
+        if period:
+            _removed("get_period_duration", "No PV under DAE Diagnostics")
+        else:
+            return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("runduration")))
 
     # ------------------------------------------------------------------
     # counters
     # ------------------------------------------------------------------
 
     def get_good_frames(self, period: bool = False) -> int:
-        _unavailable(_DIAGNOSTICS, "get_good_frames")
+        """
+        Gets the current number of good frames.
+
+        Args:
+            period: whether to get for the current period only [optional]
+
+        Returns:
+            int: the number of good frames
+        """
+        if period:
+            return typing.cast(int,self._get_pv_value(self._get_dae_pv_name("goodframesperiod")))
+        else:
+            return typing.cast(int,self._get_pv_value(self._get_dae_pv_name("goodframes")))
 
     def get_raw_frames(self, period: bool = False) -> int:
-        _unavailable(_DIAGNOSTICS, "get_raw_frames")
+        """
+        Gets the current number of raw frames.
+
+        Args:
+            period: whether to get for the current period only [optional]
+
+        Returns:
+            int: the number of raw frames
+        """
+        if period:
+            return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("rawframesperiod")))
+        else:
+            return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("rawframes")))
 
     def get_uamps(self, period: bool = False) -> float:
-        _unavailable(_DIAGNOSTICS, "get_uamps")
+        """
+        Returns the current number of micro-amp hours.
+
+        Args:
+            period: whether to return the micro-amp hours for the current period [optional]
+        """
+        if period:
+            return typing.cast(float, self._get_pv_value(self._get_dae_pv_name("uampsperiod")))
+        else:
+            return typing.cast(float, self._get_pv_value(self._get_dae_pv_name("uamps")))
 
     def get_total_uamps(self) -> float:
         _unavailable(_DIAGNOSTICS, "get_total_uamps")
 
     def get_events(self) -> int:
-        _unavailable(_DIAGNOSTICS, "get_events")
+        """
+        Gets the total number of events for all the detectors.
+
+        Returns:
+            int: the total number of events
+        """
+        return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("events")))
 
     def get_mevents(self) -> float:
-        # Needed by g.waitfor(mevents=...).
-        _unavailable(_DIAGNOSTICS, "get_mevents")
+        """
+        Gets the total number of millions of events for all the detectors.
+
+        Returns:
+            float: the total number of millions of events
+        """
+        return typing.cast(float,  self._get_pv_value(self._get_dae_pv_name("mevents")))
 
     def get_total_counts(self) -> int:
         _unavailable(_DIAGNOSTICS, "get_total_counts")
@@ -585,7 +655,13 @@ class StreamingDae:
         _unavailable(_DIAGNOSTICS, "get_total_dae_counts")
 
     def get_countrate(self) -> float:
-        _unavailable(_DIAGNOSTICS, "get_countrate")
+        """
+        Gets the count rate.
+
+        Returns:
+            float: the count rate
+        """
+        return typing.cast(float, self._get_pv_value(self._get_dae_pv_name("countrate")))
 
     def get_beam_current(self) -> float:
         _unavailable(_DIAGNOSTICS, "get_beam_current")
@@ -911,7 +987,13 @@ class StreamingDae:
         self.set_timing_source(legacy_lookup[key])
 
     def get_num_spectra(self) -> int:
-        _unavailable(_DIAGNOSTICS, "get_num_spectra")
+        """
+        Gets the number of spectra.
+
+        Returns:
+            int: the number of spectra
+        """
+        return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("numspectra")))
 
     def get_monitor_spectrum(self) -> int:
         _unavailable(_DIAGNOSTICS, "get_monitor_spectrum")
@@ -999,7 +1081,13 @@ class StreamingDae:
         _unavailable(_DIAGNOSTICS, "get_tcb_settings (see get_diagnostic_binning)")
 
     def get_num_timechannels(self) -> int:
-        _unavailable(_DIAGNOSTICS, "get_num_timechannels")
+        """
+        Gets the number of time channels.
+
+        Returns:
+            int: the number of time channels
+        """
+        return typing.cast(int, self._get_pv_value(self._get_dae_pv_name("numtimechannels")))
 
     # ------------------------------------------------------------------
     # change transaction model
@@ -1030,9 +1118,48 @@ class StreamingDae:
     # ------------------------------------------------------------------
 
     def get_spectrum(
-        self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
-    ) -> _GetspectrumReturn:
-        _unavailable(_DIAGNOSTICS, "get_spectrum")
+            self, spectrum: int, period: int = 1, dist: bool = True, use_numpy: bool | None = None
+    ) -> "_GetspectrumReturn":
+        """
+        Gets a spectrum from the DAE via a PV.
+
+        Args:
+            spectrum: the spectrum number
+            period: the period number
+            dist: True to return as a distribution (default), False to return as a histogram
+            use_numpy (None|boolean): True use numpy to return arrays, False return a list;
+                                      None for use the default
+
+        Returns:
+            dict: all the spectrum data
+        """
+        if dist:
+            y_data = self._get_pv_value(
+                self._get_dae_pv_name("getspectrum_y").format(period, spectrum), use_numpy=use_numpy
+            )
+            y_size = self._get_pv_value(
+                self._get_dae_pv_name("numtimechannels")
+            )
+            y_data = y_data[:y_size]
+            mode = "distribution"
+            x_size = y_size
+        else:
+            y_data = self._get_pv_value(
+                self._get_dae_pv_name("getspectrum_yc").format(period, spectrum),
+                use_numpy=use_numpy,
+            )
+            y_size = self._get_pv_value(
+                self._get_dae_pv_name("numtimechannels")
+            )
+            y_data = y_data[:y_size]
+            mode = "non-distribution"
+            x_size = y_size + 1
+        x_data = self._get_pv_value(
+            self._get_dae_pv_name("getspectrum_x").format(period, spectrum), use_numpy=use_numpy
+        )
+        x_data = x_data[:x_size]
+
+        return {"time": x_data, "signal": y_data, "sum": None, "mode": mode}
 
     def integrate_spectrum(
         self, spectrum: int, period: int = 1, t_min: float | None = None, t_max: float | None = None
@@ -1043,7 +1170,18 @@ class StreamingDae:
         _unavailable(_DIAGNOSTICS, "get_spec_integrals")
 
     def get_spec_data(self) -> npt.NDArray:
-        _unavailable(_DIAGNOSTICS, "get_spec_data")
+        """
+        Gets the event mode spectrum data.
+        This includes spectrum 0 and time bin 0
+
+        Returns:
+            numpy int array: the spectrum data
+        """
+        self._set_pv_value(self._get_dae_pv_name("specdata") + ".PROC", 1, wait=True)
+        data = typing.cast(
+            npt.NDArray, self._get_pv_value(self._get_dae_pv_name("specdata"), use_numpy=True)
+        )
+        return data
 
     # ------------------------------------------------------------------
     # kafka topology and stream health
