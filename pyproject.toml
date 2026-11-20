@@ -51,7 +51,7 @@ dependencies = [
   # For setting windows job-object flags
   "pywin32;platform_system=='Windows'",
   # PVValue definition
-  "ibex-non-ca-helpers@git+https://github.com/ISISComputingGroup/ibex-non-ca-helpers@pvvalue",
+  "ibex-non-ca-helpers>=0.1.1",
 ]
 
 [project.optional-dependencies]
