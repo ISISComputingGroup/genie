@@ -12,8 +12,10 @@ from typing import TYPE_CHECKING, Any
 from genie_python.block_names import BlockNames, BlockNamesManager
 from genie_python.channel_access_exceptions import UnableToConnectToPVException
 from genie_python.genie_blockserver import BlockServer
-from genie_python.genie_cachannel_wrapper import CaChannelWrapper as Wrapper
+from genie_python.genie_cachannel_wrapper import CaChannelWrapper
+from genie_p4p_wrapper import P4PWrapper
 from genie_python.genie_dae import Dae
+from genie_python.genie_streaming_dae import StreamingDae
 from genie_python.genie_experimental_data import GetExperimentData
 from genie_python.genie_logging import GenieLogger
 from genie_python.genie_logging import filter as logging_filter
@@ -52,6 +54,8 @@ class API:
         pv_prefix: str,
         globs: dict[str, Any],
         environment_details: EnvironmentDetails | None = None,
+        wrapper: typing.Type[P4PWrapper, CaChannelWrapper] = CaChannelWrapper,
+        dae: typing.Type[Dae, StreamingDae] = Dae,
     ) -> None:
         """
         Constructor for the EPICS enabled API.
@@ -64,6 +68,7 @@ class API:
         self.waitfor: WaitForController | None = None
         self.wait_for_move: WaitForMoveController | None = None
         self.dae: Dae | None = None
+        self.dae_tp = dae
         self.blockserver: BlockServer | None = None
         self.exp_data: GetExperimentData | None = None
         self.inst_prefix: str = ""
@@ -76,13 +81,14 @@ class API:
         self.logger = GenieLogger()
         self._sample_par_names_cache = None
         self._beamline_par_names_cache = None
+        self.wrapper = wrapper
 
         if environment_details is None:
             self._environment_details = EnvironmentDetails()
         else:
             self._environment_details = environment_details
 
-        Wrapper.error_log_func = self.logger.log_ca_msg
+        self.wrapper.error_log_func = self.logger.log_ca_msg
 
         # disable CA error messages to console from disconnected PVs
         import ctypes
@@ -216,7 +222,7 @@ class API:
         self.inst_prefix = pv_prefix
         self.instrument_name = instrument
         self.machine_name = machine
-        self.dae = Dae(self, pv_prefix)
+        self.dae = self.dae_tp(self, pv_prefix)
 
         try:
             self.exp_data = GetExperimentData(machine)
@@ -355,7 +361,7 @@ class API:
 
         while True:
             try:
-                Wrapper.set_pv_value(name, value, wait=wait)
+                self.wrapper.set_pv_value(name, value, wait=wait)
                 return
             except Exception as e:
                 attempts -= 1
@@ -415,7 +421,7 @@ class API:
 
         while True:
             try:
-                return Wrapper.get_pv_value(name, to_string, use_numpy=use_numpy)
+                return self.wrapper.get_pv_value(name, to_string, use_numpy=use_numpy)
             except Exception:
                 attempts -= 1
                 if attempts < 1:
@@ -438,9 +444,9 @@ class API:
         if is_local and not name.startswith(self.inst_prefix):
             name = self.prefix_pv_name(name)
         if fail_fast:
-            return Wrapper.pv_exists(name, 0)
+            return self.wrapper.pv_exists(name, 0)
         else:
-            return Wrapper.pv_exists(name)
+            return self.wrapper.pv_exists(name)
 
     def connected_pvs_in_list(self, pv_list: list[str], is_local: bool = False) -> list[str]:
         """
@@ -621,13 +627,13 @@ class API:
                 f"Current blocks are {self.get_block_names()}"
             )
 
-        field_type = Wrapper.dbf_type_to_string(Wrapper.get_chan(pv_name).field_type())
+        field_type = self.wrapper.dbf_type_to_string(self.wrapper.get_chan(pv_name).field_type())
 
         if field_type in ["DBF_STRING", "DBF_CHAR", "DBF_UCHAR", "DBF_ENUM"]:
             return None
         # Only return block units if PV field type is _not_ STRING, CHAR, UCHAR or ENUM
         # as they're unlikely to have .EGU fields
-        return typing.cast(str | None, Wrapper.get_pv_value(unit_name))
+        return typing.cast(str | None, self.wrapper.get_pv_value(unit_name))
 
     def _get_pars(
         self, pv_prefix_identifier: str, get_names_from_blockserver: Callable[[], Any]
